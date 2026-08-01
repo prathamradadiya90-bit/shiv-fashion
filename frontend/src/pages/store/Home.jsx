@@ -35,12 +35,12 @@ const Home = () => {
   };
 
   const categories = [
-    { name: 'Bridal', bgColor: '#6b1e1e', link: '/shop?category=Bridal' },
-    { name: 'Festive', bgColor: '#25634d', link: '/shop?category=Festive' },
-    { name: 'Party', bgColor: '#8a2c51', link: '/shop?category=Party' },
-    { name: 'Designer', bgColor: '#1f3d73', link: '/shop?category=Designer' },
-    { name: 'Casual', bgColor: '#bc7d4d', link: '/shop?category=Casual' },
-    { name: 'New Arrivals', bgColor: '#ac9140', link: '/shop?newArrival=true' },
+    { name: 'Bridal', bgColor: '#6b1e1e', image: 'https://images.unsplash.com/photo-1596451672692-2371973f789d?auto=format&fit=crop&q=80&w=800', link: '/shop?category=Bridal' },
+    { name: 'Festive', bgColor: '#25634d', image: 'https://images.unsplash.com/photo-1615887023516-9b5da0d69b3c?auto=format&fit=crop&q=80&w=800', link: '/shop?category=Festive' },
+    { name: 'Party', bgColor: '#8a2c51', image: 'https://images.unsplash.com/photo-1583391733958-d25e07fac04f?auto=format&fit=crop&q=80&w=800', link: '/shop?category=Party' },
+    { name: 'Designer', bgColor: '#1f3d73', image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=800', link: '/shop?category=Designer' },
+    { name: 'Casual', bgColor: '#bc7d4d', image: 'https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?auto=format&fit=crop&q=80&w=800', link: '/shop?category=Casual' },
+    { name: 'New Arrivals', bgColor: '#ac9140', image: 'https://images.unsplash.com/photo-1621008688849-ce123f1bd06b?auto=format&fit=crop&q=80&w=800', link: '/shop?newArrival=true' },
   ];
 
   const features = [
@@ -111,26 +111,67 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Categories Section (From Screenshot 3) */}
-      <section className="py-20 bg-accent">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 lg:gap-8">
+      {/* Categories Section (Traditional Redesign) */}
+      <section className="py-24 bg-accent relative overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] opacity-[0.03] pointer-events-none transform translate-x-1/3 -translate-y-1/3">
+          <svg viewBox="0 0 100 100" className="w-full h-full animate-[spin_200s_linear_infinite]"><path fill="#D4AF37" d="M50 0 L100 50 L50 100 L0 50 Z"/></svg>
+        </div>
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] opacity-[0.03] pointer-events-none transform -translate-x-1/3 translate-y-1/3">
+          <svg viewBox="0 0 100 100" className="w-full h-full animate-[spin_150s_linear_infinite_reverse]"><circle cx="50" cy="50" r="40" fill="none" stroke="#D4AF37" strokeWidth="2" strokeDasharray="5,5"/></svg>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold font-heading text-[#2a0812] uppercase tracking-[0.2em] mb-4 drop-shadow-sm">
+              Curated Collections
+            </h2>
+            <div className="flex items-center justify-center gap-4">
+              <div className="h-[2px] w-12 md:w-24 bg-gradient-to-r from-transparent to-[#D4AF37]"></div>
+              <p className="text-[#D4AF37] font-serif text-2xl md:text-3xl" style={{ fontFamily: "'Great Vibes', cursive" }}>Discover your perfect style</p>
+              <div className="h-[2px] w-12 md:w-24 bg-gradient-to-l from-transparent to-[#D4AF37]"></div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
             {categories.map((category) => (
               <Link
                 key={category.name}
                 to={category.link}
-                className="group block relative h-56 rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
-                style={{ backgroundColor: category.bgColor }}
+                className="group block relative h-[320px] rounded overflow-hidden shadow-lg transition-all duration-500 hover:shadow-2xl"
               >
-                {/* Thin inner border */}
-                <div className="absolute inset-3 rounded border border-white/20 group-hover:border-white/40 transition-colors duration-300">
-                  {/* Plus pattern watermark */}
-                  <div className="w-full h-full opacity-10" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+                {/* Background Image */}
+                <div 
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-[1.5s] ease-out group-hover:scale-110"
+                  style={{ backgroundImage: `url(${category.image})` }}
+                ></div>
+                
+                {/* Overlay with primary color and gradient */}
+                <div 
+                  className="absolute inset-0 transition-opacity duration-500 opacity-70 group-hover:opacity-40"
+                  style={{ backgroundColor: category.bgColor }}
+                ></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1a050b]/90 via-[#1a050b]/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-500"></div>
+
+                {/* Decorative border that animates on hover */}
+                <div className="absolute inset-4 md:inset-5 border border-[#D4AF37]/40 transition-all duration-500 group-hover:border-[#D4AF37]/90 group-hover:inset-3 z-10 pointer-events-none">
+                  {/* Corner accents */}
+                  <div className="absolute -top-1 -left-1 w-2 h-2 bg-[#D4AF37] transition-all duration-500 group-hover:scale-[1.5]"></div>
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-[#D4AF37] transition-all duration-500 group-hover:scale-[1.5]"></div>
+                  <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-[#D4AF37] transition-all duration-500 group-hover:scale-[1.5]"></div>
+                  <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-[#D4AF37] transition-all duration-500 group-hover:scale-[1.5]"></div>
                 </div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <h3 className="text-3xl font-medium text-white font-heading tracking-wide group-hover:scale-105 transition-transform duration-500">
+
+                {/* Content */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-20">
+                  <h3 className="text-3xl md:text-4xl font-bold text-white font-heading tracking-[0.15em] uppercase drop-shadow-xl group-hover:-translate-y-3 transition-transform duration-500 ease-out">
                     {category.name}
                   </h3>
+                  <div className="mt-4 opacity-0 transform translate-y-4 transition-all duration-500 ease-out group-hover:opacity-100 group-hover:translate-y-0">
+                    <span className="text-[#D4AF37] font-serif text-2xl drop-shadow-md" style={{ fontFamily: "'Great Vibes', cursive" }}>
+                      Shop Now
+                    </span>
+                  </div>
                 </div>
               </Link>
             ))}
