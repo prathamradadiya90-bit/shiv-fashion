@@ -11,17 +11,8 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    const allowedOrigins = [
-      process.env.FRONTEND_URL,
-      'http://localhost:5173',
-      'https://frontend-self-seven-q2qagi0lqa.vercel.app'
-    ];
-    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    // Allow all origins
+    callback(null, true);
   },
   credentials: true
 }));
