@@ -8,17 +8,17 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#8B3A3A', // Royal Maroon from reference
-          light: '#A34B4B',
-          dark: '#6B2C2C',
+          DEFAULT: '#7A2222', // Deep Maroon from screenshots
+          light: '#942D2D',
+          dark: '#591616',
         },
         secondary: {
-          DEFAULT: '#D4AF37', // Primary Gold from reference
-          light: '#E5C45B',
-          dark: '#B5952F',
+          DEFAULT: '#C59D5F', // Gold from screenshots
+          light: '#DAB882',
+          dark: '#A67F47',
         },
         accent: {
-          DEFAULT: '#F9F7F4', // Light gray from reference
+          DEFAULT: '#FAF8F5', // Warm Cream from screenshots
         }
       },
       fontFamily: {
