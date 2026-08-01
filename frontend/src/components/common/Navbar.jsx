@@ -11,6 +11,7 @@ const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const logoutHandler = async () => {
     try {
@@ -50,8 +51,6 @@ const Navbar = () => {
           <nav className="hidden md:flex items-center gap-8">
             <Link to="/" className="text-sm font-semibold text-gray-800 hover:text-primary transition-colors">Home</Link>
             <Link to="/shop" className="text-sm font-semibold text-gray-800 hover:text-primary transition-colors">Shop</Link>
-            <Link to="/shop?category=Bridal" className="text-sm font-semibold text-gray-800 hover:text-primary transition-colors">Bridal</Link>
-            <Link to="/shop?category=Festive" className="text-sm font-semibold text-gray-800 hover:text-primary transition-colors">Festive</Link>
             <Link to="/track-order" className="text-sm font-semibold text-gray-800 hover:text-primary transition-colors">Track Order</Link>
             <Link to="/about" className="text-sm font-semibold text-gray-800 hover:text-primary transition-colors">About</Link>
             <Link to="/contact" className="text-sm font-semibold text-gray-800 hover:text-primary transition-colors">Contact</Link>
@@ -114,11 +113,25 @@ const Navbar = () => {
               )}
             </Link>
             
-            <button className="md:hidden text-gray-800 hover:text-primary transition-colors">
+            <button 
+              className="md:hidden text-gray-800 hover:text-primary transition-colors"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
               <Menu className="w-5 h-5" />
             </button>
           </div>
         </div>
+
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <nav className="md:hidden py-4 border-t border-gray-100 flex flex-col space-y-4">
+            <Link to="/" className="text-sm font-semibold text-gray-800 hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Home</Link>
+            <Link to="/shop" className="text-sm font-semibold text-gray-800 hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Shop</Link>
+            <Link to="/track-order" className="text-sm font-semibold text-gray-800 hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Track Order</Link>
+            <Link to="/about" className="text-sm font-semibold text-gray-800 hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>About</Link>
+            <Link to="/contact" className="text-sm font-semibold text-gray-800 hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
+          </nav>
+        )}
       </div>
     </header>
   );

@@ -22,7 +22,9 @@ import Profile from './pages/store/Profile';
 import MyOrders from './pages/store/MyOrders';
 import Wishlist from './pages/store/Wishlist';
 import TrackOrder from './pages/store/TrackOrder';
-
+import About from './pages/store/About';
+import PrivacyPolicy from './pages/store/PrivacyPolicy';
+import Terms from './pages/store/Terms';
 import StoreLayout from './components/store/StoreLayout';
 import AdminLayout from './components/admin/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
@@ -55,6 +57,10 @@ function App() {
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
           <Route path="track-order" element={<TrackOrder />} />
+          <Route path="about" element={<About />} />
+          <Route path="faq" element={<About />} />
+          <Route path="privacy" element={<PrivacyPolicy />} />
+          <Route path="terms" element={<Terms />} />
         </Route>
 
         {/* Admin Routes */}
