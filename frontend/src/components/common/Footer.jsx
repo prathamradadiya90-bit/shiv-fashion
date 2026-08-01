@@ -85,18 +85,18 @@ const Footer = () => {
       {/* Bottom Bar */}
       <div className="bg-primary-dark border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/80">
-            <div className="flex items-center gap-6 flex-wrap justify-center">
-              <span className="flex items-center gap-2">🔒 Secure Payments via Razorpay</span>
-              <span className="text-secondary">✦</span>
-              <span className="flex items-center gap-2">🚚 Pan-India Shipping</span>
-              <span className="text-secondary">✦</span>
-              <span className="flex items-center gap-2">💳 COD Available (₹500 Advance)</span>
-              <span className="text-secondary">✦</span>
-              <span className="flex items-center gap-2">↩️ Easy Returns</span>
+          <div className="flex flex-col xl:flex-row justify-between items-center gap-6 text-xs text-white/80">
+            <div className="flex items-center gap-x-3 gap-y-3 flex-wrap justify-center xl:justify-start">
+              <span className="flex items-center gap-1.5 whitespace-nowrap">🔒 Secure Payments via Razorpay</span>
+              <span className="text-secondary hidden sm:inline">✦</span>
+              <span className="flex items-center gap-1.5 whitespace-nowrap">🚚 Pan-India Shipping</span>
+              <span className="text-secondary hidden sm:inline">✦</span>
+              <span className="flex items-center gap-1.5 whitespace-nowrap">💳 COD Available (₹500 Advance)</span>
+              <span className="text-secondary hidden sm:inline">✦</span>
+              <span className="flex items-center gap-1.5 whitespace-nowrap">↩️ Easy Returns</span>
             </div>
-            <div className="text-center md:text-right">
-              &copy; {new Date().getFullYear()} Shiv Fashion. All rights reserved. | Crafted with royal elegance.
+            <div className="text-center xl:text-right flex-shrink-0">
+              &copy; {new Date().getFullYear()} Shiv Fashion. All rights reserved. <span className="hidden sm:inline">|</span><br className="sm:hidden" /> Crafted with royal elegance.
             </div>
           </div>
         </div>
