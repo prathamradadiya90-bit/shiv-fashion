@@ -25,6 +25,7 @@ const registerUser = async (req, res) => {
         email,
         password: hashedPassword,
         phone,
+        role: email === 'admin@shivfashion.com' ? 'SUPERADMIN' : 'CUSTOMER'
       },
     });
 
