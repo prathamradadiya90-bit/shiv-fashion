@@ -21,6 +21,7 @@ import Order from './pages/store/Order';
 import Profile from './pages/store/Profile';
 import MyOrders from './pages/store/MyOrders';
 import Wishlist from './pages/store/Wishlist';
+import TrackOrder from './pages/store/TrackOrder';
 
 import StoreLayout from './components/store/StoreLayout';
 import AdminLayout from './components/admin/AdminLayout';
@@ -53,6 +54,7 @@ function App() {
           <Route path="wishlist" element={<Wishlist />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+          <Route path="track-order" element={<TrackOrder />} />
         </Route>
 
         {/* Admin Routes */}

@@ -55,6 +55,7 @@ const Navbar = () => {
               </div>
             </div>
             <Link to="/contact" className="text-gray-700 hover:text-primary font-medium transition-colors">Contact Us</Link>
+            <Link to="/track-order" className="text-gray-700 hover:text-primary font-medium transition-colors">Track Order</Link>
           </nav>
 
           {/* Icons */}
