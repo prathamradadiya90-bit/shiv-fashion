@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { ShoppingCart, User, Search, Menu, LogOut, LayoutDashboard, Heart } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu, LogOut, LayoutDashboard, Heart, ChevronDown } from 'lucide-react';
 import { logout } from '../../store/slices/authSlice';
 import api from '../../services/api';
 
@@ -41,9 +41,20 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex space-x-8 items-center">
             <Link to="/" className="text-gray-700 hover:text-primary font-medium transition-colors">Home</Link>
             <Link to="/shop" className="text-gray-700 hover:text-primary font-medium transition-colors">Shop</Link>
+            <div className="relative group">
+              <button className="text-gray-700 hover:text-primary font-medium transition-colors flex items-center">
+                Categories <ChevronDown size={16} className="ml-1" />
+              </button>
+              <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                {['Bridal Wear', 'Navratri Special', 'Party Wear', 'Casual Print'].map((cat, i) => (
+                  <Link key={i} to={`/shop?category=${encodeURIComponent(cat)}`} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{cat}</Link>
+                ))}
+              </div>
+            </div>
+            <Link to="/contact" className="text-gray-700 hover:text-primary font-medium transition-colors">Contact Us</Link>
           </nav>
 
           {/* Icons */}

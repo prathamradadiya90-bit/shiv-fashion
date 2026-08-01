@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, ChevronDown, Search, Heart } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 
@@ -8,6 +8,12 @@ const Shop = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedPrices, setSelectedPrices] = useState([]);
+  
+  const location = useLocation();
+  const navigate = useNavigate();
+  const queryParams = new URLSearchParams(location.search);
+  const categoryParam = queryParams.get('category');
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -33,10 +39,37 @@ const Shop = () => {
     }
   };
 
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    p.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleClearAll = () => {
+    setSearchTerm('');
+    setSelectedPrices([]);
+    if (categoryParam) {
+      navigate('/shop');
+    }
+  };
+
+  const handlePriceChange = (priceStr) => {
+    setSelectedPrices(prev => 
+      prev.includes(priceStr) ? prev.filter(p => p !== priceStr) : [...prev, priceStr]
+    );
+  };
+
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryParam ? p.category === categoryParam : true;
+    
+    let matchesPrice = true;
+    if (selectedPrices.length > 0) {
+      matchesPrice = selectedPrices.some(priceRange => {
+        if (priceRange === 'Under ₹2,000') return p.price < 2000;
+        if (priceRange === '₹2,000 - ₹5,000') return p.price >= 2000 && p.price <= 5000;
+        if (priceRange === '₹5,000 - ₹10,000') return p.price >= 5000 && p.price <= 10000;
+        if (priceRange === 'Above ₹10,000') return p.price > 10000;
+        return true;
+      });
+    }
+
+    return matchesSearch && matchesCategory && matchesPrice;
+  });
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -64,22 +97,7 @@ const Shop = () => {
           <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 sticky top-24">
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
               <h3 className="font-bold text-lg flex items-center"><Filter size={18} className="mr-2"/> Filters</h3>
-              <button className="text-sm text-primary hover:underline">Clear All</button>
-            </div>
-
-            {/* Category Filter */}
-            <div className="mb-6">
-              <h4 className="font-semibold mb-3 flex items-center justify-between">
-                Category <ChevronDown size={16}/>
-              </h4>
-              <div className="space-y-2">
-                {['Bridal Wear', 'Navratri Special', 'Party Wear', 'Casual Print'].map((cat, i) => (
-                  <label key={i} className="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer">
-                    <input type="checkbox" className="rounded text-primary focus:ring-primary" />
-                    <span>{cat}</span>
-                  </label>
-                ))}
-              </div>
+              <button onClick={handleClearAll} className="text-sm text-primary hover:underline">Clear All</button>
             </div>
 
             {/* Price Filter */}
@@ -90,7 +108,12 @@ const Shop = () => {
               <div className="space-y-2">
                 {['Under ₹2,000', '₹2,000 - ₹5,000', '₹5,000 - ₹10,000', 'Above ₹10,000'].map((price, i) => (
                   <label key={i} className="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer">
-                    <input type="checkbox" className="rounded text-primary focus:ring-primary" />
+                    <input 
+                      type="checkbox" 
+                      className="rounded text-primary focus:ring-primary" 
+                      checked={selectedPrices.includes(price)}
+                      onChange={() => handlePriceChange(price)}
+                    />
                     <span>{price}</span>
                   </label>
                 ))}

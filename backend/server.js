@@ -27,6 +27,7 @@ app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/coupons', require('./routes/couponRoutes'));
 app.use('/api/stats', require('./routes/statsRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
+app.use('/api/contact', require('./routes/contactRoutes'));
 
 // Ensure uploads directory exists (use /tmp on Vercel)
 const fs = require('fs');
