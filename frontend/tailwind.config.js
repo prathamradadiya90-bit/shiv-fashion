@@ -8,17 +8,17 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#800020', // Deep maroon
-          light: '#a61c3a',
-          dark: '#5a0015',
+          DEFAULT: '#8B3A3A', // Royal Maroon from reference
+          light: '#A34B4B',
+          dark: '#6B2C2C',
         },
         secondary: {
-          DEFAULT: '#FFD700', // Gold
-          light: '#ffea70',
-          dark: '#ccac00',
+          DEFAULT: '#D4AF37', // Primary Gold from reference
+          light: '#E5C45B',
+          dark: '#B5952F',
         },
         accent: {
-          DEFAULT: '#FFFDD0', // Cream
+          DEFAULT: '#F9F7F4', // Light gray from reference
         }
       },
       fontFamily: {
