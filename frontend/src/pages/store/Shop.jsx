@@ -1,0 +1,169 @@
+import React, { useState, useEffect } from 'react';
+import { Filter, ChevronDown, Search, Heart } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import api from '../../services/api';
+
+const Shop = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const { data } = await api.get('/products');
+        setProducts(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const toggleWishlist = async (e, id) => {
+    e.preventDefault(); // Prevent navigating to product details
+    try {
+      const { data } = await api.post(`/products/${id}/wishlist`);
+      toast.success(data.message);
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Please login to use wishlist');
+    }
+  };
+
+  const filteredProducts = products.filter(p => 
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    p.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* Page Header */}
+      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-3xl font-heading font-bold text-primary mb-2">Shop Collection</h1>
+          <p className="text-gray-600">Discover our authentic and premium range of Chaniya Cholis.</p>
+        </div>
+        <div className="mt-4 md:mt-0 relative w-full md:w-72">
+          <input 
+            type="text" 
+            placeholder="Search products..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+          />
+          <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-8">
+        {/* Sidebar Filters */}
+        <div className="w-full md:w-64 flex-shrink-0">
+          <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 sticky top-24">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+              <h3 className="font-bold text-lg flex items-center"><Filter size={18} className="mr-2"/> Filters</h3>
+              <button className="text-sm text-primary hover:underline">Clear All</button>
+            </div>
+
+            {/* Category Filter */}
+            <div className="mb-6">
+              <h4 className="font-semibold mb-3 flex items-center justify-between">
+                Category <ChevronDown size={16}/>
+              </h4>
+              <div className="space-y-2">
+                {['Bridal Wear', 'Navratri Special', 'Party Wear', 'Casual Print'].map((cat, i) => (
+                  <label key={i} className="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer">
+                    <input type="checkbox" className="rounded text-primary focus:ring-primary" />
+                    <span>{cat}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Price Filter */}
+            <div className="mb-6">
+              <h4 className="font-semibold mb-3 flex items-center justify-between">
+                Price <ChevronDown size={16}/>
+              </h4>
+              <div className="space-y-2">
+                {['Under ₹2,000', '₹2,000 - ₹5,000', '₹5,000 - ₹10,000', 'Above ₹10,000'].map((price, i) => (
+                  <label key={i} className="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer">
+                    <input type="checkbox" className="rounded text-primary focus:ring-primary" />
+                    <span>{price}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Product Grid */}
+        <div className="flex-grow">
+          {/* Top Bar */}
+          <div className="flex justify-between items-center mb-6 bg-white p-3 rounded-lg shadow-sm border border-gray-100">
+            <span className="text-sm text-gray-500">Showing {filteredProducts.length} products</span>
+            <select className="text-sm border-gray-300 rounded-md focus:ring-primary focus:border-primary p-1">
+              <option>Sort by Latest</option>
+              <option>Sort by Price: Low to High</option>
+              <option>Sort by Price: High to Low</option>
+            </select>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {loading ? (
+              <p>Loading products...</p>
+            ) : filteredProducts.length === 0 ? (
+              <p>No products found.</p>
+            ) : (
+              filteredProducts.map((item) => (
+                <Link to={`/product/${item.id}`} key={item.id} className="card group block">
+                  <div className="relative h-72 overflow-hidden">
+                    <img 
+                      src={item.images?.[0]?.url || `https://source.unsplash.com/random/400x500/?chaniya,choli,${item.id}`}
+                      alt={item.name} 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    {item.discount > 0 && (
+                      <div className="absolute top-3 left-3 bg-secondary text-primary-dark text-xs font-bold px-2 py-1 rounded z-20">
+                        {item.discount}% OFF
+                      </div>
+                    )}
+                    <button 
+                      onClick={(e) => toggleWishlist(e, item.id)}
+                      className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-sm text-gray-400 hover:text-red-500 z-20 transition"
+                    >
+                      <Heart size={18} />
+                    </button>
+                    <div className="absolute inset-0 z-10"></div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="text-md font-bold text-gray-800 mb-1 truncate group-hover:text-primary transition-colors">{item.name}</h3>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="font-bold text-primary">₹{item.price}</span>
+                      <button className="text-xs bg-primary text-white px-3 py-1.5 rounded hover:bg-primary-dark transition-colors">
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+          
+          {/* Pagination */}
+          <div className="mt-12 flex justify-center space-x-2">
+            <button className="px-4 py-2 border rounded-md text-gray-600 hover:bg-primary hover:text-white transition-colors">Prev</button>
+            <button className="px-4 py-2 border rounded-md bg-primary text-white">1</button>
+            <button className="px-4 py-2 border rounded-md text-gray-600 hover:bg-primary hover:text-white transition-colors">2</button>
+            <button className="px-4 py-2 border rounded-md text-gray-600 hover:bg-primary hover:text-white transition-colors">3</button>
+            <button className="px-4 py-2 border rounded-md text-gray-600 hover:bg-primary hover:text-white transition-colors">Next</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Shop;
