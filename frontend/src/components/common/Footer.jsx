@@ -23,9 +23,9 @@ const Footer = () => {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(128,0,32,0.15),_transparent_50%)] pointer-events-none"></div>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(128,0,32,0.1),_transparent_50%)] pointer-events-none"></div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6 mb-8">
           
           {/* Brand Section */}
           <div className="col-span-1 lg:pr-6">
@@ -104,7 +104,7 @@ const Footer = () => {
                   <MapPin className="w-4 h-4 text-[#D4AF37]" />
                 </div>
                 <p className="text-white/70 leading-relaxed pt-1">
-                  <a href="https://maps.google.com/?q=G-14,+16,+Old+Bombay+Market,+Surat,+Gujarat+395010" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4AF37] transition-colors duration-300">
+                  <a href="https://maps.google.com/?q=G-14,+16,+Old+Bombay+Market,+Surat,+Gujarat+395010" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors duration-300">
                     G-14, 16, Old Bombay Market,<br/>Surat, Gujarat 395010
                   </a>
                 </p>
@@ -128,24 +128,24 @@ const Footer = () => {
 
       {/* Bottom Bar */}
       <div className="bg-[#1a050b] border-t border-white/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col xl:flex-row justify-between items-center gap-6 text-xs text-white/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col xl:flex-row justify-between items-center gap-4 text-xs text-white/60">
             
             {/* Features list */}
             <div className="flex items-center gap-x-5 gap-y-3 flex-wrap justify-center xl:justify-start">
-              <Link to="/terms" className="flex items-center gap-2 whitespace-nowrap hover:text-[#D4AF37] transition-colors cursor-pointer group">
+              <Link to="/terms" className="flex items-center gap-2 whitespace-nowrap hover:text-white transition-colors cursor-pointer group">
                 <ShieldCheck className="w-4 h-4 text-[#D4AF37] group-hover:scale-110 transition-transform duration-300" /> Secure Payments
               </Link>
               <span className="text-white/20 hidden sm:inline">|</span>
-              <Link to="/shipping" className="flex items-center gap-2 whitespace-nowrap hover:text-[#D4AF37] transition-colors cursor-pointer group">
+              <Link to="/shipping" className="flex items-center gap-2 whitespace-nowrap hover:text-white transition-colors cursor-pointer group">
                 <Truck className="w-4 h-4 text-[#D4AF37] group-hover:scale-110 transition-transform duration-300" /> Pan-India Shipping
               </Link>
               <span className="text-white/20 hidden md:inline">|</span>
-              <Link to="/terms" className="flex items-center gap-2 whitespace-nowrap hover:text-[#D4AF37] transition-colors cursor-pointer group">
+              <Link to="/terms" className="flex items-center gap-2 whitespace-nowrap hover:text-white transition-colors cursor-pointer group">
                 <CreditCard className="w-4 h-4 text-[#D4AF37] group-hover:scale-110 transition-transform duration-300" /> COD Available (₹500 Advance)
               </Link>
               <span className="text-white/20 hidden lg:inline">|</span>
-              <Link to="/returns" className="flex items-center gap-2 whitespace-nowrap hover:text-[#D4AF37] transition-colors cursor-pointer group">
+              <Link to="/returns" className="flex items-center gap-2 whitespace-nowrap hover:text-white transition-colors cursor-pointer group">
                 <RefreshCw className="w-4 h-4 text-[#D4AF37] group-hover:scale-110 transition-transform duration-300" /> Easy Returns
               </Link>
             </div>

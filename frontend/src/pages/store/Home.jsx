@@ -52,42 +52,61 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-accent">
       {/* Hero Section */}
-      <section className="relative h-[80vh] min-h-[600px] overflow-hidden flex items-center justify-center">
-        {/* Background Gradient matching Screenshot 1 */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-r from-[#6b1e1e] via-[#4d3333] to-[#25634d]">
-          {/* Subtle Mandala/Geometric Pattern */}
-          <div className="absolute right-[-10%] top-1/2 -translate-y-1/2 w-[800px] h-[800px] opacity-20 pointer-events-none">
-            <svg viewBox="0 0 100 100" className="w-full h-full animate-[spin_60s_linear_infinite]">
-              {[...Array(12)].map((_, i) => (
-                <ellipse key={i} cx="50" cy="50" rx="40" ry="10" fill="none" stroke="#D4AF37" strokeWidth="0.5" transform={`rotate(${i * 15} 50 50)`} />
+      <section className="relative h-[90vh] min-h-[600px] overflow-hidden flex items-center justify-center bg-[#2a0812]">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 z-0 opacity-40 bg-cover bg-center bg-no-repeat transition-transform duration-[30s] ease-linear scale-110 animate-[pulse_20s_ease-in-out_infinite]"
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=2000&auto=format&fit=crop')" }}
+        ></div>
+        
+        {/* Rich Gradient Overlay */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#3a0813]/90 via-[#2a0812]/80 to-[#1a050b]/95"></div>
+        
+        {/* Decorative Golden Border */}
+        <div className="absolute inset-6 md:inset-8 border border-[#D4AF37]/20 pointer-events-none z-10 hidden md:block">
+          <div className="absolute -top-1 -left-1 w-2 h-2 bg-[#D4AF37]/70"></div>
+          <div className="absolute -top-1 -right-1 w-2 h-2 bg-[#D4AF37]/70"></div>
+          <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-[#D4AF37]/70"></div>
+          <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-[#D4AF37]/70"></div>
+        </div>
+
+        {/* Central Mandala SVG */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] opacity-15 pointer-events-none z-0">
+            <svg viewBox="0 0 100 100" className="w-full h-full animate-[spin_120s_linear_infinite]">
+              {[...Array(24)].map((_, i) => (
+                <ellipse key={i} cx="50" cy="50" rx="45" ry="6" fill="none" stroke="#D4AF37" strokeWidth="0.2" transform={`rotate(${i * 15} 50 50)`} />
               ))}
-              <circle cx="50" cy="50" r="20" fill="none" stroke="#D4AF37" strokeWidth="0.5" />
+              <circle cx="50" cy="50" r="32" fill="none" stroke="#D4AF37" strokeWidth="0.2" strokeDasharray="1,1" />
+              <circle cx="50" cy="50" r="22" fill="none" stroke="#D4AF37" strokeWidth="0.3" />
             </svg>
-          </div>
         </div>
         
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <button className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 backdrop-blur transition">
-             <ArrowRight className="w-6 h-6 rotate-180" />
-          </button>
-
-          <div className="text-center px-4">
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-4 drop-shadow-lg font-heading tracking-wide">
-              Shiv Fashion
-            </h1>
-            <p className="text-xl md:text-2xl text-secondary mb-10 drop-shadow-md font-medium tracking-widest uppercase">
-              Premium Lehenga Choli
-            </p>
-            <button 
-              onClick={() => navigate('/shop')}
-              className="inline-flex items-center gap-2 px-10 py-4 text-primary font-bold rounded hover:bg-white/90 transition bg-white shadow-xl uppercase tracking-widest text-sm"
-            >
-              Explore Collection
-            </button>
+        <div className="relative z-20 w-full max-w-5xl mx-auto px-4 flex flex-col items-center justify-center text-center">
+          <div className="mb-4 animate-fade-in" style={{ animationDelay: '0.2s', opacity: 0 }}>
+            <span className="text-[#D4AF37] font-serif text-4xl md:text-6xl" style={{ fontFamily: "'Great Vibes', cursive" }}>
+              Royal Heritage
+            </span>
           </div>
-
-          <button className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 backdrop-blur transition">
-             <ArrowRight className="w-6 h-6" />
+          
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 drop-shadow-2xl font-heading tracking-[0.1em] uppercase animate-fade-in" style={{ animationDelay: '0.4s', opacity: 0 }}>
+            Shiv Fashion
+          </h1>
+          
+          <div className="flex items-center justify-center gap-4 mb-10 animate-fade-in" style={{ animationDelay: '0.6s', opacity: 0 }}>
+            <div className="h-px w-12 md:w-24 bg-gradient-to-r from-transparent to-[#D4AF37]/70"></div>
+            <p className="text-sm md:text-lg text-white/90 drop-shadow-md font-light tracking-[0.3em] uppercase">
+              Premium Lehenga Cholis
+            </p>
+            <div className="h-px w-12 md:w-24 bg-gradient-to-l from-transparent to-[#D4AF37]/70"></div>
+          </div>
+          
+          <button 
+            onClick={() => navigate('/shop')}
+            className="group relative inline-flex items-center justify-center gap-3 px-10 py-4 font-medium text-white transition-all duration-500 ease-in-out bg-transparent border border-[#D4AF37]/60 hover:bg-[#D4AF37] hover:border-[#D4AF37] hover:text-[#1a050b] tracking-[0.2em] uppercase text-xs md:text-sm animate-fade-in"
+            style={{ animationDelay: '0.8s', opacity: 0 }}
+          >
+            <span>Explore Collection</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
       </section>

@@ -14,6 +14,8 @@ import ContactUs from './pages/store/ContactUs';
 import ProductDetails from './pages/store/ProductDetails';
 import Login from './pages/store/Login';
 import Register from './pages/store/Register';
+import ForgotPassword from './pages/store/ForgotPassword';
+import ResetPassword from './pages/store/ResetPassword';
 import Cart from './pages/store/Cart';
 import Shipping from './pages/store/Shipping';
 import PlaceOrder from './pages/store/PlaceOrder';
@@ -57,6 +59,8 @@ function App() {
           <Route path="wishlist" element={<Wishlist />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="reset-password/:token" element={<ResetPassword />} />
           <Route path="track-order" element={<TrackOrder />} />
           <Route path="about" element={<About />} />
           <Route path="faq" element={<About />} />
