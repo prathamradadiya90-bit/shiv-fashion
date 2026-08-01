@@ -25,12 +25,18 @@ const Home = () => {
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <section className="relative h-[80vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-primary/20 z-10"></div>
-        <img 
-          src="https://images.unsplash.com/photo-1583391733958-d15fa8452dc8?q=80&w=2000&auto=format&fit=crop" 
-          alt="Traditional Indian Wear" 
+        <div className="absolute inset-0 bg-primary/40 z-10"></div>
+        <video 
+          autoPlay 
+          loop 
+          muted 
+          playsInline
           className="absolute inset-0 w-full h-full object-cover"
-        />
+          poster="https://images.unsplash.com/photo-1583391733958-d15fa8452dc8?q=80&w=2000&auto=format&fit=crop"
+        >
+          {/* Note: Placeholder fashion video. Replace src with your actual chaniya choli video URL */}
+          <source src="https://videos.pexels.com/video-files/8538234/8538234-hd_1920_1080_25fps.mp4" type="video/mp4" />
+        </video>
         <div className="relative z-20 text-center px-4 max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-7xl font-heading font-bold text-white mb-6 drop-shadow-lg">
             Elegance in Every Thread
