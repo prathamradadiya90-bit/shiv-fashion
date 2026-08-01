@@ -89,7 +89,11 @@ const Footer = () => {
                 <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-[#D4AF37]/10 group-hover:text-[#D4AF37] transition-colors duration-300">
                   <MapPin className="w-4 h-4 text-[#D4AF37]" />
                 </div>
-                <p className="text-white/70 leading-relaxed pt-1">G-14, 16, Old Bombay Market,<br/>Surat, Gujarat 395010</p>
+                <p className="text-white/70 leading-relaxed pt-1">
+                  <a href="https://maps.google.com/?q=G-14,+16,+Old+Bombay+Market,+Surat,+Gujarat+395010" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4AF37] transition-colors duration-300">
+                    G-14, 16, Old Bombay Market,<br/>Surat, Gujarat 395010
+                  </a>
+                </p>
               </div>
               <div className="flex items-center gap-4 text-sm group">
                 <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-[#D4AF37]/10 group-hover:text-[#D4AF37] transition-colors duration-300">
@@ -115,21 +119,21 @@ const Footer = () => {
             
             {/* Features list */}
             <div className="flex items-center gap-x-5 gap-y-3 flex-wrap justify-center xl:justify-start">
-              <span className="flex items-center gap-2 whitespace-nowrap hover:text-white transition-colors cursor-default">
-                <ShieldCheck className="w-4 h-4 text-[#D4AF37]" /> Secure Payments
-              </span>
+              <Link to="/terms" className="flex items-center gap-2 whitespace-nowrap hover:text-[#D4AF37] transition-colors cursor-pointer group">
+                <ShieldCheck className="w-4 h-4 text-[#D4AF37] group-hover:scale-110 transition-transform duration-300" /> Secure Payments
+              </Link>
               <span className="text-white/20 hidden sm:inline">|</span>
-              <span className="flex items-center gap-2 whitespace-nowrap hover:text-white transition-colors cursor-default">
-                <Truck className="w-4 h-4 text-[#D4AF37]" /> Pan-India Shipping
-              </span>
+              <Link to="/shipping" className="flex items-center gap-2 whitespace-nowrap hover:text-[#D4AF37] transition-colors cursor-pointer group">
+                <Truck className="w-4 h-4 text-[#D4AF37] group-hover:scale-110 transition-transform duration-300" /> Pan-India Shipping
+              </Link>
               <span className="text-white/20 hidden md:inline">|</span>
-              <span className="flex items-center gap-2 whitespace-nowrap hover:text-white transition-colors cursor-default">
-                <CreditCard className="w-4 h-4 text-[#D4AF37]" /> COD Available (₹500 Advance)
-              </span>
+              <Link to="/terms" className="flex items-center gap-2 whitespace-nowrap hover:text-[#D4AF37] transition-colors cursor-pointer group">
+                <CreditCard className="w-4 h-4 text-[#D4AF37] group-hover:scale-110 transition-transform duration-300" /> COD Available (₹500 Advance)
+              </Link>
               <span className="text-white/20 hidden lg:inline">|</span>
-              <span className="flex items-center gap-2 whitespace-nowrap hover:text-white transition-colors cursor-default">
-                <RefreshCw className="w-4 h-4 text-[#D4AF37]" /> Easy Returns
-              </span>
+              <Link to="/returns" className="flex items-center gap-2 whitespace-nowrap hover:text-[#D4AF37] transition-colors cursor-pointer group">
+                <RefreshCw className="w-4 h-4 text-[#D4AF37] group-hover:scale-110 transition-transform duration-300" /> Easy Returns
+              </Link>
             </div>
 
             {/* Copyright */}
