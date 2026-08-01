@@ -1,9 +1,24 @@
 import React from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Package, ShoppingBag, Users, Tag, Settings, LogOut, Mail } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { logout } from '../../store/slices/authSlice';
+import api from '../../services/api';
 
 const AdminLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const logoutHandler = async () => {
+    try {
+      await api.post('/auth/logout');
+      dispatch(logout());
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   const navItems = [
     { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} /> },
@@ -20,7 +35,7 @@ const AdminLayout = () => {
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
         <div className="h-20 flex items-center px-6 border-b border-gray-200">
-          <h1 className="text-2xl font-heading font-bold text-primary">Shiv Admin</h1>
+          <Link to="/" className="text-2xl font-heading font-bold text-primary">Shiv Admin</Link>
         </div>
         
         <div className="flex-1 overflow-y-auto py-6">
@@ -46,7 +61,10 @@ const AdminLayout = () => {
         </div>
         
         <div className="p-4 border-t border-gray-200">
-          <button className="flex items-center w-full px-4 py-3 text-red-600 rounded-lg hover:bg-red-50 transition-colors">
+          <button 
+            onClick={logoutHandler}
+            className="flex items-center w-full px-4 py-3 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+          >
             <LogOut size={20} className="mr-3" />
             <span className="font-medium">Logout</span>
           </button>
