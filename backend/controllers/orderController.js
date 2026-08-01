@@ -49,26 +49,34 @@ const addOrderItems = async (req, res) => {
       let finalTotalAmount = totalAmount + shippingPrice + taxPrice;
 
       // Handle Discount
-      const { discountAmount } = req.body;
+      const { discountAmount, isCOD } = req.body;
       if (discountAmount) {
         finalTotalAmount -= Number(discountAmount);
       }
 
       finalTotalAmount = Number(finalTotalAmount.toFixed(2));
 
+      const amountToCharge = isCOD ? 500 : finalTotalAmount;
+
       const options = {
-        amount: Math.round(finalTotalAmount * 100), // amount in the smallest currency unit
+        amount: Math.round(amountToCharge * 100), // amount in the smallest currency unit
         currency: "INR",
         receipt: `receipt_order_${Date.now()}`
       };
 
       const razorpayOrder = await razorpayInstance.orders.create(options);
 
+      // Save payment method info inside shippingAddress JSON
+      const enhancedShippingAddress = {
+        ...shippingAddress,
+        paymentMethod: isCOD ? 'COD' : 'PREPAID'
+      };
+
       const order = await prisma.order.create({
         data: {
           userId: req.user.id,
           totalAmount: finalTotalAmount,
-          shippingAddress,
+          shippingAddress: enhancedShippingAddress,
           razorpayOrderId: razorpayOrder.id,
           items: {
             create: itemsForDb
@@ -341,6 +349,96 @@ const razorpayWebhook = async (req, res) => {
   }
 };
 
+// @desc    Track Order (Public)
+// @route   POST /api/orders/track
+// @access  Public
+const trackOrder = async (req, res) => {
+  const { type, value } = req.body;
+  
+  if (!type || !value) {
+    return res.status(400).json({ message: 'Please provide type and value' });
+  }
+
+  try {
+    let orders = [];
+
+    if (type === 'orderId') {
+      const order = await prisma.order.findUnique({
+        where: { id: value },
+        include: { items: { include: { product: { select: { name: true, images: true } } } } }
+      });
+      if (order) orders = [order];
+    } 
+    else if (type === 'mobile') {
+      // Clean non-digits from input
+      const cleanPhone = value.replace(/\D/g, '');
+      if (cleanPhone.length < 10) {
+        return res.status(400).json({ message: 'Invalid mobile number' });
+      }
+      
+      // Get last 10 digits for loose matching
+      const searchPhone = cleanPhone.slice(-10);
+
+      // Find users matching the phone
+      const users = await prisma.user.findMany({
+        where: { phone: { contains: searchPhone } }
+      });
+
+      if (users.length > 0) {
+        const userIds = users.map(u => u.id);
+        orders = await prisma.order.findMany({
+          where: { userId: { in: userIds } },
+          include: { items: { include: { product: { select: { name: true, images: true } } } } },
+          orderBy: { createdAt: 'desc' },
+          take: 5 // Last 5 orders to prevent huge payloads
+        });
+      }
+    } else {
+      return res.status(400).json({ message: 'Invalid track type' });
+    }
+
+    if (orders.length === 0) {
+      return res.status(404).json({ message: 'No orders found matching this detail' });
+    }
+
+    // Mask PII (remove full shipping address except state/city if needed, or just clear street)
+    const maskedOrders = orders.map(order => {
+      let maskedAddress = {};
+      if (order.shippingAddress) {
+        maskedAddress = {
+          city: order.shippingAddress.city,
+          state: order.shippingAddress.state,
+          zipCode: order.shippingAddress.zipCode
+        };
+      }
+      
+      return {
+        id: order.id,
+        status: order.status,
+        paymentStatus: order.paymentStatus,
+        totalAmount: order.totalAmount,
+        createdAt: order.createdAt,
+        trackingNumber: order.trackingNumber,
+        shippingAddress: maskedAddress, // Masked!
+        items: order.items.map(item => ({
+          name: item.product?.name,
+          image: item.product?.images?.[0]?.url,
+          size: item.size,
+          color: item.color,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      };
+    });
+
+    res.json(maskedOrders);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error during tracking' });
+  }
+};
+
 module.exports = {
   addOrderItems,
   verifyPayment,
@@ -350,4 +448,5 @@ module.exports = {
   updateOrderStatus,
   retryPayment,
   razorpayWebhook,
+  trackOrder,
 };
