@@ -53,8 +53,8 @@ const ContactUs = () => {
               <div>
                 <h3 className="font-bold text-xl text-primary mb-2">Our Store</h3>
                 <p className="text-gray-600">
-                  123 Fashion Street, <br />
-                  Ahmedabad, Gujarat 380001, <br />
+                  Old Bombay Market, <br />
+                  Surat, Gujarat, <br />
                   India
                 </p>
               </div>
@@ -69,7 +69,7 @@ const ContactUs = () => {
               <div>
                 <h3 className="font-bold text-xl text-primary mb-2">Call Us</h3>
                 <p className="text-gray-600">
-                  +91 98765 43210 <br />
+                  +91 95745 17921 <br />
                   Mon - Sat, 10am - 8pm
                 </p>
               </div>
