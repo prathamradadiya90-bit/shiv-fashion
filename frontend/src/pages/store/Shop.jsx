@@ -9,6 +9,7 @@ const Shop = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPrices, setSelectedPrices] = useState([]);
+  const [sortBy, setSortBy] = useState('Latest');
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -71,6 +72,12 @@ const Shop = () => {
     return matchesSearch && matchesCategory && matchesPrice;
   });
 
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    if (sortBy === 'LowToHigh') return a.price - b.price;
+    if (sortBy === 'HighToLow') return b.price - a.price;
+    return new Date(b.createdAt) - new Date(a.createdAt); // Latest
+  });
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Page Header */}
@@ -127,20 +134,24 @@ const Shop = () => {
           {/* Top Bar */}
           <div className="flex justify-between items-center mb-6 bg-white p-3 rounded-lg shadow-sm border border-gray-100">
             <span className="text-sm text-gray-500">Showing {filteredProducts.length} products</span>
-            <select className="text-sm border-gray-300 rounded-md focus:ring-primary focus:border-primary p-1">
-              <option>Sort by Latest</option>
-              <option>Sort by Price: Low to High</option>
-              <option>Sort by Price: High to Low</option>
+            <select 
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="text-sm border-gray-300 rounded-md focus:ring-primary focus:border-primary p-1"
+            >
+              <option value="Latest">Sort by Latest</option>
+              <option value="LowToHigh">Sort by Price: Low to High</option>
+              <option value="HighToLow">Sort by Price: High to Low</option>
             </select>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {loading ? (
               <p>Loading products...</p>
-            ) : filteredProducts.length === 0 ? (
+            ) : sortedProducts.length === 0 ? (
               <p>No products found.</p>
             ) : (
-              filteredProducts.map((item) => (
+              sortedProducts.map((item) => (
                 <Link to={`/product/${item.id}`} key={item.id} className="card group block">
                   <div className="relative h-72 overflow-hidden">
                     <img 

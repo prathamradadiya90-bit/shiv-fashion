@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { setCredentials, logout } from '../../store/slices/authSlice';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Profile = () => {
   const { userInfo } = useSelector((state) => state.auth);
@@ -11,6 +12,9 @@ const Profile = () => {
   const [email, setEmail] = useState(userInfo?.email || '');
   const [phone, setPhone] = useState(userInfo?.phone || '');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   
   useEffect(() => {
     if (!userInfo) {
@@ -79,12 +83,21 @@ const Profile = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">New Password (leave blank to keep current)</label>
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full border-gray-300 rounded-md shadow-sm p-3 border focus:ring-primary focus:border-primary" 
-              />
+              <div className="relative">
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full border-gray-300 rounded-md shadow-sm p-3 border focus:ring-primary focus:border-primary pr-10" 
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-primary"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
             <button type="submit" className="w-full btn-primary mt-6 py-3">
               Update Profile
