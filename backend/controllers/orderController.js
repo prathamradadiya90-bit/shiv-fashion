@@ -349,9 +349,6 @@ const razorpayWebhook = async (req, res) => {
   }
 };
 
-// @desc    Track Order (Public)
-// @route   POST /api/orders/track
-// @access  Public
 const trackOrder = async (req, res) => {
   const { type, value } = req.body;
   
