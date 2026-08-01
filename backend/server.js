@@ -28,11 +28,12 @@ app.use('/api/coupons', require('./routes/couponRoutes'));
 app.use('/api/stats', require('./routes/statsRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
 
-// Ensure uploads directory exists
+// Ensure uploads directory exists (use /tmp on Vercel)
 const fs = require('fs');
-const uploadDir = path.join(__dirname, 'uploads');
+const os = require('os');
+const uploadDir = process.env.VERCEL ? path.join(os.tmpdir(), 'uploads') : path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 // Error handling middleware
@@ -45,3 +46,6 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+// Export app for serverless deployment (e.g., Vercel)
+module.exports = app;
