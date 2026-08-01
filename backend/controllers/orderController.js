@@ -235,6 +235,99 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+// @desc    Retry payment for existing order
+// @route   POST /api/orders/:id/retry-pay
+// @access  Private
+const retryPayment = async (req, res) => {
+  try {
+    const order = await prisma.order.findUnique({ where: { id: req.params.id } });
+
+    if (!order) {
+      res.status(404);
+      throw new Error('Order not found');
+    }
+
+    if (order.userId !== req.user.id) {
+      res.status(403);
+      throw new Error('Not authorized to access this order');
+    }
+
+    if (order.paymentStatus === 'PAID') {
+      res.status(400);
+      throw new Error('Order is already paid');
+    }
+
+    // If order already has a razorpayOrderId, we can just return it,
+    // OR create a new one to be safe if it expired. We'll create a new one just in case.
+    const options = {
+      amount: Math.round(order.totalAmount * 100),
+      currency: "INR",
+      receipt: `receipt_retry_${Date.now()}`
+    };
+
+    const razorpayOrder = await razorpayInstance.orders.create(options);
+
+    // Update order with new razorpayOrderId
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { razorpayOrderId: razorpayOrder.id }
+    });
+
+    res.json({ razorpayOrder, order });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Razorpay Webhook handler
+// @route   POST /api/orders/webhook
+// @access  Public
+const razorpayWebhook = async (req, res) => {
+  try {
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET;
+    const signature = req.headers['x-razorpay-signature'];
+    
+    // Validate signature
+    const expectedSignature = crypto
+      .createHmac('sha256', webhookSecret)
+      .update(JSON.stringify(req.body))
+      .digest('hex');
+
+    if (expectedSignature === signature) {
+      const event = req.body.event;
+      if (event === 'payment.captured' || event === 'order.paid') {
+        const paymentEntity = req.body.payload.payment.entity;
+        const razorpayOrderId = paymentEntity.order_id;
+        const razorpayPaymentId = paymentEntity.id;
+        
+        // Find order
+        const order = await prisma.order.findFirst({
+          where: { razorpayOrderId: razorpayOrderId }
+        });
+
+        if (order && order.paymentStatus !== 'PAID') {
+          await prisma.order.update({
+            where: { id: order.id },
+            data: {
+              paymentStatus: 'PAID',
+              status: 'CONFIRMED',
+              razorpayPaymentId: razorpayPaymentId,
+            }
+          });
+          console.log(`Order ${order.id} marked as PAID via webhook`);
+        }
+      }
+      res.status(200).json({ status: 'ok' });
+    } else {
+      res.status(400).json({ message: 'Invalid signature' });
+    }
+  } catch (error) {
+    console.error('Webhook Error:', error);
+    res.status(500).json({ message: 'Webhook failed' });
+  }
+};
+
 module.exports = {
   addOrderItems,
   verifyPayment,
@@ -242,4 +335,6 @@ module.exports = {
   getOrderById,
   getOrders,
   updateOrderStatus,
+  retryPayment,
+  razorpayWebhook,
 };

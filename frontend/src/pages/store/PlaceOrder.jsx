@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import CheckoutSteps from './CheckoutSteps';
 import api from '../../services/api';
 import { clearCartItems } from '../../store/slices/cartSlice';
+import { loadRazorpayScript } from '../../utils/razorpay';
 
 const PlaceOrder = () => {
   const navigate = useNavigate();
@@ -69,15 +70,7 @@ const PlaceOrder = () => {
     }
   };
 
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
+
 
   const placeOrderHandler = async () => {
     try {

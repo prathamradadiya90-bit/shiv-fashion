@@ -2,12 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { CheckCircle, Truck } from 'lucide-react';
+import { toast } from 'react-toastify';
 import api from '../../services/api';
+import { loadRazorpayScript } from '../../utils/razorpay';
 
 const Order = () => {
   const { id } = useParams();
+  const { userInfo } = useSelector((state) => state.auth);
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isPaying, setIsPaying] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -22,6 +26,64 @@ const Order = () => {
     };
     fetchOrder();
   }, [id]);
+
+  const payNowHandler = async () => {
+    try {
+      setIsPaying(true);
+      const res = await loadRazorpayScript();
+      if (!res) {
+        toast.error('Razorpay SDK failed to load. Are you online?');
+        setIsPaying(false);
+        return;
+      }
+
+      // 1. Generate new Razorpay order ID or fetch existing
+      const { data } = await api.post(`/orders/${id}/retry-pay`);
+
+      // 2. Open Razorpay Checkout
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TKUQLqqkzetbPC',
+        amount: data.razorpayOrder.amount,
+        currency: data.razorpayOrder.currency,
+        name: 'Shiv Fashion',
+        description: 'Order Payment',
+        order_id: data.razorpayOrder.id,
+        handler: async function (response) {
+          try {
+            // 3. Verify Payment
+            await api.post(`/orders/${id}/pay`, {
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpaySignature: response.razorpay_signature,
+            });
+            
+            toast.success('Payment Successful!');
+            // Refresh order
+            const { data: updatedOrder } = await api.get(`/orders/${id}`);
+            setOrder(updatedOrder);
+          } catch (error) {
+            toast.error(error?.response?.data?.message || 'Payment Verification Failed');
+          }
+        },
+        prefill: {
+          name: userInfo?.name || order.user?.name || '',
+          email: userInfo?.email || order.user?.email || '',
+          contact: userInfo?.phone || '',
+        },
+        theme: {
+          color: '#800020',
+        },
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to initiate payment');
+    } finally {
+      setIsPaying(false);
+    }
+  };
 
   if (loading) return <div className="text-center py-20">Loading order...</div>;
   if (!order) return <div className="text-center py-20 text-red-500 font-bold">Order Not Found</div>;
@@ -50,6 +112,15 @@ const Order = () => {
           <h3 className="font-bold text-lg mb-4 pb-2 border-b">Payment Summary</h3>
           <p><strong>Status:</strong> <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold uppercase">{order.paymentStatus}</span></p>
           <p className="mt-2"><strong>Total Amount:</strong> <span className="font-bold text-primary">₹{order.totalAmount}</span></p>
+          {order.paymentStatus === 'UNPAID' && (
+            <button
+              onClick={payNowHandler}
+              disabled={isPaying}
+              className={`mt-4 w-full sm:w-auto bg-primary text-white font-bold py-2 px-6 rounded shadow hover:bg-red-800 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 ${isPaying ? 'opacity-50 cursor-not-allowed' : 'pulse-animation'}`}
+            >
+              {isPaying ? 'Processing...' : 'Pay Now'}
+            </button>
+          )}
         </div>
       </div>
 
