@@ -42,7 +42,7 @@ const Navbar = () => {
               <span className="text-xl font-bold text-secondary">SH</span>
             </Link>
             <div className="hidden sm:block">
-              <Link to="/" className="text-xl font-bold text-primary block leading-none font-heading tracking-wide mb-1">Shiv House</Link>
+              <Link to="/" className="text-xl font-bold text-primary block leading-none font-heading tracking-wide mb-1">Shiv Fashion</Link>
               <p className="text-[10px] text-secondary tracking-widest leading-none uppercase font-semibold">Premium Lehenga</p>
             </div>
           </div>

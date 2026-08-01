@@ -33,7 +33,7 @@ const Footer = () => {
               <div className="w-12 h-12 rounded-full border border-[#D4AF37] flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-[#D4AF37]/20 to-transparent shadow-[0_0_15px_rgba(212,175,55,0.2)]">
                 <span className="text-xl font-bold text-[#D4AF37] font-serif">SH</span>
               </div>
-              <h3 className="font-bold text-2xl text-white font-serif tracking-wide">Shiv House</h3>
+              <h3 className="font-bold text-2xl text-white font-serif tracking-wide">Shiv Fashion</h3>
             </div>
             <p className="text-white/70 text-sm leading-relaxed mb-8 font-light">
               Premium handcrafted lehenga cholis with royal Rajwadi elegance. Celebrating Indian heritage through timeless, luxurious fashion.
