@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { submitMessage, getMessages, markAsRead } = require('../controllers/contactController');
+const { submitMessage, getMessages, markAsRead, deleteMessage } = require('../controllers/contactController');
 const { protect, superAdmin } = require('../middleware/authMiddleware');
 
 router.route('/')
@@ -9,5 +9,8 @@ router.route('/')
 
 router.route('/:id/read')
   .put(protect, superAdmin, markAsRead);
+
+router.route('/:id')
+  .delete(protect, superAdmin, deleteMessage);
 
 module.exports = router;

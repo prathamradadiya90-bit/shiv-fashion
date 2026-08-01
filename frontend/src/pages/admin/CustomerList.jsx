@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Ban, CheckCircle } from 'lucide-react';
+import { toast } from 'react-toastify';
 import api from '../../services/api';
 
 const CustomerList = () => {
@@ -19,6 +20,16 @@ const CustomerList = () => {
     };
     fetchCustomers();
   }, []);
+
+  const toggleStatus = async (id) => {
+    try {
+      const { data } = await api.put(`/users/${id}/status`);
+      setCustomers(customers.map(c => c.id === id ? { ...c, status: data.status } : c));
+      toast.success(`User ${data.status === 'Active' ? 'unblocked' : 'blocked'} successfully`);
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to update user status');
+    }
+  };
 
   return (
     <div>
@@ -58,11 +69,19 @@ const CustomerList = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       {customer.status === 'Active' ? (
-                        <button className="text-red-500 hover:text-red-700 transition-colors" title="Block User">
+                        <button 
+                          className="text-red-500 hover:text-red-700 transition-colors" 
+                          title="Block User"
+                          onClick={() => toggleStatus(customer.id)}
+                        >
                           <Ban size={18} />
                         </button>
                       ) : (
-                        <button className="text-green-500 hover:text-green-700 transition-colors" title="Unblock User">
+                        <button 
+                          className="text-green-500 hover:text-green-700 transition-colors" 
+                          title="Unblock User"
+                          onClick={() => toggleStatus(customer.id)}
+                        >
                           <CheckCircle size={18} />
                         </button>
                       )}

@@ -12,6 +12,7 @@ const getUsers = async (req, res) => {
         email: true,
         phone: true,
         role: true,
+        status: true,
         createdAt: true,
         orders: {
           select: {
@@ -35,7 +36,7 @@ const getUsers = async (req, res) => {
         createdAt: user.createdAt,
         totalOrders,
         totalSpent,
-        status: 'Active' // Hardcoded since we didn't add status to schema
+        status: user.status
       };
     });
 
@@ -45,6 +46,35 @@ const getUsers = async (req, res) => {
   }
 };
 
+// @desc    Toggle user status (Block/Unblock)
+// @route   PUT /api/users/:id/status
+// @access  Private/SuperAdmin
+const toggleUserStatus = async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.params.id } });
+
+    if (!user) {
+      res.status(404);
+      throw new Error('User not found');
+    }
+
+    if (user.role === 'SUPERADMIN') {
+      res.status(400);
+      throw new Error('Cannot change status of a SuperAdmin');
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: req.params.id },
+      data: { status: user.status === 'Active' ? 'Blocked' : 'Active' }
+    });
+
+    res.json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
-  getUsers
+  getUsers,
+  toggleUserStatus
 };

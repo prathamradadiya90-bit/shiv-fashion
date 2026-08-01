@@ -42,6 +42,7 @@ model User {
   
   googleId  String?
   tokenVersion Int   @default(0)
+  status    String   @default("Active")
 
   addresses Address[]
   orders    Order[]

@@ -66,8 +66,24 @@ const markAsRead = async (req, res, next) => {
   }
 };
 
+// @desc    Delete a message
+// @route   DELETE /api/contact/:id
+// @access  Private/SuperAdmin
+const deleteMessage = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    await prisma.contactMessage.delete({
+      where: { id },
+    });
+    res.status(200).json({ message: 'Message deleted' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   submitMessage,
   getMessages,
   markAsRead,
+  deleteMessage,
 };

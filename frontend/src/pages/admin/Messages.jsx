@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Check, Inbox } from 'lucide-react';
+import { Mail, Check, Inbox, Trash2 } from 'lucide-react';
 import api from '../../services/api';
 import { toast } from 'react-toastify';
 
@@ -28,6 +28,18 @@ const Messages = () => {
       toast.success('Message marked as read');
     } catch (error) {
       toast.error('Failed to mark message as read');
+    }
+  };
+
+  const deleteMessage = async (id) => {
+    if (window.confirm('Are you sure you want to delete this message permanently?')) {
+      try {
+        await api.delete(`/contact/${id}`);
+        setMessages(messages.filter(m => m.id !== id));
+        toast.success('Message deleted');
+      } catch (error) {
+        toast.error('Failed to delete message');
+      }
     }
   };
 
@@ -81,14 +93,23 @@ const Messages = () => {
                     </div>
                   </div>
                   
-                  {!message.isRead && (
+                  <div className="flex flex-col gap-2">
+                    {!message.isRead && (
+                      <button 
+                        onClick={() => markAsRead(message.id)}
+                        className="flex items-center text-sm text-gray-500 hover:text-primary transition-colors border border-gray-200 px-3 py-1.5 rounded bg-white"
+                      >
+                        <Check size={16} className="mr-1" /> Mark as Read
+                      </button>
+                    )}
                     <button 
-                      onClick={() => markAsRead(message.id)}
-                      className="flex items-center text-sm text-gray-500 hover:text-primary transition-colors border border-gray-200 px-3 py-1.5 rounded bg-white"
+                      onClick={() => deleteMessage(message.id)}
+                      className="flex items-center justify-center text-sm text-red-500 hover:text-red-700 transition-colors border border-red-100 hover:border-red-200 px-3 py-1.5 rounded bg-white hover:bg-red-50"
+                      title="Delete Message"
                     >
-                      <Check size={16} className="mr-1" /> Mark as Read
+                      <Trash2 size={16} className="mr-1" /> Delete
                     </button>
-                  )}
+                  </div>
                 </div>
               </div>
             ))}
