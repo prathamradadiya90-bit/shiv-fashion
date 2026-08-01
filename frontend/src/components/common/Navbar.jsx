@@ -78,16 +78,23 @@ const Navbar = () => {
                   </button>
                   
                   {dropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 border border-gray-100">
-                      <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setDropdownOpen(false)}>My Profile & Orders</Link>
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 border border-gray-100 z-50">
+                      <div className="px-4 py-2 border-b border-gray-100">
+                        <p className="text-sm font-medium text-gray-900 truncate">{userInfo.name}</p>
+                      </div>
+                      <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setDropdownOpen(false)}>My Profile</Link>
+                      <Link to="/my-orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setDropdownOpen(false)}>My Orders</Link>
                       <Link to="/wishlist" className="block sm:hidden px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setDropdownOpen(false)}>Wishlist</Link>
                       {userInfo.role === 'SUPERADMIN' && (
-                        <Link to="/admin" className="block px-4 py-2 text-sm text-primary font-medium hover:bg-gray-100" onClick={() => setDropdownOpen(false)}>
-                          <LayoutDashboard size={16} className="inline mr-2"/> Admin Dashboard
+                        <Link to="/admin" className="block px-4 py-2 text-sm text-primary hover:bg-gray-100 font-medium" onClick={() => setDropdownOpen(false)}>
+                          Admin Dashboard
                         </Link>
                       )}
-                      <button onClick={logoutHandler} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
-                        <LogOut size={16} className="inline mr-2"/> Logout
+                      <button 
+                        onClick={logoutHandler}
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center"
+                      >
+                        <LogOut size={14} className="mr-2" /> Logout
                       </button>
                     </div>
                   )}

@@ -19,6 +19,7 @@ import Shipping from './pages/store/Shipping';
 import PlaceOrder from './pages/store/PlaceOrder';
 import Order from './pages/store/Order';
 import Profile from './pages/store/Profile';
+import MyOrders from './pages/store/MyOrders';
 import Wishlist from './pages/store/Wishlist';
 
 import StoreLayout from './components/store/StoreLayout';
@@ -48,6 +49,7 @@ function App() {
           <Route path="placeorder" element={<PlaceOrder />} />
           <Route path="order/:id" element={<Order />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="my-orders" element={<MyOrders />} />
           <Route path="wishlist" element={<Wishlist />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
