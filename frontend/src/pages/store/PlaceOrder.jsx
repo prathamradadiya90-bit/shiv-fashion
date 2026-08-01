@@ -16,6 +16,7 @@ const PlaceOrder = () => {
 
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [isCOD, setIsCOD] = useState(false);
 
   useEffect(() => {
     if (!cart.shippingAddress.street) {
@@ -85,6 +86,7 @@ const PlaceOrder = () => {
         shippingAddress: cart.shippingAddress,
         totalAmount: Number(totalPrice),
         discountAmount: Number(discountAmount),
+        isCOD,
       };
 
       // 1. Create order on server
@@ -199,6 +201,42 @@ const PlaceOrder = () => {
                 <span>Total</span>
                 <span className="text-primary">₹{totalPrice}</span>
               </div>
+              
+              {isCOD && (
+                <div className="flex justify-between border-t pt-3 mt-3 text-sm font-bold text-blue-800 bg-blue-50 p-2 rounded">
+                  <span>Advance Payment (COD)</span>
+                  <span>₹500.00</span>
+                </div>
+              )}
+            </div>
+
+            <div className="mb-6 space-y-3">
+              <label className="font-bold text-gray-800 block text-sm mb-2">Select Payment Method:</label>
+              
+              <label className={`flex items-center p-3 border rounded-lg cursor-pointer transition ${!isCOD ? 'border-primary bg-primary/5' : 'border-gray-200'}`}>
+                <input 
+                  type="radio" 
+                  name="paymentMethod" 
+                  checked={!isCOD} 
+                  onChange={() => setIsCOD(false)}
+                  className="mr-3 w-4 h-4 text-primary"
+                />
+                <span className="font-medium text-gray-800 text-sm">Pay Full Amount (Prepaid)</span>
+              </label>
+
+              <label className={`flex items-center p-3 border rounded-lg cursor-pointer transition ${isCOD ? 'border-primary bg-primary/5' : 'border-gray-200'}`}>
+                <input 
+                  type="radio" 
+                  name="paymentMethod" 
+                  checked={isCOD} 
+                  onChange={() => setIsCOD(true)}
+                  className="mr-3 w-4 h-4 text-primary"
+                />
+                <span className="font-medium text-gray-800 text-sm flex flex-col">
+                  <span>Cash on Delivery</span>
+                  <span className="text-xs text-gray-500 mt-0.5">Pay ₹500 advance now to confirm order. Remaining on delivery.</span>
+                </span>
+              </label>
             </div>
 
             <div className="mb-6 flex space-x-2">
@@ -222,7 +260,7 @@ const PlaceOrder = () => {
               disabled={cart.cartItems.length === 0}
               className={`w-full btn-primary text-lg py-3 ${cart.cartItems.length === 0 && 'opacity-50 cursor-not-allowed'}`}
             >
-              Pay with Razorpay
+              Pay {isCOD ? '₹500 Advance' : `₹${totalPrice}`}
             </button>
             <p className="text-xs text-center text-gray-500 mt-4 flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
