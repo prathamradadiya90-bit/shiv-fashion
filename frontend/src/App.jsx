@@ -25,6 +25,7 @@ import TrackOrder from './pages/store/TrackOrder';
 import About from './pages/store/About';
 import PrivacyPolicy from './pages/store/PrivacyPolicy';
 import Terms from './pages/store/Terms';
+import ReturnPolicy from './pages/store/ReturnPolicy';
 import StoreLayout from './components/store/StoreLayout';
 import AdminLayout from './components/admin/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
@@ -61,6 +62,7 @@ function App() {
           <Route path="faq" element={<About />} />
           <Route path="privacy" element={<PrivacyPolicy />} />
           <Route path="terms" element={<Terms />} />
+          <Route path="returns" element={<ReturnPolicy />} />
         </Route>
 
         {/* Admin Routes */}

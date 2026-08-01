@@ -42,9 +42,22 @@ const addOrderItems = async (req, res) => {
         });
       }
 
-      // Create Razorpay order
+      // Add Shipping and Tax
+      const shippingPrice = totalAmount > 5000 ? 0 : 250;
+      const taxPrice = Number((0.18 * totalAmount).toFixed(2));
+      
+      let finalTotalAmount = totalAmount + shippingPrice + taxPrice;
+
+      // Handle Discount
+      const { discountAmount } = req.body;
+      if (discountAmount) {
+        finalTotalAmount -= Number(discountAmount);
+      }
+
+      finalTotalAmount = Number(finalTotalAmount.toFixed(2));
+
       const options = {
-        amount: Math.round(totalAmount * 100), // amount in the smallest currency unit
+        amount: Math.round(finalTotalAmount * 100), // amount in the smallest currency unit
         currency: "INR",
         receipt: `receipt_order_${Date.now()}`
       };
@@ -54,7 +67,7 @@ const addOrderItems = async (req, res) => {
       const order = await prisma.order.create({
         data: {
           userId: req.user.id,
-          totalAmount,
+          totalAmount: finalTotalAmount,
           shippingAddress,
           razorpayOrderId: razorpayOrder.id,
           items: {
