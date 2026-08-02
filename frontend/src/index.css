@@ -34,6 +34,14 @@
   .glass {
     @apply bg-white/90 backdrop-blur-md border border-white/20 shadow-sm;
   }
+  
+  .glass-dark {
+    @apply bg-black/40 backdrop-blur-md border border-white/10 shadow-lg;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#D4AF37];
+  }
 
   .nav-link {
     @apply relative text-sm font-semibold text-gray-800 hover:text-primary transition-colors py-1;
@@ -58,6 +66,10 @@
   .img-hover-scale {
     @apply transition-transform duration-700 ease-out hover:scale-105;
   }
+  
+  .bounce-subtle {
+    animation: bounceSubtle 2s infinite;
+  }
 }
 
 @keyframes fadeIn {
@@ -69,4 +81,9 @@
   0% { box-shadow: 0 0 0 0 rgba(128, 0, 32, 0.7); transform: scale(1); }
   50% { box-shadow: 0 0 0 10px rgba(128, 0, 32, 0); transform: scale(1.02); }
   100% { box-shadow: 0 0 0 0 rgba(128, 0, 32, 0); transform: scale(1); }
+}
+
+@keyframes bounceSubtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
 }
