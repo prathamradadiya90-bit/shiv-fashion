@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, ShoppingBag, Users, AlertCircle } from 'lucide-react';
+import { DollarSign, ShoppingBag, Users } from 'lucide-react';
 import api from '../../services/api';
 
 const Dashboard = () => {

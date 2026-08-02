@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { ShoppingCart, User, Search, Menu, LogOut, LayoutDashboard, Heart, ChevronDown } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu } from 'lucide-react';
 import { logout } from '../../store/slices/authSlice';
 import api from '../../services/api';
 

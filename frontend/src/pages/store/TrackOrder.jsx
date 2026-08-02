@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Phone, Truck, Hash, Search, Package, CheckCircle, MapPin } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 
