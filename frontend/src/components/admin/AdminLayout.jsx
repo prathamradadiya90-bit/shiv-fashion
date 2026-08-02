@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Package, ShoppingBag, Users, Tag, Settings, LogOut, Mail } from 'lucide-react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../store/slices/authSlice';
 import api from '../../services/api';
 
@@ -9,6 +9,12 @@ const AdminLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { userInfo } = useSelector((state) => state.auth);
+
+  const getInitials = (name) => {
+    if (!name) return 'SA';
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  };
 
   const logoutHandler = async () => {
     try {
@@ -35,7 +41,7 @@ const AdminLayout = () => {
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
         <div className="h-20 flex items-center px-6 border-b border-gray-200">
-          <Link to="/" className="text-2xl font-heading font-bold text-primary">Shiv Admin</Link>
+          <Link to="/" className="text-2xl font-heading font-bold text-primary">Shreeji Admin</Link>
         </div>
         
         <div className="flex-1 overflow-y-auto py-6">
@@ -80,9 +86,9 @@ const AdminLayout = () => {
           </h2>
           <div className="flex items-center">
             <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold">
-              SA
+              {getInitials(userInfo?.name)}
             </div>
-            <span className="ml-3 font-medium text-gray-700">Super Admin</span>
+            <span className="ml-3 font-medium text-gray-700">{userInfo?.name || 'Super Admin'}</span>
           </div>
         </header>
         

@@ -10,12 +10,17 @@ const protect = async (req, res, next) => {
       
       req.user = await prisma.user.findUnique({
         where: { id: decoded.userId },
-        select: { id: true, name: true, email: true, role: true, tokenVersion: true }
+        select: { id: true, name: true, email: true, role: true, tokenVersion: true, status: true }
       });
 
       if (!req.user) {
         res.status(401);
         throw new Error('Not authorized, user not found');
+      }
+
+      if (req.user.status === 'Blocked') {
+        res.status(403);
+        throw new Error('Not authorized, user is blocked');
       }
 
       if (req.user.tokenVersion !== decoded.tokenVersion) {

@@ -11,7 +11,7 @@ const CouponList = () => {
   const [newCoupon, setNewCoupon] = useState({
     code: '',
     value: 0,
-    type: 'PERCENTAGE',
+    discountType: 'PERCENTAGE',
     minOrderValue: 0,
     expiryDate: ''
   });
@@ -80,12 +80,12 @@ const CouponList = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                   <select 
-                    value={newCoupon.type}
-                    onChange={(e) => setNewCoupon({...newCoupon, type: e.target.value})}
+                    value={newCoupon.discountType}
+                    onChange={(e) => setNewCoupon({...newCoupon, discountType: e.target.value})}
                     className="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:ring-primary focus:border-primary"
                   >
                     <option value="PERCENTAGE">Percentage (%)</option>
-                    <option value="FLAT">Flat Amount (₹)</option>
+                    <option value="FIXED">Flat Amount (₹)</option>
                   </select>
                 </div>
                 <div>
@@ -148,7 +148,7 @@ const CouponList = () => {
                   <tr key={coupon.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 font-bold text-primary tracking-wider">{coupon.code}</td>
                     <td className="px-6 py-4 font-medium text-gray-900">
-                      {coupon.type === 'PERCENTAGE' ? `${coupon.value}% OFF` : `₹${coupon.value} OFF`}
+                      {coupon.discountType === 'PERCENTAGE' ? `${coupon.value}% OFF` : `₹${coupon.value} OFF`}
                     </td>
                     <td className="px-6 py-4 text-gray-600">₹{coupon.minOrderValue}</td>
                     <td className="px-6 py-4 text-gray-600">{new Date(coupon.expiryDate).toLocaleDateString()}</td>

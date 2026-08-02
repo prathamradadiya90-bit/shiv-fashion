@@ -12,7 +12,7 @@ router.post('/', protect, superAdmin, upload.single('image'), async (req, res) =
     }
 
     const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'shivfashion/products',
+      folder: 'shreejifashion/products',
     });
 
     // Remove the file from local storage

@@ -84,8 +84,8 @@ const ContactUs = () => {
               <div>
                 <h3 className="font-bold text-xl text-primary mb-2">Email Us</h3>
                 <p className="text-gray-600">
-                  info@shivfashion.com <br />
-                  support@shivfashion.com
+                  info@shreejifashion.com <br />
+                  support@shreejifashion.com
                 </p>
               </div>
             </div>

@@ -22,14 +22,44 @@ const getStats = async (req, res) => {
       include: { user: { select: { name: true } } }
     });
 
+    // Top selling products
+    const topProductsRaw = await prisma.orderItem.groupBy({
+      by: ['productId'],
+      _sum: {
+        quantity: true
+      },
+      orderBy: {
+        _sum: {
+          quantity: 'desc'
+        }
+      },
+      take: 4
+    });
+
+    const topProducts = (await Promise.all(topProductsRaw.map(async (item) => {
+      const product = await prisma.product.findUnique({
+        where: { id: item.productId },
+        select: { id: true, name: true, price: true, images: { take: 1 } }
+      });
+      if (!product) return null;
+      return {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.images?.[0]?.url || '',
+        sales: item._sum.quantity
+      };
+    }))).filter(Boolean);
+
     res.json({
       totalUsers,
       totalOrders,
       totalRevenue,
       totalProducts,
+      topProducts,
       recentOrders: recentOrders.map(o => ({
         id: o.id,
-        customer: o.user.name,
+        customer: o.user?.name || 'Unknown',
         date: o.createdAt,
         total: o.totalAmount,
         status: o.status

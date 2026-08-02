@@ -7,11 +7,15 @@ import api from '../../services/api';
 const AddProduct = () => {
   const [name, setName] = useState('');
   const [price, setPrice] = useState(0);
+  const [discount, setDiscount] = useState(0);
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [stock, setStock] = useState(0);
+  const [isFeatured, setIsFeatured] = useState(false);
+  const [sizes, setSizes] = useState('');
+  const [colors, setColors] = useState('');
   const [uploading, setUploading] = useState(false);
-  const [image, setImage] = useState('');
+  const [image, setImage] = useState(null);
 
   const navigate = useNavigate();
 
@@ -23,7 +27,7 @@ const AddProduct = () => {
     try {
       const config = { headers: { 'Content-Type': 'multipart/form-data' } };
       const { data } = await api.post('/upload', formData, config);
-      setImage(data.url);
+      setImage({ url: data.url, publicId: data.publicId });
       toast.success('Image uploaded successfully');
     } catch (error) {
       toast.error('Image upload failed');
@@ -38,10 +42,17 @@ const AddProduct = () => {
       await api.post('/products', {
         name,
         price: Number(price),
+        discount: Number(discount),
         description,
         category,
         stock: Number(stock),
-        // Simplification for the dummy API payload logic, real app might require size/color arrays
+        isFeatured,
+        images: image ? [image] : [],
+        sizes: sizes.split(',').map(s => s.trim()).filter(Boolean),
+        colors: colors.split(',').map(c => {
+          const [colorName, hex] = c.split(':');
+          return colorName ? { name: colorName.trim(), hexCode: hex ? hex.trim() : '#000000' } : null;
+        }).filter(Boolean),
       });
       toast.success('Product created successfully');
       navigate('/admin/products');
@@ -88,7 +99,7 @@ const AddProduct = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
               <input 
@@ -97,6 +108,17 @@ const AddProduct = () => {
                 min="0"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
+                className="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:ring-primary focus:border-primary" 
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Discount (%)</label>
+              <input 
+                type="number" 
+                min="0"
+                max="100"
+                value={discount}
+                onChange={(e) => setDiscount(e.target.value)}
                 className="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:ring-primary focus:border-primary" 
               />
             </div>
@@ -111,6 +133,42 @@ const AddProduct = () => {
                 className="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:ring-primary focus:border-primary" 
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Sizes (comma separated)</label>
+              <input 
+                type="text" 
+                placeholder="e.g. S, M, L, XL"
+                value={sizes}
+                onChange={(e) => setSizes(e.target.value)}
+                className="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:ring-primary focus:border-primary" 
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Colors (Name:Hex, comma separated)</label>
+              <input 
+                type="text" 
+                placeholder="e.g. Red:#FF0000, Blue:#0000FF"
+                value={colors}
+                onChange={(e) => setColors(e.target.value)}
+                className="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:ring-primary focus:border-primary" 
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              id="isFeatured"
+              type="checkbox"
+              checked={isFeatured}
+              onChange={(e) => setIsFeatured(e.target.checked)}
+              className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+            />
+            <label htmlFor="isFeatured" className="ml-2 block text-sm text-gray-900">
+              Featured Product
+            </label>
           </div>
 
           <div>

@@ -89,7 +89,7 @@ const Home = () => {
           </div>
           
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 drop-shadow-2xl font-heading tracking-[0.1em] uppercase animate-fade-in" style={{ animationDelay: '0.4s', opacity: 0 }}>
-            Shiv Fashion
+            Shreeji Fashion
           </h1>
           
           <div className="flex items-center justify-center gap-4 mb-10 animate-fade-in" style={{ animationDelay: '0.6s', opacity: 0 }}>
@@ -235,7 +235,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-primary mb-4 font-heading">
-              The Shiv Fashion Promise
+              The Shreeji Fashion Promise
             </h2>
           </div>
 

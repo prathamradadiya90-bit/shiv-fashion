@@ -27,7 +27,7 @@ const registerUser = async (req, res) => {
         email,
         password: hashedPassword,
         phone,
-        role: email === 'admin@shivfashion.com' ? 'SUPERADMIN' : 'CUSTOMER'
+        role: email === 'admin@shreejifashion.com' ? 'SUPERADMIN' : 'CUSTOMER'
       },
     });
 
@@ -58,6 +58,10 @@ const loginUser = async (req, res) => {
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (user && user.password && (await bcrypt.compare(password, user.password))) {
+      if (user.status === 'Blocked') {
+        res.status(403);
+        throw new Error('Your account has been blocked by the admin');
+      }
       generateToken(res, user.id, user.tokenVersion);
       res.json({
         id: user.id,

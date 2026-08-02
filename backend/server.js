@@ -19,7 +19,7 @@ app.use(cors({
 
 // Test Route
 app.get('/', (req, res) => {
-  res.send('Shiv Fashion API is running');
+  res.send('Shreeji Fashion API is running');
 });
 
 // Routes

@@ -48,10 +48,28 @@ const addOrderItems = async (req, res) => {
       
       let finalTotalAmount = totalAmount + shippingPrice + taxPrice;
 
-      // Handle Discount
-      const { discountAmount, isCOD } = req.body;
-      if (discountAmount) {
-        finalTotalAmount -= Number(discountAmount);
+      // Handle Discount via Server-Side Coupon Verification
+      const { couponCode, isCOD } = req.body;
+      let calculatedDiscount = 0;
+
+      if (couponCode) {
+        const coupon = await prisma.coupon.findUnique({ where: { code: couponCode } });
+        if (
+          coupon && 
+          coupon.isActive && 
+          new Date() <= new Date(coupon.expiryDate) && 
+          finalTotalAmount >= coupon.minOrderValue
+        ) {
+          if (coupon.discountType === 'PERCENTAGE') {
+            calculatedDiscount = (finalTotalAmount * coupon.value) / 100;
+          } else {
+            calculatedDiscount = coupon.value;
+          }
+        }
+      }
+
+      if (calculatedDiscount > 0) {
+        finalTotalAmount -= calculatedDiscount;
       }
 
       finalTotalAmount = Number(finalTotalAmount.toFixed(2));
@@ -131,19 +149,19 @@ const verifyPayment = async (req, res) => {
       const emailMessage = `
         Hello ${updatedOrder.user.name},
         
-        Thank you for shopping with Shiv Fashion!
+        Thank you for shopping with Shreeji Fashion!
         Your order (${updatedOrder.id}) has been confirmed and payment is successful.
         Total Amount: ₹${updatedOrder.totalAmount}
         
         We will notify you once your order is shipped.
         
         Regards,
-        Shiv Fashion Team
+        Shreeji Fashion Team
       `;
 
       await sendEmail({
         email: updatedOrder.user.email,
-        subject: `Shiv Fashion - Order Confirmed (${updatedOrder.id})`,
+        subject: `Shreeji Fashion - Order Confirmed (${updatedOrder.id})`,
         message: emailMessage,
       });
 
@@ -240,12 +258,12 @@ const updateOrderStatus = async (req, res) => {
         You can track your order status in your account.
         
         Regards,
-        Shiv Fashion Team
+        Shreeji Fashion Team
       `;
 
       await sendEmail({
         email: order.user.email,
-        subject: `Shiv Fashion - Order Shipped (${order.id})`,
+        subject: `Shreeji Fashion - Order Shipped (${order.id})`,
         message: emailMessage,
       });
     }

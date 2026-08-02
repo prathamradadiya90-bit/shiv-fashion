@@ -45,7 +45,7 @@ const Order = () => {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TKUQLqqkzetbPC',
         amount: data.razorpayOrder.amount,
         currency: data.razorpayOrder.currency,
-        name: 'Shiv Fashion',
+        name: 'Shreeji Fashion',
         description: 'Order Payment',
         order_id: data.razorpayOrder.id,
         handler: async function (response) {

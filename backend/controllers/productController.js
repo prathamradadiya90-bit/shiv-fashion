@@ -120,21 +120,62 @@ const createProduct = async (req, res) => {
 // @route   PUT /api/products/:id
 // @access  Private/SuperAdmin
 const updateProduct = async (req, res) => {
-  const { name, description, category, price, discount, stock, isFeatured, isActive } = req.body;
+  const { name, description, category, price, discount, stock, isFeatured, isActive, images, sizes, colors } = req.body;
 
   try {
+    const updateData = {
+      name,
+      description,
+      category,
+      price: price !== undefined ? parseFloat(price) : undefined,
+      discount: discount !== undefined ? parseFloat(discount) : undefined,
+      stock: stock !== undefined ? parseInt(stock) : undefined,
+      isFeatured: isFeatured !== undefined ? Boolean(isFeatured) : undefined,
+      isActive: isActive !== undefined ? Boolean(isActive) : undefined,
+    };
+
+    if (images && images.length > 0) {
+      const existingProduct = await prisma.product.findUnique({
+        where: { id: req.params.id },
+        include: { images: true }
+      });
+      
+      if (existingProduct?.images?.length > 0) {
+        for (const image of existingProduct.images) {
+          if (image.publicId) {
+            try {
+              await cloudinary.uploader.destroy(image.publicId);
+            } catch (err) {
+              console.error('Failed to delete old image from Cloudinary', err);
+            }
+          }
+        }
+      }
+
+      updateData.images = {
+        deleteMany: {},
+        create: images.map(img => ({ url: img.url, publicId: img.publicId }))
+      };
+    }
+
+    if (sizes) {
+      updateData.sizes = {
+        deleteMany: {},
+        create: sizes.map(size => ({ name: size }))
+      };
+    }
+
+    if (colors) {
+      updateData.colors = {
+        deleteMany: {},
+        create: colors.map(color => ({ name: color.name, hexCode: color.hexCode }))
+      };
+    }
+
     const product = await prisma.product.update({
       where: { id: req.params.id },
-      data: {
-        name,
-        description,
-        category,
-        price: price ? parseFloat(price) : undefined,
-        discount: discount ? parseFloat(discount) : undefined,
-        stock: stock ? parseInt(stock) : undefined,
-        isFeatured: isFeatured !== undefined ? Boolean(isFeatured) : undefined,
-        isActive: isActive !== undefined ? Boolean(isActive) : undefined,
-      },
+      data: updateData,
+      include: { images: true, sizes: true, colors: true }
     });
 
     res.json(product);

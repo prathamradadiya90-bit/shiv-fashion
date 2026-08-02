@@ -33,7 +33,7 @@ const Footer = () => {
               <div className="w-12 h-12 rounded-full border border-[#D4AF37] flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-[#D4AF37]/20 to-transparent shadow-[0_0_15px_rgba(212,175,55,0.2)]">
                 <span className="text-xl font-bold text-[#D4AF37] font-serif">SH</span>
               </div>
-              <h3 className="font-bold text-2xl text-white font-serif tracking-wide">Shiv Fashion</h3>
+              <h3 className="font-bold text-2xl text-white font-serif tracking-wide">Shreeji Fashion</h3>
             </div>
             <p className="text-white/70 text-sm leading-relaxed mb-8 font-light">
               Premium handcrafted lehenga cholis with royal Rajwadi elegance. Celebrating Indian heritage through timeless, luxurious fashion.
@@ -119,7 +119,7 @@ const Footer = () => {
                 <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-[#D4AF37]/10 group-hover:text-[#D4AF37] transition-colors duration-300">
                   <Mail className="w-4 h-4 text-[#D4AF37]" />
                 </div>
-                <p><a href="mailto:hello@shivfashion.com" className="text-white/70 hover:text-[#D4AF37] transition-colors duration-300">hello@shivfashion.com</a></p>
+                <p><a href="mailto:hello@shreejifashion.com" className="text-white/70 hover:text-[#D4AF37] transition-colors duration-300">hello@shreejifashion.com</a></p>
               </div>
             </div>
           </div>
@@ -152,7 +152,7 @@ const Footer = () => {
 
             {/* Copyright */}
             <div className="text-center xl:text-right flex-shrink-0 tracking-wide font-light">
-              &copy; {new Date().getFullYear()} Shiv Fashion. All rights reserved. <span className="hidden sm:inline mx-2 text-white/20">|</span><br className="sm:hidden" /> Crafted with royal elegance.
+              &copy; {new Date().getFullYear()} Shreeji Fashion. All rights reserved. <span className="hidden sm:inline mx-2 text-white/20">|</span><br className="sm:hidden" /> Crafted with royal elegance.
             </div>
           </div>
         </div>

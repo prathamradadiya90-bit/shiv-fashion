@@ -8,7 +8,8 @@ const Dashboard = () => {
     totalOrders: 0,
     totalRevenue: 0,
     totalProducts: 0,
-    recentOrders: []
+    recentOrders: [],
+    topProducts: []
   });
 
   useEffect(() => {
@@ -104,19 +105,21 @@ const Dashboard = () => {
           </div>
           <div className="p-6">
             <div className="space-y-6">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex items-center">
+              {stats.topProducts?.length === 0 ? (
+                <div className="text-sm text-gray-500 p-4 text-center">No sales data yet</div>
+              ) : stats.topProducts?.map((product, index) => (
+                <div key={product.id || index} className="flex items-center">
                   <img 
-                    src={`https://source.unsplash.com/random/100x100/?chaniya,choli,${i}`} 
+                    src={product.image || `https://source.unsplash.com/random/100x100/?chaniya,choli,${index}`} 
                     className="w-12 h-12 rounded object-cover border border-gray-200"
-                    alt="Product"
+                    alt={product.name}
                   />
                   <div className="ml-4 flex-1">
-                    <h4 className="text-sm font-bold text-gray-800 truncate">Royal Print Choli</h4>
-                    <p className="text-xs text-gray-500">₹4,200</p>
+                    <h4 className="text-sm font-bold text-gray-800 truncate">{product.name}</h4>
+                    <p className="text-xs text-gray-500">₹{product.price}</p>
                   </div>
                   <div className="font-bold text-gray-700">
-                    42 <span className="text-xs font-normal text-gray-500">sales</span>
+                    {product.sales} <span className="text-xs font-normal text-gray-500">sales</span>
                   </div>
                 </div>
               ))}

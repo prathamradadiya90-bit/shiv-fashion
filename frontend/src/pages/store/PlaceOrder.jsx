@@ -85,7 +85,7 @@ const PlaceOrder = () => {
         orderItems: cart.cartItems,
         shippingAddress: cart.shippingAddress,
         totalAmount: Number(totalPrice),
-        discountAmount: Number(discountAmount),
+        couponCode: appliedCoupon ? appliedCoupon.code : null,
         isCOD,
       };
 
@@ -97,7 +97,7 @@ const PlaceOrder = () => {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TKUQLqqkzetbPC', // Fallback to provided test key
         amount: data.razorpayOrder.amount,
         currency: data.razorpayOrder.currency,
-        name: 'Shiv Fashion',
+        name: 'Shreeji Fashion',
         description: 'Premium Chaniya Choli',
         order_id: data.razorpayOrder.id,
         handler: async function (response) {
