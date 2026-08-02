@@ -99,7 +99,7 @@ const ProductDetails = () => {
               <img 
                 src={product.images?.[0]?.url || `https://source.unsplash.com/random/600x800/?chaniya,choli,${product.id}`} 
                 alt={product.name} 
-                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                className="w-full h-full object-cover transition-transform duration-700 ease-out hover:scale-105"
               />
             </div>
           </div>
@@ -140,7 +140,7 @@ const ProductDetails = () => {
                     <button 
                       key={color.id}
                       onClick={() => setSelectedColor(color.name)}
-                      className={`w-10 h-10 rounded-full border-2 transition-transform duration-300 hover:scale-110 shadow-sm ${selectedColor === color.name ? 'border-primary scale-110 shadow-md ring-2 ring-primary/20' : 'border-gray-300'}`}
+                      className={`w-10 h-10 rounded-full border-2 transition-all duration-300 hover:scale-110 hover:shadow-md ${selectedColor === color.name ? 'border-primary scale-110 shadow-md' : 'border-gray-300'}`}
                       style={{backgroundColor: color.hexCode || color.name}}
                       title={color.name}
                     />
@@ -160,7 +160,7 @@ const ProductDetails = () => {
                     <button 
                       key={size.id}
                       onClick={() => setSelectedSize(size.name)}
-                      className={`w-12 h-12 rounded flex items-center justify-center font-medium border transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${selectedSize === size.name ? 'border-primary bg-primary text-white shadow-md' : 'border-gray-300 text-gray-700 hover:border-primary'}`}
+                      className={`w-12 h-12 rounded flex items-center justify-center font-medium border transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm ${selectedSize === size.name ? 'border-primary bg-primary text-white shadow-md' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
                     >
                       {size.name}
                     </button>
@@ -185,7 +185,7 @@ const ProductDetails = () => {
               </button>
               <button 
                 onClick={toggleWishlist}
-                className="w-12 h-12 flex items-center justify-center border border-gray-300 rounded text-gray-400 transition-all duration-300 hover:text-red-500 hover:border-red-500 hover:bg-red-50 hover:shadow-md hover:-translate-y-0.5 active:scale-95"
+                className="w-12 h-12 flex items-center justify-center border border-gray-300 rounded text-gray-400 hover:text-red-500 hover:border-red-500 hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all duration-300"
                 title="Add to Wishlist"
               >
                 <Heart size={24} />

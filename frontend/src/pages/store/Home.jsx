@@ -192,8 +192,9 @@ const Home = () => {
               <div className="col-span-full text-center py-10 text-gray-500">Loading trending products...</div>
             ) : (
               featuredProducts.map((item, idx) => (
-                <div key={item.id} className="card group flex flex-col h-full animate-fade-in" style={{ animationDelay: `${idx * 0.1}s`, opacity: 0 }}>
+                <div key={item.id} className="card group flex flex-col h-full border border-[#e5dfd3] animate-fade-in" style={{ animationDelay: `${idx * 0.1}s`, opacity: 0 }}>
                   <div className="relative h-72 overflow-hidden bg-gray-50">
+                  </div>
                   <div className="p-4 flex-grow flex flex-col justify-between">
                     <div>
                       <p className="text-[10px] text-secondary font-bold tracking-widest uppercase mb-1">New Arrivals</p>
@@ -212,7 +213,7 @@ const Home = () => {
                     
                     <button 
                       onClick={() => navigate(`/product/${item.id}`)}
-                      className="w-full bg-primary hover:bg-primary-light text-white py-3 rounded flex items-center justify-center gap-2 font-medium transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 active:scale-95"
+                      className="w-full btn-primary py-3 rounded flex items-center justify-center gap-2"
                     >
                       <ShoppingBag className="w-4 h-4" />
                       View Details
@@ -224,7 +225,7 @@ const Home = () => {
           </div>
           
           <div className="text-center mt-12">
-            <Link to="/shop" className="btn-outline inline-flex items-center gap-2">
+            <Link to="/shop" className="btn-outline inline-flex items-center gap-2 uppercase tracking-wider text-sm">
               View All Products
             </Link>
           </div>
