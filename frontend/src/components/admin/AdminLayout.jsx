@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, Users, Tag, Settings, LogOut, Mail } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Users, Tag, Settings, LogOut, Mail, Menu, X } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../store/slices/authSlice';
 import api from '../../services/api';
@@ -10,6 +10,7 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state) => state.auth);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const getInitials = (name) => {
     if (!name) return 'SA';
@@ -43,11 +44,24 @@ const AdminLayout = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden" 
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="h-20 flex items-center px-6 border-b border-gray-200">
+      <aside 
+        className={`fixed md:static inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 flex flex-col transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+      >
+        <div className="h-20 flex items-center justify-between px-6 border-b border-gray-200">
           <Link to="/" className="text-2xl font-heading font-bold text-primary">Shreeji Admin</Link>
+          <button className="md:hidden text-gray-500 hover:text-primary" onClick={() => setIsSidebarOpen(false)}>
+            <X size={24} />
+          </button>
         </div>
         
         <div className="flex-1 overflow-y-auto py-6">
@@ -58,6 +72,7 @@ const AdminLayout = () => {
                 <Link
                   key={item.name}
                   to={item.path}
+                  onClick={() => setIsSidebarOpen(false)}
                   className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
                     isActive 
                       ? 'bg-primary text-white font-medium shadow-md shadow-primary/20' 
@@ -84,12 +99,20 @@ const AdminLayout = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
-        <header className="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-8 z-10">
-          <h2 className="text-xl font-semibold text-gray-800">
-            {navItems.find(item => location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path)))?.name || 'Dashboard'}
-          </h2>
+        <header className="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-8 z-10 shrink-0">
+          <div className="flex items-center">
+            <button 
+              className="md:hidden mr-4 text-gray-500 hover:text-primary"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
+            <h2 className="text-xl font-semibold text-gray-800 hidden sm:block">
+              {navItems.find(item => location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path)))?.name || 'Dashboard'}
+            </h2>
+          </div>
           <div className="flex items-center">
             <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold">
               {getInitials(userInfo?.name)}
@@ -99,7 +122,7 @@ const AdminLayout = () => {
         </header>
         
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-8">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">
           <Outlet />
         </div>
       </main>
