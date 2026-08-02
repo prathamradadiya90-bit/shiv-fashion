@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 // Components
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
+import ScrollToTop from './components/common/ScrollToTop';
 
 // Store Pages
 import Home from './pages/store/Home';
@@ -43,6 +44,7 @@ import Settings from './pages/admin/Settings';
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         {/* Store Routes */}
         <Route path="/" element={<StoreLayout />}>
