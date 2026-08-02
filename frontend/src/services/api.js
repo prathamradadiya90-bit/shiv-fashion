@@ -3,7 +3,7 @@ import store from '../store/store';
 import { logout } from '../store/slices/authSlice';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api', // Uses Vercel environment variable in production
+  baseURL: import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api'), // Uses Vercel environment variable in production
   withCredentials: true, // Important for sending/receiving HTTP-Only cookies
 });
 
