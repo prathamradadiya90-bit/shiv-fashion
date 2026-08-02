@@ -1,86 +1,75 @@
 const prisma = require('../config/db');
+const asyncHandler = require('../middleware/asyncHandler');
 
 // @desc    Get all coupons
 // @route   GET /api/coupons
 // @access  Private/SuperAdmin
-const getCoupons = async (req, res) => {
-  try {
-    const coupons = await prisma.coupon.findMany();
-    res.json(coupons);
-  } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
-  }
-};
+const getCoupons = asyncHandler(async (req, res) => {
+  const coupons = await prisma.coupon.findMany();
+  res.json(coupons);
+});
 
 // @desc    Create a coupon
 // @route   POST /api/coupons
 // @access  Private/SuperAdmin
-const createCoupon = async (req, res) => {
-  try {
-    const { code, discountType, value, minOrderValue, expiryDate, isActive } = req.body;
-    
-    const couponExists = await prisma.coupon.findUnique({ where: { code } });
-    if (couponExists) {
-      return res.status(400).json({ message: 'Coupon code already exists' });
-    }
-
-    const coupon = await prisma.coupon.create({
-      data: {
-        code,
-        discountType,
-        value: Number(value),
-        minOrderValue: Number(minOrderValue),
-        expiryDate: new Date(expiryDate),
-        isActive
-      }
-    });
-
-    res.status(201).json(coupon);
-  } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
+const createCoupon = asyncHandler(async (req, res) => {
+  const { code, discountType, value, minOrderValue, expiryDate, isActive } = req.body;
+  
+  const couponExists = await prisma.coupon.findUnique({ where: { code } });
+  if (couponExists) {
+    res.status(400);
+    throw new Error('Coupon code already exists');
   }
-};
+
+  const coupon = await prisma.coupon.create({
+    data: {
+      code,
+      discountType,
+      value: Number(value),
+      minOrderValue: Number(minOrderValue),
+      expiryDate: new Date(expiryDate),
+      isActive
+    }
+  });
+
+  res.status(201).json(coupon);
+});
 
 // @desc    Delete a coupon
 // @route   DELETE /api/coupons/:id
 // @access  Private/SuperAdmin
-const deleteCoupon = async (req, res) => {
-  try {
-    await prisma.coupon.delete({
-      where: { id: req.params.id }
-    });
-    res.json({ message: 'Coupon removed' });
-  } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
-  }
-};
+const deleteCoupon = asyncHandler(async (req, res) => {
+  await prisma.coupon.delete({
+    where: { id: req.params.id }
+  });
+  res.json({ message: 'Coupon removed' });
+});
 
 // @desc    Apply a coupon
 // @route   POST /api/coupons/apply
 // @access  Private
-const applyCoupon = async (req, res) => {
-  try {
-    const { code, orderValue } = req.body;
-    
-    const coupon = await prisma.coupon.findUnique({ where: { code } });
-    
-    if (!coupon) {
-      return res.status(404).json({ message: 'Invalid coupon code' });
-    }
-
-    if (!coupon.isActive || new Date() > new Date(coupon.expiryDate)) {
-      return res.status(400).json({ message: 'Coupon is expired or inactive' });
-    }
-
-    if (Number(orderValue) < coupon.minOrderValue) {
-      return res.status(400).json({ message: `Minimum order value of ₹${coupon.minOrderValue} required` });
-    }
-
-    res.json(coupon);
-  } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
+const applyCoupon = asyncHandler(async (req, res) => {
+  const { code, orderValue } = req.body;
+  
+  const coupon = await prisma.coupon.findUnique({ where: { code } });
+  
+  if (!coupon) {
+    res.status(404);
+    throw new Error('Invalid coupon code');
   }
-};
+
+  if (!coupon.isActive || new Date() > new Date(coupon.expiryDate)) {
+    res.status(400);
+    throw new Error('Coupon is expired or inactive');
+  }
+
+  if (Number(orderValue) < coupon.minOrderValue) {
+    res.status(400);
+    throw new Error(`Minimum order value of ₹${coupon.minOrderValue} required`);
+  }
+
+  res.json(coupon);
+});
 
 module.exports = {
   getCoupons,
