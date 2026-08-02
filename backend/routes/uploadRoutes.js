@@ -5,12 +5,15 @@ const cloudinary = require('../config/cloudinary');
 const { protect, superAdmin } = require('../middleware/authMiddleware');
 const fs = require('fs');
 
-router.post('/', protect, superAdmin, upload.single('image'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
-    }
+const asyncHandler = require('../middleware/asyncHandler');
 
+router.post('/', protect, superAdmin, upload.single('image'), asyncHandler(async (req, res) => {
+  if (!req.file) {
+    res.status(400);
+    throw new Error('No file uploaded');
+  }
+
+  try {
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: 'shreejifashion/products',
     });
@@ -23,10 +26,9 @@ router.post('/', protect, superAdmin, upload.single('image'), async (req, res) =
       publicId: result.public_id,
     });
   } catch (error) {
-    console.error(error);
     if (req.file) fs.unlinkSync(req.file.path);
-    res.status(500).json({ message: 'Image upload failed' });
+    throw error;
   }
-});
+}));
 
 module.exports = router;
