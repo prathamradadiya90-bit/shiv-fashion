@@ -169,6 +169,17 @@ const ProductDetails = () => {
               </div>
             )}
 
+            {/* Stock indicator */}
+            <div className="mb-4">
+              {product.stock > 0 ? (
+                <span className={`text-sm font-medium ${product.stock <= 5 ? 'text-red-600' : 'text-green-600'}`}>
+                  {product.stock <= 5 ? `Hurry! Only ${product.stock} left in stock` : `In Stock`}
+                </span>
+              ) : (
+                <span className="text-sm font-medium text-red-600">Out of Stock</span>
+              )}
+            </div>
+
             {/* Actions */}
             <div className="flex space-x-4 mb-8">
               <div className="flex items-center border border-gray-300 rounded w-32 h-12">
