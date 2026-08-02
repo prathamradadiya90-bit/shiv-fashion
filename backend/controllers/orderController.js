@@ -86,7 +86,13 @@ const addOrderItems = asyncHandler(async (req, res) => {
     receipt: `receipt_order_${Date.now()}`
   };
 
-  const razorpayOrder = await razorpayInstance.orders.create(options);
+  let razorpayOrder;
+  try {
+    razorpayOrder = await razorpayInstance.orders.create(options);
+  } catch (error) {
+    res.status(400);
+    throw new Error('Failed to create payment order. Check Razorpay keys.');
+  }
 
   // Save payment method info inside shippingAddress JSON
   const enhancedShippingAddress = {
@@ -98,6 +104,8 @@ const addOrderItems = asyncHandler(async (req, res) => {
     data: {
       userId: req.user.id,
       totalAmount: finalTotalAmount,
+      status: 'PENDING',
+      isCOD: isCOD,
       shippingAddress: enhancedShippingAddress,
       razorpayOrderId: razorpayOrder.id,
       items: {
