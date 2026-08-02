@@ -151,13 +151,18 @@ const Shop = () => {
             ) : sortedProducts.length === 0 ? (
               <p>No products found.</p>
             ) : (
-              sortedProducts.map((item) => (
-                <Link to={`/product/${item.id}`} key={item.id} className="card group block">
-                  <div className="relative h-72 overflow-hidden">
+              sortedProducts.map((item, idx) => (
+                <Link 
+                  to={`/product/${item.id}`} 
+                  key={item.id} 
+                  className="card group block animate-fade-in"
+                  style={{ animationDelay: `${idx * 0.1}s`, opacity: 0 }}
+                >
+                  <div className="relative h-72 overflow-hidden bg-gray-50">
                     <img 
                       src={item.images?.[0]?.url || `https://source.unsplash.com/random/400x500/?chaniya,choli,${item.id}`}
                       alt={item.name} 
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     />
                     {item.discount > 0 && (
                       <div className="absolute top-3 left-3 bg-secondary text-primary-dark text-xs font-bold px-2 py-1 rounded z-20">
@@ -175,8 +180,8 @@ const Shop = () => {
                   <div className="p-4">
                     <h3 className="text-md font-bold text-gray-800 mb-1 truncate group-hover:text-primary transition-colors">{item.name}</h3>
                     <div className="flex justify-between items-center mt-2">
-                      <span className="font-bold text-primary">₹{item.price}</span>
-                      <button className="text-xs bg-primary text-white px-3 py-1.5 rounded hover:bg-primary-dark transition-colors">
+                      <span className="font-bold text-primary text-lg">₹{item.price}</span>
+                      <button className="text-xs bg-primary text-white px-3 py-1.5 rounded transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 active:scale-95 group-hover:bg-primary-light">
                         View Details
                       </button>
                     </div>

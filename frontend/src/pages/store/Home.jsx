@@ -102,7 +102,7 @@ const Home = () => {
           
           <button 
             onClick={() => navigate('/shop')}
-            className="group relative inline-flex items-center justify-center gap-3 px-10 py-4 font-medium text-white transition-all duration-500 ease-in-out bg-transparent border border-[#D4AF37]/60 hover:bg-[#D4AF37] hover:border-[#D4AF37] hover:text-[#1a050b] tracking-[0.2em] uppercase text-xs md:text-sm animate-fade-in"
+            className="group relative inline-flex items-center justify-center gap-3 px-10 py-4 font-medium text-white transition-all duration-500 ease-in-out bg-transparent border border-[#D4AF37]/60 hover:bg-[#D4AF37] hover:border-[#D4AF37] hover:text-[#1a050b] hover:shadow-xl hover:-translate-y-1 active:scale-95 tracking-[0.2em] uppercase text-xs md:text-sm animate-fade-in"
             style={{ animationDelay: '0.8s', opacity: 0 }}
           >
             <span>Explore Collection</span>
@@ -191,13 +191,14 @@ const Home = () => {
             {loading ? (
               <div className="col-span-full text-center py-10 text-gray-500">Loading trending products...</div>
             ) : (
-              featuredProducts.map((item) => (
-                <div key={item.id} className="group bg-accent rounded shadow-sm border border-[#e5dfd3] flex flex-col h-full overflow-hidden">
+              featuredProducts.map((item, idx) => (
+                <div key={item.id} className="card group flex flex-col h-full animate-fade-in" style={{ animationDelay: `${idx * 0.1}s`, opacity: 0 }}>
+                  <div className="relative h-72 overflow-hidden bg-gray-50">
                   <div className="p-4 flex-grow flex flex-col justify-between">
                     <div>
                       <p className="text-[10px] text-secondary font-bold tracking-widest uppercase mb-1">New Arrivals</p>
                       <Link to={`/product/${item.id}`}>
-                        <h3 className="text-lg font-medium text-primary mb-2 font-heading truncate hover:text-secondary transition">{item.name}</h3>
+                        <h3 className="text-lg font-medium text-primary mb-2 font-heading truncate group-hover:text-secondary transition-colors">{item.name}</h3>
                       </Link>
                       <div className="flex items-center gap-2 mb-4">
                         <span className="text-xl font-bold text-primary">
@@ -211,7 +212,7 @@ const Home = () => {
                     
                     <button 
                       onClick={() => navigate(`/product/${item.id}`)}
-                      className="w-full bg-primary hover:bg-primary-light text-white py-3 rounded flex items-center justify-center gap-2 font-medium transition"
+                      className="w-full bg-primary hover:bg-primary-light text-white py-3 rounded flex items-center justify-center gap-2 font-medium transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 active:scale-95"
                     >
                       <ShoppingBag className="w-4 h-4" />
                       View Details
@@ -223,7 +224,7 @@ const Home = () => {
           </div>
           
           <div className="text-center mt-12">
-            <Link to="/shop" className="inline-flex items-center gap-2 px-8 py-3 border-2 border-primary text-primary font-semibold rounded hover:bg-primary hover:text-white transition uppercase tracking-wider text-sm">
+            <Link to="/shop" className="btn-outline inline-flex items-center gap-2">
               View All Products
             </Link>
           </div>
@@ -274,7 +275,7 @@ const Home = () => {
             />
             <button
               type="submit"
-              className="px-8 py-3 text-primary font-bold rounded hover:opacity-90 transition whitespace-nowrap bg-secondary uppercase tracking-wider text-sm"
+              className="px-8 py-3 text-primary font-bold rounded transition-all duration-300 whitespace-nowrap bg-secondary hover:bg-secondary-light hover:shadow-lg hover:-translate-y-0.5 active:scale-95 uppercase tracking-wider text-sm"
             >
               Subscribe
             </button>

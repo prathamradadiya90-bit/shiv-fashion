@@ -16,19 +16,35 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-primary text-accent px-6 py-2 rounded-md hover:bg-primary-light transition-colors duration-300 font-medium;
+    @apply bg-primary text-accent px-6 py-2 rounded-md transition-all duration-300 font-medium shadow-sm hover:shadow-lg hover:bg-primary-light hover:-translate-y-1 active:scale-95;
   }
   
   .btn-secondary {
-    @apply bg-secondary text-primary-dark px-6 py-2 rounded-md hover:bg-secondary-light transition-colors duration-300 font-medium;
+    @apply bg-secondary text-primary-dark px-6 py-2 rounded-md transition-all duration-300 font-medium shadow-sm hover:shadow-lg hover:bg-secondary-light hover:-translate-y-1 active:scale-95;
   }
   
   .btn-outline {
-    @apply border-2 border-primary text-primary px-6 py-2 rounded-md hover:bg-primary hover:text-accent transition-colors duration-300 font-medium;
+    @apply border-2 border-primary text-primary px-6 py-2 rounded-md hover:bg-primary hover:text-accent transition-all duration-300 font-medium hover:shadow-lg hover:-translate-y-1 active:scale-95;
   }
   
   .card {
-    @apply bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden;
+    @apply bg-white rounded-lg shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 overflow-hidden;
+  }
+  
+  .glass {
+    @apply bg-white/90 backdrop-blur-md border border-white/20 shadow-sm;
+  }
+
+  .nav-link {
+    @apply relative text-sm font-semibold text-gray-800 hover:text-primary transition-colors py-1;
+  }
+
+  .nav-link::after {
+    @apply content-[''] absolute left-0 bottom-0 w-0 h-0.5 bg-primary transition-all duration-300;
+  }
+
+  .nav-link:hover::after {
+    @apply w-full;
   }
 }
 
@@ -38,6 +54,9 @@
   }
   .pulse-animation {
     animation: pulseGlow 2s infinite;
+  }
+  .img-hover-scale {
+    @apply transition-transform duration-700 ease-out hover:scale-105;
   }
 }
 

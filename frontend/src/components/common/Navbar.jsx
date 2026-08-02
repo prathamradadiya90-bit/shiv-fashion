@@ -23,7 +23,7 @@ const Navbar = () => {
     }
   };
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+    <header className="sticky top-0 z-50 glass">
       {/* Promo Banner */}
       <div className="bg-primary border-b border-primary-dark">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5">
@@ -49,11 +49,11 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link to="/" className="text-sm font-semibold text-gray-800 hover:text-primary transition-colors">Home</Link>
-            <Link to="/shop" className="text-sm font-semibold text-gray-800 hover:text-primary transition-colors">Shop</Link>
-            <Link to="/track-order" className="text-sm font-semibold text-gray-800 hover:text-primary transition-colors">Track Order</Link>
-            <Link to="/about" className="text-sm font-semibold text-gray-800 hover:text-primary transition-colors">About</Link>
-            <Link to="/contact" className="text-sm font-semibold text-gray-800 hover:text-primary transition-colors">Contact</Link>
+            <Link to="/" className="nav-link">Home</Link>
+            <Link to="/shop" className="nav-link">Shop</Link>
+            <Link to="/track-order" className="nav-link">Track Order</Link>
+            <Link to="/about" className="nav-link">About</Link>
+            <Link to="/contact" className="nav-link">Contact</Link>
           </nav>
 
           {/* Icons */}
