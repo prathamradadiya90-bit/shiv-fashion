@@ -7,12 +7,12 @@ const path = require('path');
 const app = express();
 
 // Middleware
-app.use(express.json());
-app.use(cookieParser());
 app.use(cors({
   origin: true,
   credentials: true
 }));
+app.use(express.json());
+app.use(cookieParser());
 
 // Test Route
 app.get('/', (req, res) => {
