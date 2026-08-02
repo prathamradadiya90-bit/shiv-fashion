@@ -244,6 +244,22 @@ const createProductReview = asyncHandler(async (req, res) => {
   const productId = req.params.id;
   const userId = req.user.id;
   
+  // Check if user has purchased the product and it is delivered
+  const hasPurchased = await prisma.orderItem.findFirst({
+    where: {
+      productId,
+      order: {
+        userId,
+        status: 'DELIVERED'
+      }
+    }
+  });
+
+  if (!hasPurchased) {
+    res.status(403);
+    throw new Error('You can only review products you have purchased and received');
+  }
+
   // Check if user already reviewed
   const alreadyReviewed = await prisma.review.findFirst({
     where: { productId, userId }
