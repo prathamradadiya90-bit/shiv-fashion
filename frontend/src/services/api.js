@@ -7,6 +7,18 @@ const api = axios.create({
   withCredentials: true, // Important for sending/receiving HTTP-Only cookies
 });
 
+// Request interceptor to attach token from Redux state (fallback for blocked third-party cookies)
+api.interceptors.request.use(
+  (config) => {
+    const { auth } = store.getState();
+    if (auth && auth.userInfo && auth.userInfo.token) {
+      config.headers.Authorization = `Bearer ${auth.userInfo.token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Global error handler for Token Expiration / Invalidation
 api.interceptors.response.use(
   (response) => response,

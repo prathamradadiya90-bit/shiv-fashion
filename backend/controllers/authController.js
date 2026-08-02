@@ -32,12 +32,13 @@ const registerUser = asyncHandler(async (req, res) => {
   });
 
   if (user) {
-    generateToken(res, user.id, user.tokenVersion);
+    const token = generateToken(res, user.id, user.tokenVersion);
     res.status(201).json({
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
+      token,
     });
   } else {
     res.status(400);
@@ -58,12 +59,13 @@ const loginUser = asyncHandler(async (req, res) => {
       res.status(403);
       throw new Error('Your account has been blocked by the admin');
     }
-    generateToken(res, user.id, user.tokenVersion);
+    const token = generateToken(res, user.id, user.tokenVersion);
     res.json({
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
+      token,
     });
   } else {
     res.status(401);
@@ -130,8 +132,9 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     });
 
     // If password was changed, re-issue token with new version to keep current device logged in
+    let token;
     if (req.body.password) {
-      generateToken(res, updatedUser.id, updatedUser.tokenVersion);
+      token = generateToken(res, updatedUser.id, updatedUser.tokenVersion);
     }
 
     res.json({
@@ -140,6 +143,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
       email: updatedUser.email,
       role: updatedUser.role,
       phone: updatedUser.phone,
+      ...(token && { token }),
     });
   } else {
     res.status(404);

@@ -4,6 +4,11 @@ const prisma = require('../config/db');
 const protect = async (req, res, next) => {
   let token = req.cookies.jwt;
 
+  // Fallback to Authorization header if cookie is blocked
+  if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
   if (token) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);

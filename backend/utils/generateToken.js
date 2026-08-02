@@ -11,6 +11,8 @@ const generateToken = (res, userId, tokenVersion = 0) => {
     sameSite: process.env.NODE_ENV !== 'development' ? 'none' : 'strict', // Allow cross-origin on Vercel
     maxAge: parseInt(process.env.COOKIE_EXPIRES_IN || '30') * 24 * 60 * 60 * 1000,
   });
+  
+  return token;
 };
 
 module.exports = generateToken;
