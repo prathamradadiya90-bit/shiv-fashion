@@ -6,6 +6,8 @@ import api from '../../services/api';
 
 const Shop = () => {
   const [products, setProducts] = useState([]);
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPrices, setSelectedPrices] = useState([]);
@@ -19,8 +21,10 @@ const Shop = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const { data } = await api.get('/products');
-        setProducts(data);
+        setLoading(true);
+        const { data } = await api.get(`/products?pageNumber=${page}`);
+        setProducts(data.products || data);
+        if (data.pages) setPages(data.pages);
       } catch (error) {
         console.error(error);
       } finally {
@@ -28,7 +32,7 @@ const Shop = () => {
       }
     };
     fetchProducts();
-  }, []);
+  }, [page]);
 
   const toggleWishlist = async (e, id) => {
     e.preventDefault(); // Prevent navigating to product details
@@ -192,13 +196,35 @@ const Shop = () => {
           </div>
           
           {/* Pagination */}
-          <div className="mt-12 flex justify-center space-x-2">
-            <button className="px-4 py-2 border rounded-md text-gray-600 hover:bg-primary hover:text-white transition-colors">Prev</button>
-            <button className="px-4 py-2 border rounded-md bg-primary text-white">1</button>
-            <button className="px-4 py-2 border rounded-md text-gray-600 hover:bg-primary hover:text-white transition-colors">2</button>
-            <button className="px-4 py-2 border rounded-md text-gray-600 hover:bg-primary hover:text-white transition-colors">3</button>
-            <button className="px-4 py-2 border rounded-md text-gray-600 hover:bg-primary hover:text-white transition-colors">Next</button>
-          </div>
+          {pages > 1 && (
+            <div className="mt-12 flex justify-center space-x-2">
+              <button 
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className={`px-4 py-2 border rounded-md transition-colors ${page === 1 ? 'text-gray-400 bg-gray-100 cursor-not-allowed' : 'text-gray-600 hover:bg-primary hover:text-white'}`}
+              >
+                Prev
+              </button>
+              
+              {[...Array(pages).keys()].map(x => (
+                <button 
+                  key={x + 1}
+                  onClick={() => setPage(x + 1)}
+                  className={`px-4 py-2 border rounded-md transition-colors ${page === x + 1 ? 'bg-primary text-white' : 'text-gray-600 hover:bg-primary hover:text-white'}`}
+                >
+                  {x + 1}
+                </button>
+              ))}
+
+              <button 
+                onClick={() => setPage(p => Math.min(pages, p + 1))}
+                disabled={page === pages}
+                className={`px-4 py-2 border rounded-md transition-colors ${page === pages ? 'text-gray-400 bg-gray-100 cursor-not-allowed' : 'text-gray-600 hover:bg-primary hover:text-white'}`}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

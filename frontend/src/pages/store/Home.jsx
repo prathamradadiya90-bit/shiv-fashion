@@ -15,7 +15,8 @@ const Home = () => {
       try {
         const { data } = await api.get('/products');
         // Just take first 4 for trending/featured
-        setFeaturedProducts(data.slice(0, 4));
+        const productsArray = data.products || data;
+        setFeaturedProducts(productsArray.slice(0, 4));
       } catch (error) {
         console.error('Failed to fetch featured products', error);
       } finally {
