@@ -12,7 +12,7 @@ const AddProduct = () => {
   const [category, setCategory] = useState('');
   const [stock, setStock] = useState(0);
   const [isFeatured, setIsFeatured] = useState(false);
-  const [sizes, setSizes] = useState('');
+
   const [colors, setColors] = useState('');
   const [uploading, setUploading] = useState(false);
   const [image, setImage] = useState(null);
@@ -48,7 +48,7 @@ const AddProduct = () => {
         stock: Number(stock),
         isFeatured,
         images: image ? [image] : [],
-        sizes: sizes.split(',').map(s => s.trim()).filter(Boolean),
+        sizes: ['Free size'],
         colors: colors.split(',').map(c => {
           const [colorName, hex] = c.split(':');
           return colorName ? { name: colorName.trim(), hexCode: hex ? hex.trim() : '#000000' } : null;
@@ -136,17 +136,7 @@ const AddProduct = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Sizes (comma separated)</label>
-              <input 
-                type="text" 
-                placeholder="e.g. S, M, L, XL"
-                value={sizes}
-                onChange={(e) => setSizes(e.target.value)}
-                className="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:ring-primary focus:border-primary" 
-              />
-            </div>
-            <div>
+            <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Colors (Name:Hex, comma separated)</label>
               <input 
                 type="text" 

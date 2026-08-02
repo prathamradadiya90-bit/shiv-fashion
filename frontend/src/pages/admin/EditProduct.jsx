@@ -15,7 +15,7 @@ const EditProduct = () => {
   const [category, setCategory] = useState('');
   const [stock, setStock] = useState(0);
   const [isFeatured, setIsFeatured] = useState(false);
-  const [sizes, setSizes] = useState('');
+
   const [colors, setColors] = useState('');
   const [image, setImage] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -32,7 +32,7 @@ const EditProduct = () => {
         setCategory(data.category);
         setStock(data.stock);
         setIsFeatured(data.isFeatured || false);
-        if (data.sizes) setSizes(data.sizes.map(s => s.name).join(', '));
+
         if (data.colors) setColors(data.colors.map(c => `${c.name}:${c.hexCode}`).join(', '));
         if (data.images && data.images.length > 0) {
           setImage({ url: data.images[0].url, publicId: data.images[0].publicId });
@@ -76,7 +76,7 @@ const EditProduct = () => {
         stock: Number(stock),
         isFeatured,
         images: image ? [image] : [],
-        sizes: sizes.split(',').map(s => s.trim()).filter(Boolean),
+        sizes: ['Free size'],
         colors: colors.split(',').map(c => {
           const [colorName, hex] = c.split(':');
           return colorName ? { name: colorName.trim(), hexCode: hex ? hex.trim() : '#000000' } : null;
@@ -167,17 +167,7 @@ const EditProduct = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Sizes (comma separated)</label>
-              <input 
-                type="text" 
-                placeholder="e.g. S, M, L, XL"
-                value={sizes}
-                onChange={(e) => setSizes(e.target.value)}
-                className="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:ring-primary focus:border-primary" 
-              />
-            </div>
-            <div>
+            <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Colors (Name:Hex, comma separated)</label>
               <input 
                 type="text" 

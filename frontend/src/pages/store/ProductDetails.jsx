@@ -14,14 +14,10 @@ const ProductDetails = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  const [selectedSize, setSelectedSize] = useState('');
+  const [selectedSize] = useState('Free size');
   const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
 
-  // Review states
-  const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState('');
-  
   const { userInfo } = useSelector((state) => state.auth);
 
   useEffect(() => {
@@ -32,7 +28,7 @@ const ProductDetails = () => {
     try {
       const { data } = await api.get(`/products/${id}`);
       setProduct(data);
-      if (data.sizes?.length > 0) setSelectedSize(data.sizes[0].name);
+
       if (data.colors?.length > 0) setSelectedColor(data.colors[0].name);
     } catch (error) {
       toast.error('Product not found');
@@ -42,8 +38,8 @@ const ProductDetails = () => {
   };
 
   const handleAddToCart = () => {
-    if (!selectedSize || !selectedColor) {
-      return toast.error('Please select size and color');
+    if (!selectedColor) {
+      return toast.error('Please select color');
     }
     dispatch(addToCart({
       id: product.id,
@@ -69,19 +65,6 @@ const ProductDetails = () => {
     }
   };
 
-  const submitReviewHandler = async (e) => {
-    e.preventDefault();
-    if (!userInfo) return toast.error('Please login to review');
-    try {
-      await api.post(`/products/${id}/reviews`, { rating, comment });
-      toast.success('Review submitted successfully');
-      setRating(5);
-      setComment('');
-      fetchProduct();
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Failed to submit review');
-    }
-  };
 
   if (loading) return <div className="container mx-auto py-20 text-center">Loading...</div>;
   if (!product) return <div className="container mx-auto py-20 text-center">Product not found.</div>;
@@ -108,23 +91,8 @@ const ProductDetails = () => {
           <div className="flex flex-col">
             <h1 className="text-3xl font-heading font-bold text-gray-900 mb-2">{product.name}</h1>
             
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="flex text-secondary">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star key={star} size={18} fill={star <= (product.rating || 0) ? "currentColor" : "none"} className={star <= (product.rating || 0) ? "text-secondary" : "text-gray-300"} />
-                ))}
-              </div>
-              <span className="text-sm text-gray-500">({product.numReviews} reviews)</span>
-            </div>
-            
-            <div className="mb-6 flex items-end space-x-4">
+            <div className="mb-6 mt-4 flex items-end space-x-4">
               <span className="text-4xl font-bold text-primary">₹{finalPrice}</span>
-              {product.discount > 0 && (
-                <>
-                  <span className="text-xl text-gray-400 line-through mb-1">₹{product.price}</span>
-                  <span className="text-sm font-bold text-green-600 mb-1 bg-green-100 px-2 py-1 rounded">{product.discount}% OFF</span>
-                </>
-              )}
             </div>
             
             <p className="text-gray-600 mb-8 leading-relaxed whitespace-pre-line">
@@ -149,25 +117,7 @@ const ProductDetails = () => {
               </div>
             )}
 
-            {/* Sizes */}
-            {product.sizes && product.sizes.length > 0 && (
-              <div className="mb-8">
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-semibold">Size</h4>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  {product.sizes.map((size) => (
-                    <button 
-                      key={size.id}
-                      onClick={() => setSelectedSize(size.name)}
-                      className={`w-12 h-12 rounded flex items-center justify-center font-medium border transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm ${selectedSize === size.name ? 'border-primary bg-primary text-white shadow-md' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
-                    >
-                      {size.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+
 
             {/* Stock indicator */}
             <div className="mb-4">
@@ -216,73 +166,6 @@ const ProductDetails = () => {
               </div>
             </div>
 
-          </div>
-        </div>
-      </div>
-
-      {/* Reviews Section */}
-      <div className="mt-12 bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-10">
-        <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {/* Write a Review */}
-          <div>
-            <h3 className="font-semibold text-lg mb-4">Write a Review</h3>
-            {userInfo ? (
-              <form onSubmit={submitReviewHandler} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-                  <select 
-                    value={rating} 
-                    onChange={(e) => setRating(Number(e.target.value))}
-                    className="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:ring-primary focus:border-primary"
-                  >
-                    <option value="5">5 - Excellent</option>
-                    <option value="4">4 - Very Good</option>
-                    <option value="3">3 - Good</option>
-                    <option value="2">2 - Fair</option>
-                    <option value="1">1 - Poor</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
-                  <textarea 
-                    required
-                    rows="3"
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    className="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:ring-primary focus:border-primary"
-                  ></textarea>
-                </div>
-                <button type="submit" className="btn-primary">Submit Review</button>
-              </form>
-            ) : (
-              <div className="bg-gray-50 p-4 rounded text-gray-600">
-                Please <button onClick={() => navigate('/login')} className="text-primary font-bold underline">login</button> to write a review.
-              </div>
-            )}
-          </div>
-
-          {/* Review List */}
-          <div>
-            <h3 className="font-semibold text-lg mb-4">Reviews ({product.numReviews})</h3>
-            {product.reviews.length === 0 && <p className="text-gray-500">No reviews yet.</p>}
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {product.reviews.map((rev) => (
-                <div key={rev.id} className="bg-gray-50 p-4 rounded-lg">
-                  <div className="flex justify-between items-start mb-2">
-                    <strong>{rev.user.name}</strong>
-                    <div className="flex">
-                      {[...Array(rev.rating)].map((_, i) => (
-                         <Star key={i} size={14} fill="currentColor" className="text-secondary" />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-500 mb-2">{new Date(rev.createdAt).toLocaleDateString()}</p>
-                  <p className="text-gray-700">{rev.comment}</p>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </div>

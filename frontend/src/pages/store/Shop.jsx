@@ -168,11 +168,7 @@ const Shop = () => {
                       alt={item.name} 
                       className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     />
-                    {item.discount > 0 && (
-                      <div className="absolute top-3 left-3 bg-secondary text-primary-dark text-xs font-bold px-2 py-1 rounded z-20">
-                        {item.discount}% OFF
-                      </div>
-                    )}
+
                     <button 
                       onClick={(e) => toggleWishlist(e, item.id)}
                       className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-sm text-gray-400 hover:text-red-500 z-20 transition"

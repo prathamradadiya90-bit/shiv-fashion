@@ -299,22 +299,13 @@ const Home = () => {
                       </div>
                     </div>
 
-                    {item.discount > 0 && (
-                      <div className="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
-                        -{item.discount}%
-                      </div>
-                    )}
+
                   </div>
 
                   <div className="px-1">
                     <div className="flex justify-between items-start mb-1">
                       <p className="text-[10px] text-secondary font-bold tracking-widest uppercase">{item.category}</p>
-                      {item.rating > 0 && (
-                        <div className="flex items-center text-[#D4AF37] text-xs">
-                          <Star className="w-3 h-3 fill-current mr-1" />
-                          <span>{item.rating.toFixed(1)}</span>
-                        </div>
-                      )}
+
                     </div>
                     <Link to={`/product/${item.id}`}>
                       <h3 className="text-lg font-medium text-primary font-heading truncate transition-colors group-hover:text-secondary">{item.name}</h3>
@@ -323,9 +314,6 @@ const Home = () => {
                       <span className="text-lg font-bold text-gray-900">
                         ₹{item.price - (item.price * (item.discount / 100))}
                       </span>
-                      {item.discount > 0 && (
-                        <span className="text-sm text-gray-400 line-through">₹{item.price}</span>
-                      )}
                     </div>
                   </div>
                 </motion.div>
