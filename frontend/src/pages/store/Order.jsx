@@ -48,6 +48,8 @@ const Order = () => {
         name: 'Shreeji Fashion',
         description: 'Order Payment',
         order_id: data.razorpayOrder.id,
+        callback_url: `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/orders/payment-callback`,
+        redirect: false,
         handler: async function (response) {
           try {
             // 3. Verify Payment
@@ -114,6 +116,7 @@ const Order = () => {
           <p className="mt-2"><strong>Total Amount:</strong> <span className="font-bold text-primary">₹{order.totalAmount}</span></p>
           {order.paymentStatus === 'UNPAID' && (
             <button
+              type="button"
               onClick={payNowHandler}
               disabled={isPaying}
               className={`mt-4 w-full sm:w-auto bg-primary text-white font-bold py-2 px-6 rounded shadow hover:bg-red-800 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 ${isPaying ? 'opacity-50 cursor-not-allowed' : 'pulse-animation'}`}

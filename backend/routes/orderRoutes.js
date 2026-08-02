@@ -10,6 +10,7 @@ const {
   retryPayment,
   razorpayWebhook,
   trackOrder,
+  paymentCallback,
 } = require('../controllers/orderController');
 const { protect, superAdmin } = require('../middleware/authMiddleware');
 
@@ -18,6 +19,7 @@ router.route('/')
   .get(protect, superAdmin, getOrders);
 
 router.route('/webhook').post(razorpayWebhook);
+router.route('/payment-callback').post(paymentCallback);
 router.route('/track').post(trackOrder);
 router.route('/myorders').get(protect, getMyOrders);
 router.route('/:id').get(protect, getOrderById);

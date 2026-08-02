@@ -170,6 +170,60 @@ const verifyPayment = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Handle Razorpay redirect callback from mobile payments
+// @route   POST /api/orders/payment-callback
+// @access  Public
+const paymentCallback = asyncHandler(async (req, res) => {
+  const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+  
+  if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+    return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/cart`);
+  }
+
+  const order = await prisma.order.findFirst({ where: { razorpayOrderId: razorpay_order_id } });
+
+  if (!order) {
+    return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/cart`);
+  }
+
+  const body = razorpay_order_id + "|" + razorpay_payment_id;
+  const expectedSignature = crypto
+    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+    .update(body.toString())
+    .digest('hex');
+
+  if (expectedSignature === razorpay_signature && order.paymentStatus !== 'PAID') {
+    const updatedOrder = await prisma.order.update({
+      where: { id: order.id },
+      data: {
+        paymentStatus: 'PAID',
+        status: 'CONFIRMED',
+        razorpayPaymentId: razorpay_payment_id,
+        razorpaySignature: razorpay_signature,
+      },
+      include: { user: true }
+    });
+    
+    const emailMessage = `
+      Hello ${updatedOrder.user.name},
+      
+      Thank you for shopping with Shreeji Fashion!
+      Your order (${updatedOrder.id}) has been confirmed and payment is successful.
+      Total Amount: ₹${updatedOrder.totalAmount}
+      
+      We will notify you once your order is shipped.
+    `;
+
+    await sendEmail({
+      email: updatedOrder.user.email,
+      subject: `Shreeji Fashion - Order Confirmed (${updatedOrder.id})`,
+      message: emailMessage,
+    }).catch(console.error); // Ignore email errors here to prevent redirect failure
+  }
+
+  res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/order/${order.id}`);
+});
+
 // @desc    Get logged in user orders
 // @route   GET /api/orders/myorders
 // @access  Private
@@ -431,4 +485,5 @@ module.exports = {
   retryPayment,
   razorpayWebhook,
   trackOrder,
+  paymentCallback,
 };

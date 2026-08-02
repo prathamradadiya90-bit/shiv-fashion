@@ -100,6 +100,8 @@ const PlaceOrder = () => {
         name: 'Shreeji Fashion',
         description: 'Premium Chaniya Choli',
         order_id: data.razorpayOrder.id,
+        callback_url: `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/orders/payment-callback`,
+        redirect: false, // Ensures SPA behavior on desktop, but redirects on mobile UPI intents
         handler: async function (response) {
           try {
             // 3. Verify Payment on server
@@ -256,6 +258,7 @@ const PlaceOrder = () => {
             </div>
 
             <button
+              type="button"
               onClick={placeOrderHandler}
               disabled={cart.cartItems.length === 0}
               className={`w-full btn-primary text-lg py-3 ${cart.cartItems.length === 0 && 'opacity-50 cursor-not-allowed'}`}
