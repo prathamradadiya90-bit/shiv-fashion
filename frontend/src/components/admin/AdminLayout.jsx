@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Package, ShoppingBag, Users, Tag, Settings, LogOut, Mail } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -15,6 +15,12 @@ const AdminLayout = () => {
     if (!name) return 'SA';
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
+
+  useEffect(() => {
+    if (!userInfo || userInfo.role !== 'SUPERADMIN') {
+      navigate('/');
+    }
+  }, [userInfo, navigate]);
 
   const logoutHandler = async () => {
     try {
