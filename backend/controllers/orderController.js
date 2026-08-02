@@ -5,8 +5,8 @@ const sendEmail = require('../utils/sendEmail');
 const asyncHandler = require('../middleware/asyncHandler');
 
 const razorpayInstance = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
+  key_id: process.env.RAZORPAY_KEY_ID || 'dummy_key',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || 'dummy_secret',
 });
 
 // @desc    Create new order & razorpay order
