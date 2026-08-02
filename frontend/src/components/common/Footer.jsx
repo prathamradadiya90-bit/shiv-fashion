@@ -66,9 +66,9 @@ const Footer = () => {
                 { name: 'Track Order', path: '/track-order' }
               ].map((link, idx) => (
                 <li key={idx} className="group">
-                  <Link to={link.path} className="inline-flex items-center text-white/70 hover:text-[#D4AF37] text-sm transition-all duration-300">
-                    <ChevronRight className="w-3 h-3 mr-2 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-[#D4AF37]" />
-                    <span className="group-hover:translate-x-1 transition-transform duration-300">{link.name}</span>
+                  <Link to={link.path} className="inline-flex items-center text-white/70 hover:text-[#D4AF37] text-sm transition-all duration-300 py-1.5 w-full">
+                    <ChevronRight className="w-3 h-3 mr-2 opacity-0 md:-ml-5 group-hover:opacity-100 md:group-hover:ml-0 transition-all duration-300 text-[#D4AF37]" />
+                    <span className="md:group-hover:translate-x-1 transition-transform duration-300">{link.name}</span>
                   </Link>
                 </li>
               ))}
