@@ -149,6 +149,7 @@ model Order {
   totalAmount     Float
   status          OrderStatus @default(PENDING)
   paymentStatus   PaymentStatus @default(UNPAID)
+  isCOD           Boolean  @default(false)
   
   razorpayOrderId String?
   razorpayPaymentId String?

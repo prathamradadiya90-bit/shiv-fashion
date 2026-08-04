@@ -29,7 +29,7 @@ const protect = async (req, res, next) => {
       return res.status(403).json({ message: 'Not authorized, your account has been blocked' });
     }
 
-    if (user.tokenVersion !== decoded.tokenVersion) {
+    if (user.tokenVersion !== (decoded.tokenVersion ?? 0)) {
       return res.status(401).json({ message: 'Not authorized, session expired. Please log in again.' });
     }
 

@@ -4,14 +4,15 @@ import { logout } from '../store/slices/authSlice';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api'),
-  withCredentials: true, // Important for sending/receiving HTTP-Only cookies
+  withCredentials: true,
 });
 
-// Request interceptor to attach token from Redux state (fallback for blocked third-party cookies)
+// Attach Bearer token from Redux state on every request
+// (reliable fallback when cross-origin cookies are blocked)
 api.interceptors.request.use(
   (config) => {
     const { auth } = store.getState();
-    if (auth && auth.userInfo && auth.userInfo.token) {
+    if (auth?.userInfo?.token) {
       config.headers.Authorization = `Bearer ${auth.userInfo.token}`;
     }
     return config;
@@ -19,39 +20,51 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Global error handler for Token Expiration / Invalidation
+// Pages where a 401 should NEVER trigger auto-logout
+const PROTECTED_PAGES = [
+  '/cart',
+  '/shipping',
+  '/placeorder',
+  '/order',
+  '/profile',
+  '/my-orders',
+];
+
+// API routes where a 401 should NEVER trigger auto-logout
+const PROTECTED_API_ROUTES = [
+  '/orders',
+  '/pay',
+  '/payment-callback',
+  '/webhook',
+  '/retry-pay',
+];
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      // Do NOT auto-logout if Razorpay checkout is currently open.
-      // Razorpay adds a div with id="razorpay-container" or an iframe when active.
-      const razorpayActive =
-        document.getElementById('razorpay-container') ||
-        document.querySelector('iframe[src*="razorpay"]') ||
-        document.querySelector('.razorpay-container') ||
-        document.querySelector('[id^="razorpay"]');
-
-      if (razorpayActive) {
-        // Payment flow is active — do not log out. Let the caller handle the error.
-        return Promise.reject(error);
-      }
-
-      // Also skip auto-logout for payment verification calls (POST .../pay)
+    if (error.response?.status === 401) {
       const requestUrl = error.config?.url || '';
-      const isPaymentRoute =
-        requestUrl.includes('/pay') ||
-        requestUrl.includes('/orders') ||
-        requestUrl.includes('/payment-callback');
+      const currentPage = window.location.pathname;
 
-      if (isPaymentRoute) {
+      // Skip auto-logout if on a checkout/order page
+      const onProtectedPage = PROTECTED_PAGES.some((p) => currentPage.startsWith(p));
+
+      // Skip auto-logout if the failing request is payment/order related
+      const isProtectedRoute = PROTECTED_API_ROUTES.some((r) => requestUrl.includes(r));
+
+      // Skip auto-logout if Razorpay modal is open
+      const razorpayOpen =
+        !!document.getElementById('razorpay-container') ||
+        !!document.querySelector('iframe[src*="razorpay"]') ||
+        !!document.querySelector('[id^="razorpay"]');
+
+      if (onProtectedPage || isProtectedRoute || razorpayOpen) {
+        // Let the calling component handle this error — do NOT log out
         return Promise.reject(error);
       }
 
-      // Token expired or invalidated on a non-payment route — log out
+      // Safe to auto-logout: token genuinely expired on a non-sensitive page
       store.dispatch(logout());
-
-      // Only redirect if not already on auth pages to avoid loops
       if (
         window.location.pathname !== '/login' &&
         window.location.pathname !== '/register'
