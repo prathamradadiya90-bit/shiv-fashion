@@ -16,7 +16,10 @@ const authSlice = createSlice({
     },
     logout: (state) => {
       state.userInfo = null;
+      // Clear all user-specific data from localStorage on logout
       localStorage.removeItem('userInfo');
+      localStorage.removeItem('cartItems');
+      localStorage.removeItem('shippingAddress');
     },
   },
 });

@@ -1,10 +1,14 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+// Only restore cart from localStorage if the user is actually logged in.
+// This prevents guests from seeing a cart badge or accessing stale cart data.
+const isLoggedIn = !!localStorage.getItem('userInfo');
+
 const initialState = {
-  cartItems: localStorage.getItem('cartItems') 
-    ? JSON.parse(localStorage.getItem('cartItems')).filter(item => item && item.id) 
+  cartItems: isLoggedIn && localStorage.getItem('cartItems')
+    ? JSON.parse(localStorage.getItem('cartItems')).filter(item => item && item.id)
     : [],
-  shippingAddress: localStorage.getItem('shippingAddress')
+  shippingAddress: isLoggedIn && localStorage.getItem('shippingAddress')
     ? JSON.parse(localStorage.getItem('shippingAddress'))
     : {},
 };
@@ -26,7 +30,7 @@ const cartSlice = createSlice({
       if (existItem) {
         state.cartItems = state.cartItems.map((x) =>
           x.id === existItem.id && x.size === existItem.size && x.color === existItem.color
-            ? item 
+            ? item
             : x
         );
       } else {
@@ -47,7 +51,9 @@ const cartSlice = createSlice({
     },
     clearCartItems: (state) => {
       state.cartItems = [];
+      state.shippingAddress = {};
       localStorage.removeItem('cartItems');
+      localStorage.removeItem('shippingAddress');
     },
   },
 });
