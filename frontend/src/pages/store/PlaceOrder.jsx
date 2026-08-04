@@ -93,15 +93,18 @@ const PlaceOrder = () => {
       const { data } = await api.post('/orders', orderData);
 
       // 2. Open Razorpay Checkout
+      // NOTE: Do NOT set callback_url to the backend — it causes a hard page redirect,
+      // which loses the browser session (cookies not re-sent on redirect) and triggers
+      // the 401 interceptor → auto-logout. Instead, use only the `handler` function for
+      // the SPA flow. Mobile UPI apps will use the handler callback after returning.
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TKUQLqqkzetbPC', // Fallback to provided test key
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TKUQLqqkzetbPC',
         amount: data.razorpayOrder.amount,
         currency: data.razorpayOrder.currency,
         name: 'Shreeji Fashion',
         description: 'Premium Chaniya Choli',
         order_id: data.razorpayOrder.id,
-        callback_url: `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/orders/payment-callback`,
-        redirect: false, // Ensures SPA behavior on desktop, but redirects on mobile UPI intents
+        // callback_url removed: was causing hard-redirect → cookie loss → 401 → auto-logout
         handler: async function (response) {
           try {
             // 3. Verify Payment on server
@@ -119,12 +122,18 @@ const PlaceOrder = () => {
           }
         },
         prefill: {
-          name: userInfo.name,
-          email: userInfo.email,
-          contact: userInfo.phone || '',
+          name: userInfo?.name || '',
+          email: userInfo?.email || '',
+          contact: userInfo?.phone || '',
         },
         theme: {
           color: '#800020',
+        },
+        modal: {
+          // When user closes the modal without paying, don't treat it as an error
+          ondismiss: function () {
+            toast.info('Payment cancelled. Your order is saved — you can retry from My Orders.');
+          },
         },
       };
 

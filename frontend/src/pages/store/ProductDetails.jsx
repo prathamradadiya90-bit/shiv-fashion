@@ -38,6 +38,10 @@ const ProductDetails = () => {
   };
 
   const handleAddToCart = () => {
+    if (!userInfo) {
+      toast.error('Please login to add items to cart');
+      return navigate(`/login?redirect=${encodeURIComponent(`/product/${id}`)}`);
+    }
     if (!selectedColor) {
       return toast.error('Please select color');
     }

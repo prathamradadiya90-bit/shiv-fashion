@@ -104,7 +104,10 @@ const Navbar = () => {
               </Link>
             )}
 
-            <Link to="/cart" className="text-gray-800 hover:text-primary transition-colors relative">
+            <Link 
+              to={userInfo ? '/cart' : '/login?redirect=%2Fcart'} 
+              className="text-gray-800 hover:text-primary transition-colors relative"
+            >
               <ShoppingCart className="w-5 h-5" />
               {cartItems.length > 0 && (
                 <span className="absolute -top-2 -right-2 bg-secondary text-primary-dark text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center shadow-sm">

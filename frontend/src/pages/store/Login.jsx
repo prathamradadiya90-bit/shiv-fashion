@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
@@ -13,18 +13,24 @@ const Login = () => {
   
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [searchParams] = useSearchParams();
 
   const { userInfo } = useSelector((state) => state.auth);
 
+  // Where to go after login — default to home or admin
+  const redirectPath = searchParams.get('redirect') || null;
+
   useEffect(() => {
     if (userInfo) {
-      if (userInfo.role === 'SUPERADMIN') {
-        navigate('/admin');
+      if (redirectPath) {
+        navigate(redirectPath, { replace: true });
+      } else if (userInfo.role === 'SUPERADMIN') {
+        navigate('/admin', { replace: true });
       } else {
-        navigate('/');
+        navigate('/', { replace: true });
       }
     }
-  }, [navigate, userInfo]);
+  }, [navigate, userInfo, redirectPath]);
 
   const submitHandler = async (e) => {
     e.preventDefault();

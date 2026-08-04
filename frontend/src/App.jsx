@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
 import ScrollToTop from './components/common/ScrollToTop';
+import PrivateRoute from './components/common/PrivateRoute';
 
 // Store Pages
 import Home from './pages/store/Home';
@@ -52,13 +53,13 @@ function App() {
           <Route path="shop" element={<Shop />} />
           <Route path="contact" element={<ContactUs />} />
           <Route path="product/:id" element={<ProductDetails />} />
-          <Route path="cart" element={<Cart />} />
-          <Route path="shipping" element={<Shipping />} />
-          <Route path="placeorder" element={<PlaceOrder />} />
-          <Route path="order/:id" element={<Order />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="my-orders" element={<MyOrders />} />
-          <Route path="wishlist" element={<Wishlist />} />
+          <Route path="cart" element={<PrivateRoute><Cart /></PrivateRoute>} />
+          <Route path="shipping" element={<PrivateRoute><Shipping /></PrivateRoute>} />
+          <Route path="placeorder" element={<PrivateRoute><PlaceOrder /></PrivateRoute>} />
+          <Route path="order/:id" element={<PrivateRoute><Order /></PrivateRoute>} />
+          <Route path="profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+          <Route path="my-orders" element={<PrivateRoute><MyOrders /></PrivateRoute>} />
+          <Route path="wishlist" element={<PrivateRoute><Wishlist /></PrivateRoute>} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
           <Route path="forgot-password" element={<ForgotPassword />} />
