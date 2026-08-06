@@ -41,6 +41,9 @@ const Order = () => {
       const { data } = await api.post(`/orders/${id}/retry-pay`);
 
       // 2. Open Razorpay Checkout
+      // NOTE: Do NOT set callback_url — it causes a hard page redirect which loses
+      // the browser session (cookies not re-sent on redirect) and triggers the
+      // 401 interceptor → auto-logout. Use only the handler function for the SPA flow.
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TKUQLqqkzetbPC',
         amount: data.razorpayOrder.amount,
@@ -48,8 +51,6 @@ const Order = () => {
         name: 'Shreeji Fashion',
         description: 'Order Payment',
         order_id: data.razorpayOrder.id,
-        callback_url: `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/orders/payment-callback`,
-        redirect: false,
         handler: async function (response) {
           try {
             // 3. Verify Payment
@@ -74,6 +75,11 @@ const Order = () => {
         },
         theme: {
           color: '#800020',
+        },
+        modal: {
+          ondismiss: function () {
+            toast.info('Payment cancelled. You can retry anytime from this page.');
+          },
         },
       };
 
