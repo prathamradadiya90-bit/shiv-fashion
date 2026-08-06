@@ -4,9 +4,13 @@ const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
 const asyncHandler = require('../middleware/asyncHandler');
 
+if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+  throw new Error('RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET must be set');
+}
+
 const razorpayInstance = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'dummy_key',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'dummy_secret',
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
 // @desc    Create new order & razorpay order
@@ -15,46 +19,51 @@ const razorpayInstance = new Razorpay({
 const addOrderItems = asyncHandler(async (req, res) => {
   const { orderItems, shippingAddress } = req.body;
 
-  if (!orderItems || orderItems.length === 0) {
+  if (!Array.isArray(orderItems) || orderItems.length === 0) {
     res.status(400);
-    throw new Error('No order items');
+    throw new Error('orderItems must be a non-empty array');
   }
 
   // Calculate total amount from DB to prevent tampering
-  let totalAmount = 0;
+  let totalAmountPaise = 0;
   const itemsForDb = [];
 
+  const productIds = orderItems.map(i => i.productId);
+  const products = await prisma.product.findMany({ where: { id: { in: productIds } } });
+  const productMap = Object.fromEntries(products.map(p => [p.id, p]));
+
   for (let item of orderItems) {
-    const product = await prisma.product.findUnique({ where: { id: item.productId } });
+    const product = productMap[item.productId];
     if (!product) {
       res.status(404);
       throw new Error(`Product ${item.productId} not found`);
     }
     
-    let finalPrice = product.price;
+    let finalPricePaise = Math.round(product.price * 100);
     if (product.discount > 0) {
-       finalPrice = product.price - (product.price * (product.discount / 100));
+       const discountPaise = Math.round(finalPricePaise * (product.discount / 100));
+       finalPricePaise -= discountPaise;
     }
 
-    totalAmount += finalPrice * item.quantity;
+    totalAmountPaise += finalPricePaise * item.quantity;
     itemsForDb.push({
       productId: product.id,
       size: item.size,
       color: item.color,
       quantity: item.quantity,
-      price: finalPrice
+      price: finalPricePaise / 100
     });
   }
 
   // Add Shipping and Tax
-  const shippingPrice = totalAmount > 5000 ? 0 : 250;
-  const taxPrice = Number((0.18 * totalAmount).toFixed(2));
+  const shippingPricePaise = totalAmountPaise > 500000 ? 0 : 25000;
+  const taxPricePaise = Math.round(totalAmountPaise * 0.18);
   
-  let finalTotalAmount = totalAmount + shippingPrice + taxPrice;
+  let finalTotalAmountPaise = totalAmountPaise + shippingPricePaise + taxPricePaise;
 
   // Handle Discount via Server-Side Coupon Verification
   const { couponCode, isCOD } = req.body;
-  let calculatedDiscount = 0;
+  let calculatedDiscountPaise = 0;
 
   if (couponCode) {
     const coupon = await prisma.coupon.findUnique({ where: { code: couponCode } });
@@ -62,22 +71,21 @@ const addOrderItems = asyncHandler(async (req, res) => {
       coupon && 
       coupon.isActive && 
       new Date() <= new Date(coupon.expiryDate) && 
-      finalTotalAmount >= coupon.minOrderValue
+      (finalTotalAmountPaise / 100) >= coupon.minOrderValue
     ) {
       if (coupon.discountType === 'PERCENTAGE') {
-        calculatedDiscount = (finalTotalAmount * coupon.value) / 100;
+        calculatedDiscountPaise = Math.round(finalTotalAmountPaise * (coupon.value / 100));
       } else {
-        calculatedDiscount = coupon.value;
+        calculatedDiscountPaise = Math.round(coupon.value * 100);
       }
     }
   }
 
-  if (calculatedDiscount > 0) {
-    finalTotalAmount -= calculatedDiscount;
+  if (calculatedDiscountPaise > 0) {
+    finalTotalAmountPaise -= calculatedDiscountPaise;
   }
 
-  finalTotalAmount = Number(finalTotalAmount.toFixed(2));
-
+  const finalTotalAmount = finalTotalAmountPaise / 100;
   const amountToCharge = isCOD ? 500 : finalTotalAmount;
 
   const options = {
@@ -100,22 +108,29 @@ const addOrderItems = asyncHandler(async (req, res) => {
     paymentMethod: isCOD ? 'COD' : 'PREPAID'
   };
 
-  const order = await prisma.order.create({
-    data: {
-      userId: req.user.id,
-      totalAmount: finalTotalAmount,
-      status: 'PENDING',
-      isCOD: isCOD,
-      shippingAddress: enhancedShippingAddress,
-      razorpayOrderId: razorpayOrder.id,
-      items: {
-        create: itemsForDb
-      }
-    },
-    include: { items: true }
-  });
-
-  res.status(201).json({ order, razorpayOrder });
+  try {
+    const order = await prisma.$transaction(async (tx) => {
+      return await tx.order.create({
+        data: {
+          userId: req.user.id,
+          totalAmount: finalTotalAmount,
+          status: 'PENDING',
+          isCOD: isCOD,
+          shippingAddress: enhancedShippingAddress,
+          razorpayOrderId: razorpayOrder.id,
+          items: {
+            create: itemsForDb
+          }
+        },
+        include: { items: true }
+      });
+    });
+    res.status(201).json({ order, razorpayOrder });
+  } catch (dbError) {
+    console.error(`CRITICAL: DB write failed for Razorpay Order ${razorpayOrder.id}`, dbError);
+    res.status(500);
+    throw new Error('Failed to save order to database. If payment was deducted, please contact support.');
+  }
 });
 
 // @desc    Verify Razorpay payment
@@ -286,6 +301,12 @@ const getOrders = asyncHandler(async (req, res) => {
 const updateOrderStatus = asyncHandler(async (req, res) => {
   const { status, trackingNumber } = req.body;
   
+  const VALID_STATUSES = ['PENDING','CONFIRMED','SHIPPED','DELIVERED','CANCELLED'];
+  if (status && !VALID_STATUSES.includes(status)) {
+    res.status(400);
+    throw new Error(`Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}`);
+  }
+
   const existingOrder = await prisma.order.findUnique({ where: { id: req.params.id } });
   if (!existingOrder) {
     res.status(404);
@@ -338,9 +359,9 @@ const retryPayment = asyncHandler(async (req, res) => {
     throw new Error('Not authorized to access this order');
   }
 
-  if (order.paymentStatus === 'PAID') {
+  if (order.paymentStatus === 'PAID' || order.status === 'CANCELLED') {
     res.status(400);
-    throw new Error('Order is already paid');
+    throw new Error('Cannot retry payment for this order');
   }
 
   const options = {
@@ -408,18 +429,18 @@ const razorpayWebhook = asyncHandler(async (req, res) => {
 // @route   POST /api/orders/track
 // @access  Public
 const trackOrder = asyncHandler(async (req, res) => {
-  const { type, value } = req.body;
+  const { type, value, email } = req.body;
   
-  if (!type || !value) {
+  if (!type || !value || !email) {
     res.status(400);
-    throw new Error('Please provide type and value');
+    throw new Error('Please provide type, value, and email for tracking');
   }
 
   let orders = [];
 
   if (type === 'orderId') {
-    const order = await prisma.order.findUnique({
-      where: { id: value },
+    const order = await prisma.order.findFirst({
+      where: { id: value, user: { email: email } },
       include: { items: { include: { product: { select: { name: true, images: true } } } } }
     });
     if (order) orders = [order];
@@ -435,7 +456,7 @@ const trackOrder = asyncHandler(async (req, res) => {
 
     // Optimize: just query orders directly through the user relation
     orders = await prisma.order.findMany({
-      where: { user: { phone: { contains: searchPhone } } },
+      where: { user: { phone: { contains: searchPhone }, email: email } },
       include: { items: { include: { product: { select: { name: true, images: true } } } } },
       orderBy: { createdAt: 'desc' },
       take: 5 

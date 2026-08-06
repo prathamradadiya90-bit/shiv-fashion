@@ -15,6 +15,23 @@ const getCoupons = asyncHandler(async (req, res) => {
 const createCoupon = asyncHandler(async (req, res) => {
   const { code, discountType, value, minOrderValue, expiryDate, isActive } = req.body;
   
+  if (!code || !discountType || value == null || !expiryDate) {
+    res.status(400);
+    throw new Error('code, discountType, value, and expiryDate are required');
+  }
+  if (!['PERCENTAGE', 'FIXED'].includes(discountType)) {
+    res.status(400);
+    throw new Error('discountType must be PERCENTAGE or FIXED');
+  }
+  if (isNaN(Number(value)) || Number(value) <= 0) {
+    res.status(400);
+    throw new Error('value must be a positive number');
+  }
+  if (isNaN(new Date(expiryDate).getTime())) {
+    res.status(400);
+    throw new Error('expiryDate is not a valid date');
+  }
+
   const couponExists = await prisma.coupon.findUnique({ where: { code } });
   if (couponExists) {
     res.status(400);

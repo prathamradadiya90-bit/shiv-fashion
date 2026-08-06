@@ -20,7 +20,14 @@ router.route('/')
 
 router.route('/webhook').post(razorpayWebhook);
 router.route('/payment-callback').post(paymentCallback);
-router.route('/track').post(trackOrder);
+const rateLimit = require('express-rate-limit');
+const trackLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { message: 'Too many tracking requests from this IP, please try again after 15 minutes' }
+});
+
+router.route('/track').post(trackLimiter, trackOrder);
 router.route('/myorders').get(protect, getMyOrders);
 router.route('/:id').get(protect, getOrderById);
 router.route('/:id/pay').post(protect, verifyPayment);

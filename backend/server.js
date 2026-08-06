@@ -45,7 +45,8 @@ if (!fs.existsSync(uploadDir)) {
 app.use((err, req, res, next) => {
   console.error(err.stack);
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-  res.status(statusCode).json({ message: err.message || 'Server Error' });
+  const isOperational = statusCode !== 500;
+  res.status(statusCode).json({ message: isOperational ? (err.message || 'Server Error') : 'Internal Server Error' });
 });
 
 const PORT = process.env.PORT || 5000;

@@ -27,7 +27,7 @@ const registerUser = asyncHandler(async (req, res) => {
       email,
       password: hashedPassword,
       phone,
-      role: email === 'admin@shreejifashion.com' ? 'SUPERADMIN' : 'CUSTOMER'
+      role: 'CUSTOMER'
     },
   });
 

@@ -12,7 +12,7 @@ const getUsers = asyncHandler(async (req, res) => {
       email: true,
       phone: true,
       role: true,
-      createdAt: true,
+      status: true,
       createdAt: true,
       orders: {
         select: {

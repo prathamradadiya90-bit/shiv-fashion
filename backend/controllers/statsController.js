@@ -8,10 +8,11 @@ const getStats = asyncHandler(async (req, res) => {
   const totalUsers = await prisma.user.count({ where: { role: 'CUSTOMER' } });
   const totalOrders = await prisma.order.count();
   
-  const orders = await prisma.order.findMany({
-    select: { totalAmount: true }
+  const revenueResult = await prisma.order.aggregate({
+    where: { paymentStatus: 'PAID' },
+    _sum: { totalAmount: true }
   });
-  const totalRevenue = orders.reduce((acc, order) => acc + order.totalAmount, 0);
+  const totalRevenue = revenueResult._sum.totalAmount ?? 0;
 
   const totalProducts = await prisma.product.count();
 

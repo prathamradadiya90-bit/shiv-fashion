@@ -270,30 +270,33 @@ const createProductReview = asyncHandler(async (req, res) => {
     throw new Error('Product already reviewed');
   }
 
-  const review = await prisma.review.create({
-    data: {
-      rating: Number(rating),
-      comment,
-      productId,
-      userId
-    }
-  });
+  let review;
+  await prisma.$transaction(async (tx) => {
+    review = await tx.review.create({
+      data: {
+        rating: Number(rating),
+        comment,
+        productId,
+        userId
+      }
+    });
 
-  // Calculate new rating and numReviews
-  const productReviews = await prisma.review.findMany({
-    where: { productId }
-  });
+    // Calculate new rating and numReviews
+    const productReviews = await tx.review.findMany({
+      where: { productId }
+    });
 
-  const numReviews = productReviews.length;
-  const avgRating = productReviews.reduce((acc, item) => item.rating + acc, 0) / numReviews;
+    const numReviews = productReviews.length;
+    const avgRating = productReviews.reduce((acc, item) => item.rating + acc, 0) / numReviews;
 
-  // Update product model
-  await prisma.product.update({
-    where: { id: productId },
-    data: {
-      rating: avgRating,
-      numReviews: numReviews
-    }
+    // Update product model
+    await tx.product.update({
+      where: { id: productId },
+      data: {
+        rating: avgRating,
+        numReviews: numReviews
+      }
+    });
   });
 
   res.status(201).json({ message: 'Review added', review });
