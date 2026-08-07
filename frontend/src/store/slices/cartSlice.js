@@ -1,16 +1,29 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+/**
+ * Safely parse a JSON value from localStorage.
+ * Returns the fallback if the stored value is missing or malformed.
+ */
+const safeParse = (key, fallback) => {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    return JSON.parse(raw);
+  } catch {
+    localStorage.removeItem(key);
+    return fallback;
+  }
+};
+
 // Only restore cart from localStorage if the user is actually logged in.
 // This prevents guests from seeing a cart badge or accessing stale cart data.
 const isLoggedIn = !!localStorage.getItem('userInfo');
 
 const initialState = {
-  cartItems: isLoggedIn && localStorage.getItem('cartItems')
-    ? JSON.parse(localStorage.getItem('cartItems')).filter(item => item && item.id)
+  cartItems: isLoggedIn
+    ? (safeParse('cartItems', []) || []).filter(item => item && item.id)
     : [],
-  shippingAddress: isLoggedIn && localStorage.getItem('shippingAddress')
-    ? JSON.parse(localStorage.getItem('shippingAddress'))
-    : {},
+  shippingAddress: isLoggedIn ? safeParse('shippingAddress', {}) || {} : {},
 };
 
 const updateCartInStorage = (state) => {

@@ -2,11 +2,13 @@ const jwt = require('jsonwebtoken');
 const prisma = require('../config/db');
 
 const protect = async (req, res, next) => {
-  let token = req.cookies.jwt;
+  let token;
 
-  // Fallback to Authorization header if cookie is blocked (cross-origin / Vercel deploy)
-  if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  // Always prefer Authorization header (Redux state) over cookies to avoid stale cookie issues
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
 
   if (!token) {

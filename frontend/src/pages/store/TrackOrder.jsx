@@ -7,22 +7,25 @@ import api from '../../services/api';
 const TrackOrder = () => {
   const [trackingMethod, setTrackingMethod] = useState('phone'); // 'phone' or 'order'
   const [inputValue, setInputValue] = useState('');
+  // email is required by the backend to prevent random enumeration of orders
+  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState(null);
 
   const handleTrack = async (e) => {
     e.preventDefault();
-    if (!inputValue) return;
-    
+    if (!inputValue || !email) return;
+
     try {
       setLoading(true);
       setOrders(null);
-      
+
       const { data } = await api.post('/orders/track', {
         type: trackingMethod === 'phone' ? 'mobile' : 'orderId',
-        value: inputValue
+        value: inputValue,
+        email: email.trim(),
       });
-      
+
       setOrders(data);
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Order not found');
@@ -80,14 +83,14 @@ const TrackOrder = () => {
           <div className="flex p-1 rounded-lg border border-gray-200 mb-6 bg-white overflow-hidden max-w-lg">
             <button 
               type="button" 
-              onClick={() => { setTrackingMethod('phone'); setInputValue(''); setOrders(null); }}
+              onClick={() => { setTrackingMethod('phone'); setInputValue(''); setEmail(''); setOrders(null); }}
               className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-md text-sm font-medium transition-all ${trackingMethod === 'phone' ? 'bg-[#800020] text-white shadow-sm' : 'text-gray-600 hover:text-[#800020]'}`}
             >
               <Phone className="w-4 h-4" /> Mobile Number
             </button>
             <button 
               type="button" 
-              onClick={() => { setTrackingMethod('order'); setInputValue(''); setOrders(null); }}
+              onClick={() => { setTrackingMethod('order'); setInputValue(''); setEmail(''); setOrders(null); }}
               className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-md text-sm font-medium transition-all ${trackingMethod === 'order' ? 'bg-[#800020] text-white shadow-sm' : 'text-gray-600 hover:text-[#800020]'}`}
             >
               <Hash className="w-4 h-4" /> Order Number
@@ -95,38 +98,56 @@ const TrackOrder = () => {
           </div>
 
           <form onSubmit={handleTrack} className="space-y-3">
-            <label className="block text-sm text-gray-600 font-medium">
-              {trackingMethod === 'phone' ? 'Mobile number used at checkout' : 'Order ID from your confirmation email'}
-            </label>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                {trackingMethod === 'phone' && (
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-base font-medium">+91</span>
-                )}
-                <input 
-                  type={trackingMethod === 'phone' ? 'tel' : 'text'}
-                  placeholder={trackingMethod === 'phone' ? "7046932548" : "e.g. 9b1deb4d-3b7d..."} 
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  className={`w-full h-14 rounded-lg border border-gray-200 focus:border-[#800020] focus:ring-1 focus:ring-[#800020] outline-none transition-colors text-lg ${trackingMethod === 'phone' ? 'pl-14 pr-4' : 'px-4'}`}
-                  required
-                />
+            <div>
+              <label className="block text-sm text-gray-600 font-medium mb-1">
+                {trackingMethod === 'phone' ? 'Mobile number used at checkout' : 'Order ID from your confirmation email'}
+              </label>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  {trackingMethod === 'phone' && (
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-base font-medium">+91</span>
+                  )}
+                  <input 
+                    type={trackingMethod === 'phone' ? 'tel' : 'text'}
+                    placeholder={trackingMethod === 'phone' ? "7046932548" : "e.g. 9b1deb4d-3b7d..."} 
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    className={`w-full h-14 rounded-lg border border-gray-200 focus:border-[#800020] focus:ring-1 focus:ring-[#800020] outline-none transition-colors text-lg ${trackingMethod === 'phone' ? 'pl-14 pr-4' : 'px-4'}`}
+                    required
+                  />
+                </div>
               </div>
-              <button 
-                type="submit" 
-                className="h-14 px-8 bg-[#800020] hover:bg-[#600018] text-white rounded-lg flex items-center justify-center gap-2 font-medium transition-colors sm:w-auto w-full disabled:opacity-50 disabled:cursor-not-allowed text-lg"
-                disabled={!inputValue || loading}
-              >
-                {loading ? (
-                  <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                ) : (
-                  <>
-                    <Search className="w-5 h-5" />
-                    <span>Track</span>
-                  </>
-                )}
-              </button>
             </div>
+
+            {/* Email is required to verify order ownership and prevent enumeration */}
+            <div>
+              <label className="block text-sm text-gray-600 font-medium mb-1">
+                Email address used at checkout
+              </label>
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full h-14 rounded-lg border border-gray-200 focus:border-[#800020] focus:ring-1 focus:ring-[#800020] outline-none transition-colors px-4 text-base"
+                required
+              />
+            </div>
+
+            <button 
+              type="submit" 
+              className="h-14 px-8 bg-[#800020] hover:bg-[#600018] text-white rounded-lg flex items-center justify-center gap-2 font-medium transition-colors w-full disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+              disabled={!inputValue || !email || loading}
+            >
+              {loading ? (
+                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  <Search className="w-5 h-5" />
+                  <span>Track</span>
+                </>
+              )}
+            </button>
             <p className="text-xs text-gray-400 pt-2">
               Tip: {trackingMethod === 'phone' ? 'enter the same number you filled while placing the order.' : 'check your confirmation email for the order number.'}
             </p>

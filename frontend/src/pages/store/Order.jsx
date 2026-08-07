@@ -96,15 +96,41 @@ const Order = () => {
   if (loading) return <div className="text-center py-20">Loading order...</div>;
   if (!order) return <div className="text-center py-20 text-red-500 font-bold">Order Not Found</div>;
 
+  const isPaid = order.paymentStatus === 'PAID';
+  const isCancelledOrFailed = order.status === 'CANCELLED' || order.paymentStatus === 'FAILED';
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="bg-green-50 border border-green-200 text-green-800 p-6 rounded-xl flex items-center mb-8">
-        <CheckCircle size={32} className="mr-4 text-green-500" />
-        <div>
-          <h2 className="text-xl font-bold">Order Confirmed</h2>
-          <p>Thank you for your purchase! Your order ID is <strong>{order.id}</strong></p>
+      {/* Banner based on actual payment status */}
+      {isPaid ? (
+        <div className="bg-green-50 border border-green-200 text-green-800 p-6 rounded-xl flex items-center mb-8">
+          <CheckCircle size={32} className="mr-4 text-green-500 flex-shrink-0" />
+          <div>
+            <h2 className="text-xl font-bold">Order Confirmed</h2>
+            <p>Thank you for your purchase! Your order ID is <strong>{order.id}</strong></p>
+          </div>
         </div>
-      </div>
+      ) : isCancelledOrFailed ? (
+        <div className="bg-red-50 border border-red-200 text-red-800 p-6 rounded-xl flex items-center mb-8">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mr-4 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <h2 className="text-xl font-bold">{order.status === 'CANCELLED' ? 'Order Cancelled' : 'Payment Failed'}</h2>
+            <p>Your order ID is <strong>{order.id}</strong>. Please contact support if you need help.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-6 rounded-xl flex items-center mb-8">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mr-4 text-yellow-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <h2 className="text-xl font-bold">Payment Pending</h2>
+            <p>Your order ID is <strong>{order.id}</strong>. Please complete payment to confirm your order.</p>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">

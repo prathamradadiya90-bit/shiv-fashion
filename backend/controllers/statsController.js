@@ -5,52 +5,58 @@ const asyncHandler = require('../middleware/asyncHandler');
 // @route   GET /api/stats
 // @access  Private/SuperAdmin
 const getStats = asyncHandler(async (req, res) => {
-  const totalUsers = await prisma.user.count({ where: { role: 'CUSTOMER' } });
-  const totalOrders = await prisma.order.count();
-  
-  const revenueResult = await prisma.order.aggregate({
-    where: { paymentStatus: 'PAID' },
-    _sum: { totalAmount: true }
-  });
+  // Run independent DB queries concurrently
+  const [totalUsers, totalOrders, revenueResult, totalProducts, recentOrders, topProductsRaw] =
+    await Promise.all([
+      prisma.user.count({ where: { role: 'CUSTOMER' } }),
+      prisma.order.count(),
+      prisma.order.aggregate({
+        where: { paymentStatus: 'PAID' },
+        _sum: { totalAmount: true },
+      }),
+      prisma.product.count(),
+      prisma.order.findMany({
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        include: { user: { select: { name: true } } },
+      }),
+      // Group order items by product and sum quantities sold
+      prisma.orderItem.groupBy({
+        by: ['productId'],
+        _sum: { quantity: true },
+        orderBy: { _sum: { quantity: 'desc' } },
+        take: 4,
+      }),
+    ]);
+
   const totalRevenue = revenueResult._sum.totalAmount ?? 0;
 
-  const totalProducts = await prisma.product.count();
+  // ── Batch-fetch top product details in ONE query ─────────────────────────
+  // Before: each iteration called prisma.product.findUnique inside the map → N DB hits
+  // After:  single findMany with id: { in: [...] } → 1 DB hit
+  const topProductIds = topProductsRaw.map(item => item.productId);
+  const topProductDetails = topProductIds.length > 0
+    ? await prisma.product.findMany({
+        where: { id: { in: topProductIds } },
+        select: { id: true, name: true, price: true, images: { take: 1 } },
+      })
+    : [];
 
-  // Latest 5 orders
-  const recentOrders = await prisma.order.findMany({
-    take: 5,
-    orderBy: { createdAt: 'desc' },
-    include: { user: { select: { name: true } } }
-  });
+  const productDetailMap = Object.fromEntries(topProductDetails.map(p => [p.id, p]));
 
-  // Top selling products
-  const topProductsRaw = await prisma.orderItem.groupBy({
-    by: ['productId'],
-    _sum: {
-      quantity: true
-    },
-    orderBy: {
-      _sum: {
-        quantity: 'desc'
-      }
-    },
-    take: 4
-  });
-
-  const topProducts = (await Promise.all(topProductsRaw.map(async (item) => {
-    const product = await prisma.product.findUnique({
-      where: { id: item.productId },
-      select: { id: true, name: true, price: true, images: { take: 1 } }
-    });
-    if (!product) return null;
-    return {
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.images?.[0]?.url || '',
-      sales: item._sum.quantity
-    };
-  }))).filter(Boolean);
+  const topProducts = topProductsRaw
+    .map(item => {
+      const product = productDetailMap[item.productId];
+      if (!product) return null;
+      return {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.images?.[0]?.url || '',
+        sales: item._sum.quantity,
+      };
+    })
+    .filter(Boolean);
 
   res.json({
     totalUsers,
@@ -63,11 +69,9 @@ const getStats = asyncHandler(async (req, res) => {
       customer: o.user?.name || 'Unknown',
       date: o.createdAt,
       total: o.totalAmount,
-      status: o.status
-    }))
+      status: o.status,
+    })),
   });
 });
 
-module.exports = {
-  getStats
-};
+module.exports = { getStats };

@@ -5,14 +5,36 @@ const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
 const asyncHandler = require('../middleware/asyncHandler');
 
+// Simple RFC-5322–inspired email regex used for server-side validation
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password, phone } = req.body;
 
-  const userExists = await prisma.user.findUnique({ where: { email } });
+  // ── Required field checks ──────────────────────────────────────────────────
+  if (!name || typeof name !== 'string' || name.trim() === '') {
+    res.status(400);
+    throw new Error('Name is required');
+  }
+  if (!email || typeof email !== 'string') {
+    res.status(400);
+    throw new Error('Email is required');
+  }
+  if (!EMAIL_REGEX.test(email.trim())) {
+    res.status(400);
+    throw new Error('Please enter a valid email address');
+  }
+  if (!password || typeof password !== 'string' || password.length < 6) {
+    res.status(400);
+    throw new Error('Password is required and must be at least 6 characters');
+  }
 
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const userExists = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (userExists) {
     res.status(400);
     throw new Error('User already exists');
@@ -23,11 +45,11 @@ const registerUser = asyncHandler(async (req, res) => {
 
   const user = await prisma.user.create({
     data: {
-      name,
-      email,
+      name: name.trim(),
+      email: normalizedEmail,
       password: hashedPassword,
-      phone,
-      role: 'CUSTOMER'
+      phone: phone ? phone.trim() : null,
+      role: 'CUSTOMER',
     },
   });
 
@@ -52,7 +74,17 @@ const registerUser = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  if (!email || typeof email !== 'string') {
+    res.status(400);
+    throw new Error('Email is required');
+  }
+  if (!password || typeof password !== 'string') {
+    res.status(400);
+    throw new Error('Password is required');
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
   if (user && user.password && (await bcrypt.compare(password, user.password))) {
     if (user.status === 'Blocked') {
@@ -88,15 +120,21 @@ const logoutUser = asyncHandler(async (req, res) => {
 // @route   GET /api/auth/profile
 // @access  Private
 const getUserProfile = asyncHandler(async (req, res) => {
+  // Do NOT include orders in the profile response — it can be megabytes of data.
+  // Orders are fetched by the dedicated /api/orders/myorders endpoint.
   const user = await prisma.user.findUnique({
     where: { id: req.user.id },
-    select: { 
-      id: true, name: true, email: true, phone: true, role: true, 
-      addresses: true, orders: true,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      role: true,
+      addresses: true,
       wishlist: {
-        include: { images: true }
-      }
-    }
+        include: { images: true },
+      },
+    },
   });
 
   if (user) {
@@ -111,54 +149,65 @@ const getUserProfile = asyncHandler(async (req, res) => {
 // @route   PUT /api/auth/profile
 // @access  Private
 const updateUserProfile = asyncHandler(async (req, res) => {
+  // Validate email format if caller is changing it
+  if (req.body.email !== undefined) {
+    if (typeof req.body.email !== 'string' || !EMAIL_REGEX.test(req.body.email.trim())) {
+      res.status(400);
+      throw new Error('Please enter a valid email address');
+    }
+  }
+
   const user = await prisma.user.findUnique({ where: { id: req.user.id } });
 
-  if (user) {
-    const dataToUpdate = {
-      name: req.body.name || user.name,
-      email: req.body.email || user.email,
-      phone: req.body.phone || user.phone,
-    };
-
-    if (req.body.password) {
-      const salt = await bcrypt.genSalt(10);
-      dataToUpdate.password = await bcrypt.hash(req.body.password, salt);
-      dataToUpdate.tokenVersion = { increment: 1 };
-    }
-
-    const updatedUser = await prisma.user.update({
-      where: { id: req.user.id },
-      data: dataToUpdate,
-    });
-
-    // If password was changed, re-issue token with new version to keep current device logged in
-    let token;
-    if (req.body.password) {
-      token = generateToken(res, updatedUser.id, updatedUser.tokenVersion);
-    }
-
-    res.json({
-      id: updatedUser.id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      role: updatedUser.role,
-      phone: updatedUser.phone,
-      ...(token && { token }),
-    });
-  } else {
+  if (!user) {
     res.status(404);
     throw new Error('User not found');
   }
+
+  const dataToUpdate = {
+    name: req.body.name ? req.body.name.trim() : user.name,
+    email: req.body.email ? req.body.email.trim().toLowerCase() : user.email,
+    phone: req.body.phone !== undefined ? req.body.phone : user.phone,
+  };
+
+  if (req.body.password) {
+    if (typeof req.body.password !== 'string' || req.body.password.length < 6) {
+      res.status(400);
+      throw new Error('New password must be at least 6 characters');
+    }
+    const salt = await bcrypt.genSalt(10);
+    dataToUpdate.password = await bcrypt.hash(req.body.password, salt);
+    dataToUpdate.tokenVersion = { increment: 1 };
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: req.user.id },
+    data: dataToUpdate,
+  });
+
+  // If password was changed, re-issue token with new version to keep current device logged in
+  let token;
+  if (req.body.password) {
+    token = generateToken(res, updatedUser.id, updatedUser.tokenVersion);
+  }
+
+  res.json({
+    id: updatedUser.id,
+    name: updatedUser.name,
+    email: updatedUser.email,
+    role: updatedUser.role,
+    phone: updatedUser.phone,
+    ...(token && { token }),
+  });
 });
 
 // @desc    Logout user from ALL devices
 // @route   POST /api/auth/logout-all
 // @access  Private
 const logoutAllDevices = asyncHandler(async (req, res) => {
-  // Increment tokenVersion which invalidates all existing JWTs for this user
   await prisma.user.update({
     where: { id: req.user.id },
-    data: { tokenVersion: { increment: 1 } }
+    data: { tokenVersion: { increment: 1 } },
   });
 
   res.cookie('jwt', '', {
@@ -175,10 +224,17 @@ const logoutAllDevices = asyncHandler(async (req, res) => {
 const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email.trim())) {
+    res.status(400);
+    throw new Error('Please provide a valid email address');
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+
+  // Return the same message whether or not the user exists — prevents user enumeration
   if (!user) {
-    res.status(404);
-    throw new Error('User not found');
+    return res.status(200).json({ message: 'If that email is registered you will receive a reset link shortly' });
   }
 
   const resetToken = crypto.randomBytes(32).toString('hex');
@@ -186,38 +242,55 @@ const forgotPassword = asyncHandler(async (req, res) => {
   const resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
   await prisma.user.update({
-    where: { email },
+    where: { email: normalizedEmail },
     data: { resetPasswordToken, resetPasswordExpires },
   });
 
   const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
-  
-  const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`;
-  const html = `<p>You requested a password reset. Click the link below to reset your password:</p>
-                <a href="${resetUrl}" style="display:inline-block;padding:10px 20px;background:#D4AF37;color:white;text-decoration:none;border-radius:5px;margin:15px 0;">Reset Password</a>
+
+  const message = `You requested a password reset. Click the link below:\n\n${resetUrl}\n\nThis link expires in 15 minutes. If you did not request this, please ignore this email.`;
+  const html = `<p>You requested a password reset. Click the button below to reset your password:</p>
+                <a href="${resetUrl}" style="display:inline-block;padding:10px 20px;background:#800020;color:white;text-decoration:none;border-radius:5px;margin:15px 0;">Reset Password</a>
                 <p>If you didn't request this, please ignore this email. The link is valid for 15 minutes.</p>`;
 
-  await sendEmail({
+  const emailSent = await sendEmail({
     email: user.email,
     subject: 'Password Reset Request',
     message,
-    html
+    html,
   });
 
-  res.status(200).json({ message: 'Email sent' });
+  if (!emailSent) {
+    // Roll back the token so the user can try again
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { resetPasswordToken: null, resetPasswordExpires: null },
+    });
+    res.status(500);
+    throw new Error('Email could not be sent. Please try again later.');
+  }
+
+  res.status(200).json({ message: 'If that email is registered you will receive a reset link shortly' });
 });
 
 // @desc    Reset Password
 // @route   POST /api/auth/reset-password/:token
 // @access  Public
 const resetPassword = asyncHandler(async (req, res) => {
+  const { password } = req.body;
+
+  if (!password || typeof password !== 'string' || password.length < 6) {
+    res.status(400);
+    throw new Error('Password must be at least 6 characters');
+  }
+
   const resetPasswordToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
 
   const user = await prisma.user.findFirst({
     where: {
       resetPasswordToken,
-      resetPasswordExpires: { gt: new Date() }
-    }
+      resetPasswordExpires: { gt: new Date() },
+    },
   });
 
   if (!user) {
@@ -226,7 +299,7 @@ const resetPassword = asyncHandler(async (req, res) => {
   }
 
   const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(req.body.password, salt);
+  const hashedPassword = await bcrypt.hash(password, salt);
 
   await prisma.user.update({
     where: { id: user.id },
@@ -234,8 +307,8 @@ const resetPassword = asyncHandler(async (req, res) => {
       password: hashedPassword,
       resetPasswordToken: null,
       resetPasswordExpires: null,
-      tokenVersion: { increment: 1 }
-    }
+      tokenVersion: { increment: 1 },
+    },
   });
 
   res.status(200).json({ message: 'Password reset successful' });

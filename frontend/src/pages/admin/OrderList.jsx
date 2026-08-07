@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import api from '../../services/api';
 
 const OrderList = () => {
@@ -13,7 +14,7 @@ const OrderList = () => {
         const { data } = await api.get('/orders');
         setOrders(data);
       } catch (error) {
-        console.error(error);
+        toast.error(error?.response?.data?.message || 'Failed to load orders');
       } finally {
         setLoading(false);
       }
@@ -23,18 +24,20 @@ const OrderList = () => {
 
   const handleStatusChange = async (orderId, newStatus) => {
     let trackingNumber = null;
-    
+
     if (newStatus === 'SHIPPED') {
-      trackingNumber = window.prompt("Enter tracking number for this shipment (or leave blank):");
+      trackingNumber = window.prompt('Enter tracking number for this shipment (or leave blank):');
     }
 
     try {
       await api.put(`/orders/${orderId}/status`, { status: newStatus, trackingNumber });
-      setOrders(orders.map(order => 
+      setOrders(orders.map(order =>
         order.id === orderId ? { ...order, status: newStatus, trackingNumber } : order
       ));
+      toast.success(`Order status updated to ${newStatus}`);
     } catch (error) {
-      console.error(error);
+      // Show the server's error message so admin knows what went wrong
+      toast.error(error?.response?.data?.message || 'Failed to update order status');
     }
   };
 
@@ -47,6 +50,8 @@ const OrderList = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-gray-500">Loading orders...</div>
+        ) : orders.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">No orders yet.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left">
@@ -65,7 +70,7 @@ const OrderList = () => {
                 {orders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 font-medium text-gray-900">{order.id.slice(-6)}</td>
-                    <td className="px-6 py-4 text-gray-600">{order.user.name}</td>
+                    <td className="px-6 py-4 text-gray-600">{order.user?.name || '—'}</td>
                     <td className="px-6 py-4 text-gray-600">{new Date(order.createdAt).toLocaleDateString()}</td>
                     <td className="px-6 py-4 font-medium">₹{order.totalAmount}</td>
                     <td className="px-6 py-4">
@@ -74,7 +79,7 @@ const OrderList = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <select 
+                      <select
                         value={order.status}
                         onChange={(e) => handleStatusChange(order.id, e.target.value)}
                         className="text-xs border-gray-300 rounded focus:ring-primary focus:border-primary px-2 py-1"

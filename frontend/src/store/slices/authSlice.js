@@ -1,9 +1,23 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+/**
+ * Safely parse a JSON value from localStorage.
+ * Returns null if the stored value is missing, malformed, or tampered.
+ */
+const safeParse = (key) => {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    // Malformed JSON in localStorage (e.g. manually tampered) — treat as absent
+    localStorage.removeItem(key);
+    return null;
+  }
+};
+
 const initialState = {
-  userInfo: localStorage.getItem('userInfo') 
-    ? JSON.parse(localStorage.getItem('userInfo')) 
-    : null,
+  userInfo: safeParse('userInfo'),
 };
 
 const authSlice = createSlice({

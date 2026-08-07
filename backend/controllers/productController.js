@@ -7,9 +7,10 @@ const { deleteImages } = require('../utils/cloudinaryHelper');
 // @access  Public
 const getProducts = asyncHandler(async (req, res) => {
   const { category, search, minPrice, maxPrice, pageNumber } = req.query;
-  
+
   const pageSize = 12;
-  const page = Number(pageNumber) || 1;
+  // parseInt with radix 10 — avoids octal/hex interpretation
+  const page = parseInt(pageNumber, 10) || 1;
   const filter = { isActive: true };
 
   if (category) {
@@ -47,7 +48,7 @@ const getProducts = asyncHandler(async (req, res) => {
     products,
     page,
     pages: Math.ceil(count / pageSize),
-    total: count
+    total: count,
   });
 });
 
@@ -63,11 +64,11 @@ const getProductById = asyncHandler(async (req, res) => {
       colors: true,
       reviews: {
         include: {
-          user: { select: { name: true } }
+          user: { select: { name: true } },
         },
-        orderBy: { createdAt: 'desc' }
-      }
-    }
+        orderBy: { createdAt: 'desc' },
+      },
+    },
   });
 
   if (!product) {
@@ -84,6 +85,20 @@ const getProductById = asyncHandler(async (req, res) => {
 const createProduct = asyncHandler(async (req, res) => {
   const { name, description, category, price, discount, stock, isFeatured, images, sizes, colors } = req.body;
 
+  // ── Required field validation ─────────────────────────────────────────────
+  if (!name || !description || !category) {
+    res.status(400);
+    throw new Error('name, description, and category are required');
+  }
+  if (price === undefined || price === null || isNaN(parseFloat(price)) || parseFloat(price) < 0) {
+    res.status(400);
+    throw new Error('A valid price is required');
+  }
+  if (stock !== undefined && (isNaN(parseInt(stock, 10)) || parseInt(stock, 10) < 0)) {
+    res.status(400);
+    throw new Error('stock must be a non-negative integer');
+  }
+
   const product = await prisma.product.create({
     data: {
       name,
@@ -91,20 +106,20 @@ const createProduct = asyncHandler(async (req, res) => {
       category,
       price: parseFloat(price),
       discount: parseFloat(discount) || 0,
-      stock: parseInt(stock),
+      stock: parseInt(stock, 10) || 0,
       isFeatured: Boolean(isFeatured),
       isActive: true,
       images: {
-        create: images?.map(img => ({ url: img.url, publicId: img.publicId })) || [],
+        create: Array.isArray(images) ? images.map(img => ({ url: img.url, publicId: img.publicId })) : [],
       },
       sizes: {
-        create: sizes?.map(size => ({ name: size })) || [],
+        create: Array.isArray(sizes) ? sizes.map(size => ({ name: size })) : [],
       },
       colors: {
-        create: colors?.map(color => ({ name: color.name, hexCode: color.hexCode })) || [],
+        create: Array.isArray(colors) ? colors.map(color => ({ name: color.name, hexCode: color.hexCode })) : [],
       },
     },
-    include: { images: true, sizes: true, colors: true }
+    include: { images: true, sizes: true, colors: true },
   });
 
   res.status(201).json(product);
@@ -118,7 +133,7 @@ const updateProduct = asyncHandler(async (req, res) => {
 
   const existingProduct = await prisma.product.findUnique({
     where: { id: req.params.id },
-    include: { images: true }
+    include: { images: true },
   });
 
   if (!existingProduct) {
@@ -132,39 +147,38 @@ const updateProduct = asyncHandler(async (req, res) => {
     category,
     price: price !== undefined ? parseFloat(price) : undefined,
     discount: discount !== undefined ? parseFloat(discount) : undefined,
-    stock: stock !== undefined ? parseInt(stock) : undefined,
+    // parseInt with radix 10
+    stock: stock !== undefined ? parseInt(stock, 10) : undefined,
     isFeatured: isFeatured !== undefined ? Boolean(isFeatured) : undefined,
     isActive: isActive !== undefined ? Boolean(isActive) : undefined,
   };
 
-  if (images && images.length > 0) {
-    // Delete old images concurrently using helper
+  if (images && Array.isArray(images) && images.length > 0) {
     await deleteImages(existingProduct.images);
-
     updateData.images = {
       deleteMany: {},
-      create: images.map(img => ({ url: img.url, publicId: img.publicId }))
+      create: images.map(img => ({ url: img.url, publicId: img.publicId })),
     };
   }
 
   if (sizes) {
     updateData.sizes = {
       deleteMany: {},
-      create: sizes.map(size => ({ name: size }))
+      create: sizes.map(size => ({ name: size })),
     };
   }
 
   if (colors) {
     updateData.colors = {
       deleteMany: {},
-      create: colors.map(color => ({ name: color.name, hexCode: color.hexCode }))
+      create: colors.map(color => ({ name: color.name, hexCode: color.hexCode })),
     };
   }
 
   const product = await prisma.product.update({
     where: { id: req.params.id },
     data: updateData,
-    include: { images: true, sizes: true, colors: true }
+    include: { images: true, sizes: true, colors: true },
   });
 
   res.json(product);
@@ -176,7 +190,7 @@ const updateProduct = asyncHandler(async (req, res) => {
 const deleteProduct = asyncHandler(async (req, res) => {
   const product = await prisma.product.findUnique({
     where: { id: req.params.id },
-    include: { images: true }
+    include: { images: true },
   });
 
   if (!product) {
@@ -184,13 +198,10 @@ const deleteProduct = asyncHandler(async (req, res) => {
     throw new Error('Product not found');
   }
 
-  // Delete images concurrently
   await deleteImages(product.images);
 
-  await prisma.product.delete({
-    where: { id: req.params.id },
-  });
-  
+  await prisma.product.delete({ where: { id: req.params.id } });
+
   res.json({ message: 'Product and associated images removed' });
 });
 
@@ -198,39 +209,33 @@ const deleteProduct = asyncHandler(async (req, res) => {
 // @route   POST /api/products/:id/wishlist
 // @access  Private
 const toggleWishlist = asyncHandler(async (req, res) => {
-  // Optimize: only check if this specific product is in the user's wishlist
   const user = await prisma.user.findUnique({
     where: { id: req.user.id },
     select: {
       wishlist: {
         where: { id: req.params.id },
-        select: { id: true }
-      }
-    }
+        select: { id: true },
+      },
+    },
   });
+
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
 
   const isWished = user.wishlist && user.wishlist.length > 0;
 
   if (isWished) {
-    // Remove from wishlist
     await prisma.user.update({
       where: { id: req.user.id },
-      data: {
-        wishlist: {
-          disconnect: { id: req.params.id }
-        }
-      }
+      data: { wishlist: { disconnect: { id: req.params.id } } },
     });
     res.json({ message: 'Product removed from wishlist', isWished: false });
   } else {
-    // Add to wishlist
     await prisma.user.update({
       where: { id: req.user.id },
-      data: {
-        wishlist: {
-          connect: { id: req.params.id }
-        }
-      }
+      data: { wishlist: { connect: { id: req.params.id } } },
     });
     res.json({ message: 'Product added to wishlist', isWished: true });
   }
@@ -243,16 +248,22 @@ const createProductReview = asyncHandler(async (req, res) => {
   const { rating, comment } = req.body;
   const productId = req.params.id;
   const userId = req.user.id;
-  
+
+  if (!rating || isNaN(Number(rating)) || Number(rating) < 1 || Number(rating) > 5) {
+    res.status(400);
+    throw new Error('Rating must be a number between 1 and 5');
+  }
+  if (!comment || typeof comment !== 'string' || comment.trim() === '') {
+    res.status(400);
+    throw new Error('Comment is required');
+  }
+
   // Check if user has purchased the product and it is delivered
   const hasPurchased = await prisma.orderItem.findFirst({
     where: {
       productId,
-      order: {
-        userId,
-        status: 'DELIVERED'
-      }
-    }
+      order: { userId, status: 'DELIVERED' },
+    },
   });
 
   if (!hasPurchased) {
@@ -260,46 +271,38 @@ const createProductReview = asyncHandler(async (req, res) => {
     throw new Error('You can only review products you have purchased and received');
   }
 
-  // Check if user already reviewed
-  const alreadyReviewed = await prisma.review.findFirst({
-    where: { productId, userId }
-  });
-
+  const alreadyReviewed = await prisma.review.findFirst({ where: { productId, userId } });
   if (alreadyReviewed) {
     res.status(400);
     throw new Error('Product already reviewed');
   }
 
-  let review;
+  // Capture review outside the transaction so it's accessible in the response
+  let createdReview;
+
   await prisma.$transaction(async (tx) => {
-    review = await tx.review.create({
+    createdReview = await tx.review.create({
       data: {
         rating: Number(rating),
-        comment,
+        comment: comment.trim(),
         productId,
-        userId
-      }
+        userId,
+      },
     });
 
-    // Calculate new rating and numReviews
-    const productReviews = await tx.review.findMany({
-      where: { productId }
-    });
-
+    const productReviews = await tx.review.findMany({ where: { productId } });
     const numReviews = productReviews.length;
-    const avgRating = productReviews.reduce((acc, item) => item.rating + acc, 0) / numReviews;
+    // Use integer arithmetic to avoid floating-point drift, then divide once at the end
+    const totalRating = productReviews.reduce((acc, item) => acc + item.rating, 0);
+    const avgRating = totalRating / numReviews;
 
-    // Update product model
     await tx.product.update({
       where: { id: productId },
-      data: {
-        rating: avgRating,
-        numReviews: numReviews
-      }
+      data: { rating: avgRating, numReviews },
     });
   });
 
-  res.status(201).json({ message: 'Review added', review });
+  res.status(201).json({ message: 'Review added', review: createdReview });
 });
 
 module.exports = {
@@ -309,5 +312,5 @@ module.exports = {
   updateProduct,
   deleteProduct,
   toggleWishlist,
-  createProductReview
+  createProductReview,
 };
