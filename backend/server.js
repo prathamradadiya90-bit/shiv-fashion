@@ -54,7 +54,7 @@ app.use(cors(corsOptions));
 
 // Explicitly handle OPTIONS preflight for all routes so Vercel serverless
 // doesn't swallow it before Express can respond with the correct headers.
-app.options('*', cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
 // ── Body parsers ──────────────────────────────────────────────────────────────
 // Razorpay webhook needs the raw body for HMAC signature verification.
