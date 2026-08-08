@@ -9,24 +9,39 @@ const MyOrders = () => {
   const [loadingOrders, setLoadingOrders] = useState(true);
   const navigate = useNavigate();
 
+  // Redirect-only effect: runs when auth state changes (e.g. logout mid-session)
   useEffect(() => {
     if (!userInfo) {
       navigate('/login');
-    } else {
-      fetchMyOrders();
     }
   }, [userInfo, navigate]);
 
-  const fetchMyOrders = async () => {
-    try {
-      const { data } = await api.get('/orders/myorders');
-      setOrders(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
+  // Fetch-only effect: runs ONCE on mount. Does not depend on `userInfo` so
+  // it cannot be re-triggered by Redux auth state changes and cause a loop.
+  // The redirect effect above handles the unauthenticated case separately.
+  useEffect(() => {
+    // Guard: do not call the API if there is no token — avoids a guaranteed 401
+    if (!userInfo?.token) {
       setLoadingOrders(false);
+      return;
     }
-  };
+
+    const fetchMyOrders = async () => {
+      try {
+        const { data } = await api.get('/orders/myorders');
+        // API returns { orders, page, pages, total } — extract the array
+        setOrders(data.orders ?? []);
+      } catch (error) {
+        console.error('Failed to load orders:', error?.response?.data?.message || error.message);
+      } finally {
+        setLoadingOrders(false);
+      }
+    };
+
+    fetchMyOrders();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Empty array is intentional: fetch once on mount. Auth redirect is handled
+  // by the separate effect above.
 
   return (
     <div className="container mx-auto px-4 py-8">

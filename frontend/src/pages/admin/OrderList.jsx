@@ -12,7 +12,8 @@ const OrderList = () => {
     const fetchOrders = async () => {
       try {
         const { data } = await api.get('/orders');
-        setOrders(data);
+        // API returns { orders, page, pages, total } — extract the array
+        setOrders(data.orders ?? []);
       } catch (error) {
         toast.error(error?.response?.data?.message || 'Failed to load orders');
       } finally {
@@ -20,7 +21,7 @@ const OrderList = () => {
       }
     };
     fetchOrders();
-  }, []);
+  }, []); // empty array: fetch once on mount — no loop risk
 
   const handleStatusChange = async (orderId, newStatus) => {
     let trackingNumber = null;

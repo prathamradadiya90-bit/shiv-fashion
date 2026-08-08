@@ -21,18 +21,16 @@ api.interceptors.request.use(
 );
 
 // Pages where a 401 should NEVER trigger auto-logout
-const PROTECTED_PAGES = [
-  '/cart',
-  '/shipping',
+// (user is mid-payment; logging out would destroy the Razorpay session)
+const PAYMENT_PAGES = [
   '/placeorder',
   '/order',
-  '/profile',
-  '/my-orders',
 ];
 
-// API routes where a 401 should NEVER trigger auto-logout
-const PROTECTED_API_ROUTES = [
-  '/orders',
+// API routes that are part of the payment flow — a 401 here should NOT
+// auto-logout because the Razorpay modal may be open and logging out
+// would destroy the in-progress payment session.
+const PAYMENT_API_ROUTES = [
   '/pay',
   '/payment-callback',
   '/webhook',
@@ -46,24 +44,21 @@ api.interceptors.response.use(
       const requestUrl = error.config?.url || '';
       const currentPage = window.location.pathname;
 
-      // Skip auto-logout if on a checkout/order page
-      const onProtectedPage = PROTECTED_PAGES.some((p) => currentPage.startsWith(p));
-
-      // Skip auto-logout if the failing request is payment/order related
-      const isProtectedRoute = PROTECTED_API_ROUTES.some((r) => requestUrl.includes(r));
-
-      // Skip auto-logout if Razorpay modal is open
+      // Skip auto-logout ONLY if Razorpay payment is actively in progress
+      const onPaymentPage = PAYMENT_PAGES.some((p) => currentPage.startsWith(p));
+      const isPaymentRoute = PAYMENT_API_ROUTES.some((r) => requestUrl.includes(r));
       const razorpayOpen =
         !!document.getElementById('razorpay-container') ||
         !!document.querySelector('iframe[src*="razorpay"]') ||
         !!document.querySelector('[id^="razorpay"]');
 
-      if (onProtectedPage || isProtectedRoute || razorpayOpen) {
-        // Let the calling component handle this error — do NOT log out
+      if ((onPaymentPage || isPaymentRoute) && razorpayOpen) {
+        // Razorpay modal is open — do NOT log out or redirect
         return Promise.reject(error);
       }
 
-      // Safe to auto-logout: token genuinely expired on a non-sensitive page
+      // Token is genuinely expired or invalid — clear session and redirect to login.
+      // This covers /my-orders, /profile, /cart and all other protected pages.
       store.dispatch(logout());
       if (
         window.location.pathname !== '/login' &&
