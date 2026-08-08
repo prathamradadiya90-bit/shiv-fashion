@@ -31,24 +31,30 @@ const allowedOrigins = [
   ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
 ];
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-    
+
     // Allow explicitly defined origins
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    
-    // Allow any Vercel domain and localhost
+
+    // Allow any Vercel preview/prod domain and localhost
     if (origin.endsWith('.vercel.app') || origin.startsWith('http://localhost:')) {
       return callback(null, true);
     }
-    
+
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
-}));
+};
+
+app.use(cors(corsOptions));
+
+// Explicitly handle OPTIONS preflight for all routes so Vercel serverless
+// doesn't swallow it before Express can respond with the correct headers.
+app.options('*', cors(corsOptions));
 
 // ── Body parsers ──────────────────────────────────────────────────────────────
 // Razorpay webhook needs the raw body for HMAC signature verification.
