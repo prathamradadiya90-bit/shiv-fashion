@@ -16,6 +16,7 @@ if (missingEnv.length > 0) {
 }
 
 const app = express();
+app.set('trust proxy', 1);
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 // FIX #013: CORS origin list is fully config-driven — no hardcoded URLs in code.
