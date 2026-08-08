@@ -32,7 +32,21 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-  origin: allowedOrigins.length > 0 ? allowedOrigins : false,
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    
+    // Allow explicitly defined origins
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Allow any Vercel domain and localhost
+    if (origin.endsWith('.vercel.app') || origin.startsWith('http://localhost:')) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 }));
 
