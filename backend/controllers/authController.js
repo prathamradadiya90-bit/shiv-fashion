@@ -171,6 +171,14 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     phone: req.body.phone !== undefined ? req.body.phone : user.phone,
   };
 
+  if (req.body.email && dataToUpdate.email !== user.email) {
+    const emailExists = await prisma.user.findUnique({ where: { email: dataToUpdate.email } });
+    if (emailExists) {
+      res.status(400);
+      throw new Error('Email is already in use');
+    }
+  }
+
   if (req.body.password) {
     if (typeof req.body.password !== 'string' || req.body.password.length < 6) {
       res.status(400);

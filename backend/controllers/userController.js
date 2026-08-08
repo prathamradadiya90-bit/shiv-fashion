@@ -35,7 +35,7 @@ const getUsers = asyncHandler(async (req, res) => {
   ]);
 
   const formattedUsers = users.map(user => {
-    const totalSpent = user.orders.reduce((acc, order) => acc + order.totalAmount, 0);
+    const totalSpent = user.orders.reduce((acc, order) => acc + order.totalAmount, 0) / 100;
     return {
       id: user.id,
       name: user.name,

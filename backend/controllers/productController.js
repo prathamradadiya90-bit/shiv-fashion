@@ -133,14 +133,14 @@ const createProduct = asyncHandler(async (req, res) => {
       isFeatured: Boolean(isFeatured),
       isActive: true,
       images: {
-        create: Array.isArray(images) ? images.map(img => ({ url: img.url, publicId: img.publicId })) : [],
+        create: Array.isArray(images) ? images.map(img => ({ url: String(img.url), publicId: String(img.publicId) })) : [],
       },
       sizes: {
-        create: Array.isArray(sizes) ? sizes.map(size => ({ name: size })) : [],
+        create: Array.isArray(sizes) ? sizes.filter(s => typeof s === 'string').map(size => ({ name: size })) : [],
       },
       colors: {
         create: Array.isArray(colors)
-          ? colors.map(color => ({ name: color.name, hexCode: color.hexCode }))
+          ? colors.filter(c => c && typeof c.name === 'string' && typeof c.hexCode === 'string').map(color => ({ name: color.name, hexCode: color.hexCode }))
           : [],
       },
     },
@@ -201,9 +201,9 @@ const updateProduct = asyncHandler(async (req, res) => {
   }
 
   if (sizes !== undefined) {
-    if (!Array.isArray(sizes)) {
+    if (!Array.isArray(sizes) || !sizes.every(s => typeof s === 'string')) {
       res.status(400);
-      throw new Error('sizes must be an array');
+      throw new Error('sizes must be an array of strings');
     }
     updateData.sizes = {
       deleteMany: {},
@@ -212,9 +212,9 @@ const updateProduct = asyncHandler(async (req, res) => {
   }
 
   if (colors !== undefined) {
-    if (!Array.isArray(colors)) {
+    if (!Array.isArray(colors) || !colors.every(c => c && typeof c.name === 'string' && typeof c.hexCode === 'string')) {
       res.status(400);
-      throw new Error('colors must be an array');
+      throw new Error('colors must be an array of objects with name and hexCode strings');
     }
     updateData.colors = {
       deleteMany: {},

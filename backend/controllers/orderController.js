@@ -673,7 +673,7 @@ const trackOrder = asyncHandler(async (req, res) => {
       ? {
           city: order.shippingAddress.city,
           state: order.shippingAddress.state,
-          zipCode: order.shippingAddress.zipCode,
+          zipCode: '***', // Masked to prevent PII leak
         }
       : {},
     items: order.items.map(item => ({
