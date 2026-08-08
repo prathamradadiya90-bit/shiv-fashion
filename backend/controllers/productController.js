@@ -1,15 +1,17 @@
 const prisma = require('../config/db');
 const asyncHandler = require('../middleware/asyncHandler');
 const { deleteImages } = require('../utils/cloudinaryHelper');
+const { isValidUUID } = require('../utils/validateUUID');
 
 // @desc    Fetch all products
 // @route   GET /api/products
 // @access  Public
+// FIX #020: minPrice/maxPrice are validated with isFinite() before use so NaN
+//           values from non-numeric query strings are rejected, not silently passed to Prisma.
 const getProducts = asyncHandler(async (req, res) => {
   const { category, search, minPrice, maxPrice, pageNumber } = req.query;
 
   const pageSize = 12;
-  // parseInt with radix 10 — avoids octal/hex interpretation
   const page = parseInt(pageNumber, 10) || 1;
   const filter = { isActive: true };
 
@@ -24,10 +26,26 @@ const getProducts = asyncHandler(async (req, res) => {
     };
   }
 
-  if (minPrice || maxPrice) {
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    const parsedMin = parseFloat(minPrice);
+    const parsedMax = parseFloat(maxPrice);
+
+    if (minPrice !== undefined && !isFinite(parsedMin)) {
+      res.status(400);
+      throw new Error('minPrice must be a valid number');
+    }
+    if (maxPrice !== undefined && !isFinite(parsedMax)) {
+      res.status(400);
+      throw new Error('maxPrice must be a valid number');
+    }
+    if (isFinite(parsedMin) && isFinite(parsedMax) && parsedMin > parsedMax) {
+      res.status(400);
+      throw new Error('minPrice cannot be greater than maxPrice');
+    }
+
     filter.price = {};
-    if (minPrice) filter.price.gte = parseFloat(minPrice);
-    if (maxPrice) filter.price.lte = parseFloat(maxPrice);
+    if (minPrice !== undefined) filter.price.gte = parsedMin;
+    if (maxPrice !== undefined) filter.price.lte = parsedMax;
   }
 
   const count = await prisma.product.count({ where: filter });
@@ -56,6 +74,12 @@ const getProducts = asyncHandler(async (req, res) => {
 // @route   GET /api/products/:id
 // @access  Public
 const getProductById = asyncHandler(async (req, res) => {
+  // FIX #011: validate UUID before querying DB
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid product ID format');
+  }
+
   const product = await prisma.product.findUnique({
     where: { id: req.params.id },
     include: {
@@ -85,7 +109,6 @@ const getProductById = asyncHandler(async (req, res) => {
 const createProduct = asyncHandler(async (req, res) => {
   const { name, description, category, price, discount, stock, isFeatured, images, sizes, colors } = req.body;
 
-  // ── Required field validation ─────────────────────────────────────────────
   if (!name || !description || !category) {
     res.status(400);
     throw new Error('name, description, and category are required');
@@ -116,7 +139,9 @@ const createProduct = asyncHandler(async (req, res) => {
         create: Array.isArray(sizes) ? sizes.map(size => ({ name: size })) : [],
       },
       colors: {
-        create: Array.isArray(colors) ? colors.map(color => ({ name: color.name, hexCode: color.hexCode })) : [],
+        create: Array.isArray(colors)
+          ? colors.map(color => ({ name: color.name, hexCode: color.hexCode }))
+          : [],
       },
     },
     include: { images: true, sizes: true, colors: true },
@@ -128,7 +153,16 @@ const createProduct = asyncHandler(async (req, res) => {
 // @desc    Update a product
 // @route   PUT /api/products/:id
 // @access  Private/SuperAdmin
+// FIX #006: Array.isArray() guard on sizes and colors before deleteMany+create.
+//           Without this, a non-array truthy value (e.g. a string) crashes the handler
+//           AFTER the deleteMany has already wiped the existing records, leaving the
+//           product permanently without sizes/colors.
 const updateProduct = asyncHandler(async (req, res) => {
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid product ID format');
+  }
+
   const { name, description, category, price, discount, stock, isFeatured, isActive, images, sizes, colors } = req.body;
 
   const existingProduct = await prisma.product.findUnique({
@@ -147,28 +181,41 @@ const updateProduct = asyncHandler(async (req, res) => {
     category,
     price: price !== undefined ? parseFloat(price) : undefined,
     discount: discount !== undefined ? parseFloat(discount) : undefined,
-    // parseInt with radix 10
     stock: stock !== undefined ? parseInt(stock, 10) : undefined,
     isFeatured: isFeatured !== undefined ? Boolean(isFeatured) : undefined,
     isActive: isActive !== undefined ? Boolean(isActive) : undefined,
   };
 
-  if (images && Array.isArray(images) && images.length > 0) {
-    await deleteImages(existingProduct.images);
-    updateData.images = {
-      deleteMany: {},
-      create: images.map(img => ({ url: img.url, publicId: img.publicId })),
-    };
+  if (images !== undefined) {
+    if (!Array.isArray(images)) {
+      res.status(400);
+      throw new Error('images must be an array');
+    }
+    if (images.length > 0) {
+      await deleteImages(existingProduct.images);
+      updateData.images = {
+        deleteMany: {},
+        create: images.map(img => ({ url: img.url, publicId: img.publicId })),
+      };
+    }
   }
 
-  if (sizes) {
+  if (sizes !== undefined) {
+    if (!Array.isArray(sizes)) {
+      res.status(400);
+      throw new Error('sizes must be an array');
+    }
     updateData.sizes = {
       deleteMany: {},
       create: sizes.map(size => ({ name: size })),
     };
   }
 
-  if (colors) {
+  if (colors !== undefined) {
+    if (!Array.isArray(colors)) {
+      res.status(400);
+      throw new Error('colors must be an array');
+    }
     updateData.colors = {
       deleteMany: {},
       create: colors.map(color => ({ name: color.name, hexCode: color.hexCode })),
@@ -188,6 +235,11 @@ const updateProduct = asyncHandler(async (req, res) => {
 // @route   DELETE /api/products/:id
 // @access  Private/SuperAdmin
 const deleteProduct = asyncHandler(async (req, res) => {
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid product ID format');
+  }
+
   const product = await prisma.product.findUnique({
     where: { id: req.params.id },
     include: { images: true },
@@ -199,7 +251,6 @@ const deleteProduct = asyncHandler(async (req, res) => {
   }
 
   await deleteImages(product.images);
-
   await prisma.product.delete({ where: { id: req.params.id } });
 
   res.json({ message: 'Product and associated images removed' });
@@ -209,6 +260,11 @@ const deleteProduct = asyncHandler(async (req, res) => {
 // @route   POST /api/products/:id/wishlist
 // @access  Private
 const toggleWishlist = asyncHandler(async (req, res) => {
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid product ID format');
+  }
+
   const user = await prisma.user.findUnique({
     where: { id: req.user.id },
     select: {
@@ -245,6 +301,11 @@ const toggleWishlist = asyncHandler(async (req, res) => {
 // @route   POST /api/products/:id/reviews
 // @access  Private
 const createProductReview = asyncHandler(async (req, res) => {
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid product ID format');
+  }
+
   const { rating, comment } = req.body;
   const productId = req.params.id;
   const userId = req.user.id;
@@ -258,7 +319,6 @@ const createProductReview = asyncHandler(async (req, res) => {
     throw new Error('Comment is required');
   }
 
-  // Check if user has purchased the product and it is delivered
   const hasPurchased = await prisma.orderItem.findFirst({
     where: {
       productId,
@@ -277,7 +337,6 @@ const createProductReview = asyncHandler(async (req, res) => {
     throw new Error('Product already reviewed');
   }
 
-  // Capture review outside the transaction so it's accessible in the response
   let createdReview;
 
   await prisma.$transaction(async (tx) => {
@@ -292,7 +351,6 @@ const createProductReview = asyncHandler(async (req, res) => {
 
     const productReviews = await tx.review.findMany({ where: { productId } });
     const numReviews = productReviews.length;
-    // Use integer arithmetic to avoid floating-point drift, then divide once at the end
     const totalRating = productReviews.reduce((acc, item) => acc + item.rating, 0);
     const avgRating = totalRating / numReviews;
 

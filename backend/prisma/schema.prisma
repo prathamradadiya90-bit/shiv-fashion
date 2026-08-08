@@ -79,14 +79,16 @@ model Product {
   description   String
   category      String
   
-  price         Float
-  discount      Float    @default(0) // percentage
+  // FIX #003: stored in paise (integer) to avoid IEEE-754 floating-point drift.
+  // Divide by 100 at the API layer for display. Run prisma migrate after this change.
+  price         Int                      // paise, e.g. ₹129.99 → 12999
+  discount      Int      @default(0)     // basis points: 10% → 1000, 0% → 0
   stock         Int      @default(0)
   
   isFeatured    Boolean  @default(false)
   isActive      Boolean  @default(true)
   
-  rating        Float    @default(0)
+  rating        Float    @default(0)  // product average — kept as Float (not financial)
   numReviews    Int      @default(0)
   
   images        Image[]
@@ -146,7 +148,8 @@ model Order {
   
   items           OrderItem[]
   
-  totalAmount     Float
+  // FIX #003: totalAmount stored in paise (Int) to avoid floating-point drift
+  totalAmount     Int
   status          OrderStatus @default(PENDING)
   paymentStatus   PaymentStatus @default(UNPAID)
   isCOD           Boolean  @default(false)
@@ -173,15 +176,17 @@ model OrderItem {
   size      String
   color     String
   quantity  Int
-  price     Float // price at the time of purchase
+  price     Int // price at time of purchase, stored in paise
 }
 
 model Coupon {
   id             String       @id @default(uuid())
   code           String       @unique
   discountType   DiscountType
-  value          Float
-  minOrderValue  Float        @default(0)
+  // FIX #003: value stored in paise for FIXED type; basis points (×100) for PERCENTAGE
+  // e.g. FIXED ₹50 → 5000 paise | PERCENTAGE 10% → 1000 basis points
+  value          Int
+  minOrderValue  Int          @default(0)  // paise
   expiryDate     DateTime
   isActive       Boolean      @default(true)
 

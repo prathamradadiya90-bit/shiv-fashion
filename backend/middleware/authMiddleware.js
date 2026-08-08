@@ -20,7 +20,7 @@ const protect = async (req, res, next) => {
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, name: true, email: true, role: true, tokenVersion: true, status: true }
+      select: { id: true, name: true, email: true, role: true, tokenVersion: true, status: true },
     });
 
     if (!user) {
@@ -38,8 +38,10 @@ const protect = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    console.error('Auth error:', error.message);
-    // Always return JSON — never let an unhandled error propagate (which could return HTML)
+    // FIX #012: log only the error name/type — never the full error.message which
+    // may reveal token structure, expiry details, or algorithm information.
+    // Full error is available server-side via the error name for diagnostics.
+    console.error('Auth error: token verification failed —', error.name);
     return res.status(401).json({ message: 'Not authorized, token failed' });
   }
 };

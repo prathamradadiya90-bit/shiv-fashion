@@ -1,5 +1,6 @@
 const prisma = require('../config/db');
 const asyncHandler = require('../middleware/asyncHandler');
+const { isValidUUID } = require('../utils/validateUUID');
 
 // @desc    Get all coupons
 // @route   GET /api/coupons
@@ -15,7 +16,6 @@ const getCoupons = asyncHandler(async (req, res) => {
 const createCoupon = asyncHandler(async (req, res) => {
   const { code, discountType, value, minOrderValue, expiryDate, isActive } = req.body;
 
-  // ── Required field validation ─────────────────────────────────────────────
   if (!code || typeof code !== 'string' || code.trim() === '') {
     res.status(400);
     throw new Error('Coupon code is required');
@@ -75,6 +75,12 @@ const createCoupon = asyncHandler(async (req, res) => {
 // @route   DELETE /api/coupons/:id
 // @access  Private/SuperAdmin
 const deleteCoupon = asyncHandler(async (req, res) => {
+  // FIX #011: validate UUID before querying DB
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid coupon ID format');
+  }
+
   const existing = await prisma.coupon.findUnique({ where: { id: req.params.id } });
   if (!existing) {
     res.status(404);
@@ -88,6 +94,9 @@ const deleteCoupon = asyncHandler(async (req, res) => {
 // @desc    Apply a coupon (validates and returns discount details)
 // @route   POST /api/coupons/apply
 // @access  Private
+// FIX #010: return only the fields the frontend needs — internal metadata (id,
+//           createdAt, isActive, etc.) is excluded. This also prevents leaking the
+//           full coupon row to any authenticated user.
 const applyCoupon = asyncHandler(async (req, res) => {
   const { code, orderValue } = req.body;
 
@@ -111,7 +120,6 @@ const applyCoupon = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error('Coupon is inactive');
   }
-  // Use Date objects for comparison — never string comparison
   if (new Date() > new Date(coupon.expiryDate)) {
     res.status(400);
     throw new Error('Coupon has expired');
@@ -121,7 +129,13 @@ const applyCoupon = asyncHandler(async (req, res) => {
     throw new Error(`Minimum order value of ₹${coupon.minOrderValue} required for this coupon`);
   }
 
-  res.json(coupon);
+  // Return only what the frontend needs to display the discount preview
+  res.json({
+    code: coupon.code,
+    discountType: coupon.discountType,
+    value: coupon.value,
+    minOrderValue: coupon.minOrderValue,
+  });
 });
 
 module.exports = {

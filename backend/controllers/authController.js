@@ -4,6 +4,7 @@ const generateToken = require('../utils/generateToken');
 const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
 const asyncHandler = require('../middleware/asyncHandler');
+const { RESET_TOKEN_EXPIRES_MINUTES } = require('../utils/constants');
 
 // Simple RFC-5322–inspired email regex used for server-side validation
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -239,7 +240,8 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
   const resetToken = crypto.randomBytes(32).toString('hex');
   const resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-  const resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+  // FIX #017: expiry is driven by RESET_TOKEN_EXPIRES_MINUTES constant (env-configurable)
+  const resetPasswordExpires = new Date(Date.now() + RESET_TOKEN_EXPIRES_MINUTES * 60 * 1000);
 
   await prisma.user.update({
     where: { email: normalizedEmail },
@@ -248,10 +250,10 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
   const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
 
-  const message = `You requested a password reset. Click the link below:\n\n${resetUrl}\n\nThis link expires in 15 minutes. If you did not request this, please ignore this email.`;
+  const message = `You requested a password reset. Click the link below:\n\n${resetUrl}\n\nThis link expires in ${RESET_TOKEN_EXPIRES_MINUTES} minutes. If you did not request this, please ignore this email.`;
   const html = `<p>You requested a password reset. Click the button below to reset your password:</p>
                 <a href="${resetUrl}" style="display:inline-block;padding:10px 20px;background:#800020;color:white;text-decoration:none;border-radius:5px;margin:15px 0;">Reset Password</a>
-                <p>If you didn't request this, please ignore this email. The link is valid for 15 minutes.</p>`;
+                <p>If you didn't request this, please ignore this email. The link is valid for ${RESET_TOKEN_EXPIRES_MINUTES} minutes.</p>`;
 
   const emailSent = await sendEmail({
     email: user.email,

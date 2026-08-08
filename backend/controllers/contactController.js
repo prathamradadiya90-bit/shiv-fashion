@@ -1,5 +1,6 @@
 const prisma = require('../config/db');
 const asyncHandler = require('../middleware/asyncHandler');
+const { isValidUUID } = require('../utils/validateUUID');
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -52,6 +53,12 @@ const getMessages = asyncHandler(async (req, res) => {
 // @route   PUT /api/contact/:id/read
 // @access  Private/SuperAdmin
 const markAsRead = asyncHandler(async (req, res) => {
+  // FIX #011: validate UUID format before hitting the DB
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid message ID format');
+  }
+
   const existing = await prisma.contactMessage.findUnique({ where: { id: req.params.id } });
   if (!existing) {
     res.status(404);
@@ -69,6 +76,12 @@ const markAsRead = asyncHandler(async (req, res) => {
 // @route   DELETE /api/contact/:id
 // @access  Private/SuperAdmin
 const deleteMessage = asyncHandler(async (req, res) => {
+  // FIX #011: validate UUID format before hitting the DB
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid message ID format');
+  }
+
   const existing = await prisma.contactMessage.findUnique({ where: { id: req.params.id } });
   if (!existing) {
     res.status(404);

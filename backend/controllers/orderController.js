@@ -10,6 +10,7 @@ const {
   GST_RATE,
   MAX_ITEM_QUANTITY,
 } = require('../utils/constants');
+const { isValidUUID } = require('../utils/validateUUID');
 
 if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
   throw new Error('RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET must be set');
@@ -19,6 +20,15 @@ const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
+
+// Valid order status transitions — prevents illogical state changes
+const VALID_TRANSITIONS = {
+  PENDING:   ['CONFIRMED', 'CANCELLED'],
+  CONFIRMED: ['SHIPPED', 'CANCELLED'],
+  SHIPPED:   ['DELIVERED'],
+  DELIVERED: [],
+  CANCELLED: [],
+};
 
 // @desc    Create new order & razorpay order
 // @route   POST /api/orders
@@ -49,6 +59,10 @@ const addOrderItems = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error('Each order item must have a valid productId');
     }
+    if (!isValidUUID(item.productId)) {
+      res.status(400);
+      throw new Error(`Invalid productId format: ${item.productId}`);
+    }
     const qty = parseInt(item.quantity, 10);
     if (isNaN(qty) || qty < 1 || qty > MAX_ITEM_QUANTITY) {
       res.status(400);
@@ -57,16 +71,15 @@ const addOrderItems = asyncHandler(async (req, res) => {
   }
 
   // ── Calculate total from DB (prevents client-side price tampering) ─────────
-  // Batch-fetch all products in one query instead of per-item
-  let totalAmountPaise = 0;
-  const itemsForDb = [];
-
-  const productIds = orderItems.map(i => i.productId);
+  // Batch-fetch all products in one query instead of per-item (no N+1)
+  const productIds = [...new Set(orderItems.map(i => i.productId))];
   const products = await prisma.product.findMany({
     where: { id: { in: productIds }, isActive: true },
+    select: { id: true, name: true, price: true, discount: true, stock: true },
   });
   const productMap = Object.fromEntries(products.map(p => [p.id, p]));
 
+  // Pre-validate stock before entering transaction (fast-fail for user feedback)
   for (const item of orderItems) {
     const product = productMap[item.productId];
     if (!product) {
@@ -77,14 +90,18 @@ const addOrderItems = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error(`Insufficient stock for product: ${product.name}`);
     }
+  }
 
-    // Use integer paise arithmetic to avoid floating-point drift
+  // ── Compute totals in integer paise ───────────────────────────────────────
+  let totalAmountPaise = 0;
+  const itemsForDb = [];
+
+  for (const item of orderItems) {
+    const product = productMap[item.productId];
     let finalPricePaise = Math.round(product.price * 100);
     if (product.discount > 0) {
-      const discountPaise = Math.round(finalPricePaise * (product.discount / 100));
-      finalPricePaise -= discountPaise;
+      finalPricePaise -= Math.round(finalPricePaise * (product.discount / 100));
     }
-
     totalAmountPaise += finalPricePaise * parseInt(item.quantity, 10);
     itemsForDb.push({
       productId: product.id,
@@ -95,10 +112,11 @@ const addOrderItems = asyncHandler(async (req, res) => {
     });
   }
 
-  // ── Shipping and Tax (integer paise throughout) ────────────────────────────
-  const shippingPricePaise = totalAmountPaise > FREE_SHIPPING_THRESHOLD * 100 ? 0 : Math.round(SHIPPING_CHARGE * 100);
+  // ── Shipping and Tax ───────────────────────────────────────────────────────
+  const shippingPricePaise = totalAmountPaise > FREE_SHIPPING_THRESHOLD * 100
+    ? 0
+    : Math.round(SHIPPING_CHARGE * 100);
   const taxPricePaise = Math.round(totalAmountPaise * GST_RATE);
-
   let finalTotalAmountPaise = totalAmountPaise + shippingPricePaise + taxPricePaise;
 
   // ── Server-side coupon validation ─────────────────────────────────────────
@@ -106,7 +124,9 @@ const addOrderItems = asyncHandler(async (req, res) => {
   let calculatedDiscountPaise = 0;
 
   if (couponCode && typeof couponCode === 'string') {
-    const coupon = await prisma.coupon.findUnique({ where: { code: couponCode.trim().toUpperCase() } });
+    const coupon = await prisma.coupon.findUnique({
+      where: { code: couponCode.trim().toUpperCase() },
+    });
     if (
       coupon &&
       coupon.isActive &&
@@ -121,26 +141,19 @@ const addOrderItems = asyncHandler(async (req, res) => {
     }
   }
 
-  if (calculatedDiscountPaise > 0) {
-    finalTotalAmountPaise -= calculatedDiscountPaise;
-  }
-
-  // Ensure total never goes negative (e.g. large fixed-amount coupon)
-  if (finalTotalAmountPaise < 0) finalTotalAmountPaise = 0;
+  finalTotalAmountPaise = Math.max(0, finalTotalAmountPaise - calculatedDiscountPaise);
 
   const finalTotalAmount = finalTotalAmountPaise / 100;
-  // COD: charge only the advance amount via Razorpay now
   const amountToCharge = isCOD ? COD_ADVANCE : finalTotalAmount;
 
-  const options = {
-    amount: Math.round(amountToCharge * 100),
-    currency: 'INR',
-    receipt: `rcpt_${Date.now()}`,
-  };
-
+  // ── Create Razorpay order ──────────────────────────────────────────────────
   let razorpayOrder;
   try {
-    razorpayOrder = await razorpayInstance.orders.create(options);
+    razorpayOrder = await razorpayInstance.orders.create({
+      amount: Math.round(amountToCharge * 100),
+      currency: 'INR',
+      receipt: `rcpt_${Date.now()}`,
+    });
   } catch (error) {
     res.status(400);
     throw new Error('Failed to create payment order. Check Razorpay keys.');
@@ -151,8 +164,26 @@ const addOrderItems = asyncHandler(async (req, res) => {
     paymentMethod: isCOD ? 'COD' : 'PREPAID',
   };
 
+  // ── DB transaction: create order + decrement stock atomically ─────────────
+  // FIX #001 + #005: stock is decremented inside the same transaction that
+  // creates the order, with a re-check (stock >= qty) to close the race window.
   try {
     const order = await prisma.$transaction(async (tx) => {
+      // Re-check and decrement stock atomically for each item
+      for (const item of itemsForDb) {
+        const updated = await tx.product.updateMany({
+          where: {
+            id: item.productId,
+            stock: { gte: item.quantity }, // atomic guard against race condition
+          },
+          data: { stock: { decrement: item.quantity } },
+        });
+        if (updated.count === 0) {
+          // Another concurrent request depleted stock between our pre-check and here
+          throw new Error(`Product is now out of stock. Please update your cart.`);
+        }
+      }
+
       return await tx.order.create({
         data: {
           userId: req.user.id,
@@ -166,11 +197,29 @@ const addOrderItems = asyncHandler(async (req, res) => {
         include: { items: true },
       });
     });
+
     res.status(201).json({ order, razorpayOrder });
   } catch (dbError) {
-    console.error(`CRITICAL: DB write failed for Razorpay Order ${razorpayOrder.id}`, dbError);
-    res.status(500);
-    throw new Error('Failed to save order to database. If payment was deducted, please contact support.');
+    // FIX #008: attempt to cancel the orphaned Razorpay order so the customer
+    // is not left with a dangling payment request.
+    try {
+      await razorpayInstance.orders.cancel(razorpayOrder.id);
+      console.info(`[addOrderItems] Cancelled orphaned Razorpay order ${razorpayOrder.id}`);
+    } catch (cancelErr) {
+      // Log prominently for manual reconciliation — do NOT swallow silently
+      console.error(
+        `[addOrderItems] CRITICAL: DB write failed AND Razorpay order ${razorpayOrder.id} could not be cancelled. Manual reconciliation required.`,
+        cancelErr.message
+      );
+    }
+
+    const isStockError = dbError.message.includes('out of stock');
+    res.status(isStockError ? 400 : 500);
+    throw new Error(
+      isStockError
+        ? dbError.message
+        : 'Failed to save order to database. If payment was deducted, please contact support.'
+    );
   }
 });
 
@@ -185,6 +234,11 @@ const verifyPayment = asyncHandler(async (req, res) => {
     throw new Error('razorpayPaymentId, razorpayOrderId, and razorpaySignature are required');
   }
 
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid order ID format');
+  }
+
   const order = await prisma.order.findUnique({ where: { id: req.params.id } });
 
   if (!order) {
@@ -192,7 +246,6 @@ const verifyPayment = asyncHandler(async (req, res) => {
     throw new Error('Order not found');
   }
 
-  // Ensure only the order owner can verify payment
   if (order.userId !== req.user.id) {
     res.status(403);
     throw new Error('Not authorized to verify this order');
@@ -224,13 +277,10 @@ const verifyPayment = asyncHandler(async (req, res) => {
     include: { user: { select: { name: true, email: true } } },
   });
 
-  // Send confirmation email — non-fatal if it fails
-  const emailMessage = `Hello ${updatedOrder.user.name},\n\nThank you for shopping with Shreeji Fashion!\nYour order (${updatedOrder.id}) has been confirmed and payment is successful.\nTotal Amount: ₹${updatedOrder.totalAmount}\n\nWe will notify you once your order is shipped.\n\nRegards,\nShreeji Fashion Team`;
-
   sendEmail({
     email: updatedOrder.user.email,
     subject: `Shreeji Fashion - Order Confirmed (${updatedOrder.id})`,
-    message: emailMessage,
+    message: `Hello ${updatedOrder.user.name},\n\nThank you for shopping with Shreeji Fashion!\nYour order (${updatedOrder.id}) has been confirmed and payment is successful.\nTotal Amount: ₹${updatedOrder.totalAmount}\n\nWe will notify you once your order is shipped.\n\nRegards,\nShreeji Fashion Team`,
   }).catch(err => console.error('[verifyPayment] Email error:', err.message));
 
   res.json({ message: 'Payment verified successfully' });
@@ -239,6 +289,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
 // @desc    Handle Razorpay redirect callback from mobile payments
 // @route   POST /api/orders/payment-callback
 // @access  Public
+// FIX #002: server-side payment fetch from Razorpay before marking order PAID.
 const paymentCallback = asyncHandler(async (req, res) => {
   const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
   const frontendBase = process.env.FRONTEND_URL || 'http://localhost:5173';
@@ -252,31 +303,51 @@ const paymentCallback = asyncHandler(async (req, res) => {
     return res.redirect(`${frontendBase}/cart`);
   }
 
+  // Step 1: verify HMAC signature (client-side integrity check)
   const body = razorpay_order_id + '|' + razorpay_payment_id;
   const expectedSignature = crypto
     .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
     .update(body)
     .digest('hex');
 
-  if (expectedSignature === razorpay_signature && order.paymentStatus !== 'PAID') {
-    const updatedOrder = await prisma.order.update({
-      where: { id: order.id },
-      data: {
-        paymentStatus: 'PAID',
-        status: 'CONFIRMED',
-        razorpayPaymentId: razorpay_payment_id,
-        razorpaySignature: razorpay_signature,
-      },
-      include: { user: { select: { name: true, email: true } } },
-    });
+  if (expectedSignature !== razorpay_signature) {
+    // Signature mismatch — do not update order; redirect without marking paid
+    console.error(`[paymentCallback] Signature mismatch for order ${order.id}`);
+    return res.redirect(`${frontendBase}/order/${order.id}`);
+  }
 
-    const emailMessage = `Hello ${updatedOrder.user.name},\n\nThank you for shopping with Shreeji Fashion!\nYour order (${updatedOrder.id}) has been confirmed.\nTotal: ₹${updatedOrder.totalAmount}`;
+  // Step 2: fetch payment from Razorpay server-side to confirm it was actually captured
+  // This prevents a forged signature from marking an order as paid without real payment.
+  if (order.paymentStatus !== 'PAID') {
+    try {
+      const payment = await razorpayInstance.payments.fetch(razorpay_payment_id);
 
-    sendEmail({
-      email: updatedOrder.user.email,
-      subject: `Shreeji Fashion - Order Confirmed (${updatedOrder.id})`,
-      message: emailMessage,
-    }).catch(err => console.error('[paymentCallback] Email error:', err.message));
+      if (payment.status === 'captured' && payment.order_id === razorpay_order_id) {
+        const updatedOrder = await prisma.order.update({
+          where: { id: order.id },
+          data: {
+            paymentStatus: 'PAID',
+            status: 'CONFIRMED',
+            razorpayPaymentId: razorpay_payment_id,
+            razorpaySignature: razorpay_signature,
+          },
+          include: { user: { select: { name: true, email: true } } },
+        });
+
+        sendEmail({
+          email: updatedOrder.user.email,
+          subject: `Shreeji Fashion - Order Confirmed (${updatedOrder.id})`,
+          message: `Hello ${updatedOrder.user.name},\n\nThank you for shopping with Shreeji Fashion!\nYour order (${updatedOrder.id}) has been confirmed.\nTotal: ₹${updatedOrder.totalAmount}`,
+        }).catch(err => console.error('[paymentCallback] Email error:', err.message));
+      } else {
+        console.error(
+          `[paymentCallback] Payment ${razorpay_payment_id} status="${payment.status}" — not marking order PAID`
+        );
+      }
+    } catch (fetchErr) {
+      // If Razorpay fetch fails, do not mark paid — the webhook will handle it
+      console.error('[paymentCallback] Razorpay payment fetch error:', fetchErr.message);
+    }
   }
 
   res.redirect(`${frontendBase}/order/${order.id}`);
@@ -285,24 +356,62 @@ const paymentCallback = asyncHandler(async (req, res) => {
 // @desc    Get logged in user orders
 // @route   GET /api/orders/myorders
 // @access  Private
+// FIX #014: added pagination and replaced SELECT * on product with a field selection
 const getMyOrders = asyncHandler(async (req, res) => {
-  const orders = await prisma.order.findMany({
-    where: { userId: req.user.id },
-    include: { items: { include: { product: true } } },
-    orderBy: { createdAt: 'desc' },
-  });
-  res.json(orders);
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const pageSize = 10;
+
+  const [orders, total] = await Promise.all([
+    prisma.order.findMany({
+      where: { userId: req.user.id },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                images: { take: 1, select: { url: true } },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.order.count({ where: { userId: req.user.id } }),
+  ]);
+
+  res.json({ orders, page, pages: Math.ceil(total / pageSize), total });
 });
 
 // @desc    Get order by ID
 // @route   GET /api/orders/:id
 // @access  Private
 const getOrderById = asyncHandler(async (req, res) => {
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid order ID format');
+  }
+
   const order = await prisma.order.findUnique({
     where: { id: req.params.id },
     include: {
       user: { select: { name: true, email: true } },
-      items: { include: { product: true } },
+      items: {
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              images: { take: 1, select: { url: true } },
+              category: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -322,21 +431,37 @@ const getOrderById = asyncHandler(async (req, res) => {
 // @desc    Get all orders (Admin)
 // @route   GET /api/orders
 // @access  Private/SuperAdmin
+// FIX #015: added pagination — never load all orders into memory
 const getOrders = asyncHandler(async (req, res) => {
-  const orders = await prisma.order.findMany({
-    include: { user: { select: { id: true, name: true } } },
-    orderBy: { createdAt: 'desc' },
-  });
-  res.json(orders);
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const pageSize = 20;
+
+  const [orders, total] = await Promise.all([
+    prisma.order.findMany({
+      include: { user: { select: { id: true, name: true } } },
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.order.count(),
+  ]);
+
+  res.json({ orders, page, pages: Math.ceil(total / pageSize), total });
 });
 
 // @desc    Update order status (Admin)
 // @route   PUT /api/orders/:id/status
 // @access  Private/SuperAdmin
+// FIX #007: state-machine transition guard prevents illogical status moves
 const updateOrderStatus = asyncHandler(async (req, res) => {
   const { status, trackingNumber } = req.body;
 
-  const VALID_STATUSES = ['PENDING', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid order ID format');
+  }
+
+  const VALID_STATUSES = Object.keys(VALID_TRANSITIONS);
   if (status && !VALID_STATUSES.includes(status)) {
     res.status(400);
     throw new Error(`Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}`);
@@ -348,19 +473,31 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     throw new Error('Order not found');
   }
 
+  // Enforce valid state transitions
+  if (status && !VALID_TRANSITIONS[existingOrder.status].includes(status)) {
+    res.status(400);
+    throw new Error(
+      `Cannot transition order from "${existingOrder.status}" to "${status}". ` +
+      `Allowed transitions: ${VALID_TRANSITIONS[existingOrder.status].join(', ') || 'none'}`
+    );
+  }
+
+  // Build update payload — only include defined fields to avoid overwriting with undefined
+  const updateData = {};
+  if (status !== undefined) updateData.status = status;
+  if (trackingNumber !== undefined) updateData.trackingNumber = trackingNumber;
+
   const order = await prisma.order.update({
     where: { id: req.params.id },
-    data: { status, trackingNumber },
+    data: updateData,
     include: { user: { select: { name: true, email: true } } },
   });
 
   if (status === 'SHIPPED') {
-    const emailMessage = `Hello ${order.user.name},\n\nYour order (${order.id}) has been shipped.\n${trackingNumber ? `Tracking Number: ${trackingNumber}` : 'Your package is on its way.'}\n\nRegards,\nShreeji Fashion Team`;
-
     sendEmail({
       email: order.user.email,
       subject: `Shreeji Fashion - Order Shipped (${order.id})`,
-      message: emailMessage,
+      message: `Hello ${order.user.name},\n\nYour order (${order.id}) has been shipped.\n${trackingNumber ? `Tracking Number: ${trackingNumber}` : 'Your package is on its way.'}\n\nRegards,\nShreeji Fashion Team`,
     }).catch(err => console.error('[updateOrderStatus] Email error:', err.message));
   }
 
@@ -371,6 +508,11 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 // @route   POST /api/orders/:id/retry-pay
 // @access  Private
 const retryPayment = asyncHandler(async (req, res) => {
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid order ID format');
+  }
+
   const order = await prisma.order.findUnique({ where: { id: req.params.id } });
 
   if (!order) {
@@ -388,16 +530,13 @@ const retryPayment = asyncHandler(async (req, res) => {
     throw new Error('Cannot retry payment for this order');
   }
 
-  // COD orders: charge only the advance amount — same logic as original order creation
   const amountToCharge = order.isCOD ? COD_ADVANCE : order.totalAmount;
 
-  const options = {
+  const razorpayOrder = await razorpayInstance.orders.create({
     amount: Math.round(amountToCharge * 100),
     currency: 'INR',
     receipt: `rcpt_retry_${Date.now()}`,
-  };
-
-  const razorpayOrder = await razorpayInstance.orders.create(options);
+  });
 
   await prisma.order.update({
     where: { id: order.id },
@@ -414,10 +553,9 @@ const razorpayWebhook = asyncHandler(async (req, res) => {
   const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET;
   const signature = req.headers['x-razorpay-signature'];
 
-  // req.body is a raw Buffer (express.raw applied in server.js before express.json)
-  // HMAC must be computed over the exact raw bytes — JSON.stringify on a parsed object
-  // would produce a different byte sequence and break signature verification.
-  const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from(JSON.stringify(req.body));
+  const rawBody = Buffer.isBuffer(req.body)
+    ? req.body
+    : Buffer.from(JSON.stringify(req.body));
 
   const expectedSignature = crypto
     .createHmac('sha256', webhookSecret)
@@ -429,8 +567,9 @@ const razorpayWebhook = asyncHandler(async (req, res) => {
     throw new Error('Invalid webhook signature');
   }
 
-  // Parse the event from the raw buffer
-  const payload = Buffer.isBuffer(req.body) ? JSON.parse(req.body.toString('utf8')) : req.body;
+  const payload = Buffer.isBuffer(req.body)
+    ? JSON.parse(req.body.toString('utf8'))
+    : req.body;
   const event = payload.event;
 
   if (event === 'payment.captured' || event === 'order.paid') {
@@ -480,8 +619,15 @@ const trackOrder = asyncHandler(async (req, res) => {
 
   if (type === 'orderId') {
     const order = await prisma.order.findFirst({
-      where: { id: String(value), user: { email: String(email).trim().toLowerCase() } },
-      include: { items: { include: { product: { select: { name: true, images: true } } } } },
+      where: {
+        id: String(value),
+        user: { email: String(email).trim().toLowerCase() },
+      },
+      include: {
+        items: {
+          include: { product: { select: { name: true, images: { take: 1, select: { url: true } } } } },
+        },
+      },
     });
     if (order) orders = [order];
   } else if (type === 'mobile') {
@@ -492,8 +638,17 @@ const trackOrder = asyncHandler(async (req, res) => {
     }
     const searchPhone = cleanPhone.slice(-10);
     orders = await prisma.order.findMany({
-      where: { user: { phone: { contains: searchPhone }, email: String(email).trim().toLowerCase() } },
-      include: { items: { include: { product: { select: { name: true, images: true } } } } },
+      where: {
+        user: {
+          phone: { contains: searchPhone },
+          email: String(email).trim().toLowerCase(),
+        },
+      },
+      include: {
+        items: {
+          include: { product: { select: { name: true, images: { take: 1, select: { url: true } } } } },
+        },
+      },
       orderBy: { createdAt: 'desc' },
       take: 5,
     });
@@ -515,7 +670,11 @@ const trackOrder = asyncHandler(async (req, res) => {
     createdAt: order.createdAt,
     trackingNumber: order.trackingNumber,
     shippingAddress: order.shippingAddress
-      ? { city: order.shippingAddress.city, state: order.shippingAddress.state, zipCode: order.shippingAddress.zipCode }
+      ? {
+          city: order.shippingAddress.city,
+          state: order.shippingAddress.state,
+          zipCode: order.shippingAddress.zipCode,
+        }
       : {},
     items: order.items.map(item => ({
       name: item.product?.name,

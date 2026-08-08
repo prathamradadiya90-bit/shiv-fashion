@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const rateLimit = require('express-rate-limit');
 const {
   addOrderItems,
   verifyPayment,
@@ -14,19 +15,34 @@ const {
 } = require('../controllers/orderController');
 const { protect, superAdmin } = require('../middleware/authMiddleware');
 
+// ── Rate limiters ─────────────────────────────────────────────────────────────
+
+// FIX #009: rate-limit the public payment-callback endpoint to prevent DoS
+// and brute-force probing of razorpay_order_id values.
+const callbackLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many payment callback requests from this IP, please try again later.' },
+});
+
+const trackLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many tracking requests from this IP, please try again after 15 minutes' },
+});
+
+// ── Routes ────────────────────────────────────────────────────────────────────
+
 router.route('/')
   .post(protect, addOrderItems)
   .get(protect, superAdmin, getOrders);
 
 router.route('/webhook').post(razorpayWebhook);
-router.route('/payment-callback').post(paymentCallback);
-const rateLimit = require('express-rate-limit');
-const trackLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  message: { message: 'Too many tracking requests from this IP, please try again after 15 minutes' }
-});
-
+router.route('/payment-callback').post(callbackLimiter, paymentCallback);
 router.route('/track').post(trackLimiter, trackOrder);
 router.route('/myorders').get(protect, getMyOrders);
 router.route('/:id').get(protect, getOrderById);

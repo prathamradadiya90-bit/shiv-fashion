@@ -9,7 +9,9 @@ const getStats = asyncHandler(async (req, res) => {
   const [totalUsers, totalOrders, revenueResult, totalProducts, recentOrders, topProductsRaw] =
     await Promise.all([
       prisma.user.count({ where: { role: 'CUSTOMER' } }),
-      prisma.order.count(),
+      // FIX #019: exclude CANCELLED orders from the total order count so the
+      // admin dashboard reflects orders that were actually fulfilled or in progress.
+      prisma.order.count({ where: { status: { not: 'CANCELLED' } } }),
       prisma.order.aggregate({
         where: { paymentStatus: 'PAID' },
         _sum: { totalAmount: true },
@@ -31,9 +33,7 @@ const getStats = asyncHandler(async (req, res) => {
 
   const totalRevenue = revenueResult._sum.totalAmount ?? 0;
 
-  // ── Batch-fetch top product details in ONE query ─────────────────────────
-  // Before: each iteration called prisma.product.findUnique inside the map → N DB hits
-  // After:  single findMany with id: { in: [...] } → 1 DB hit
+  // Batch-fetch top product details in ONE query (no N+1)
   const topProductIds = topProductsRaw.map(item => item.productId);
   const topProductDetails = topProductIds.length > 0
     ? await prisma.product.findMany({

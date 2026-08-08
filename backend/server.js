@@ -17,16 +17,26 @@ if (missingEnv.length > 0) {
 
 const app = express();
 
-// ── Middleware ────────────────────────────────────────────────────────────────
+// ── CORS ──────────────────────────────────────────────────────────────────────
+// FIX #013: CORS origin list is fully config-driven — no hardcoded URLs in code.
+// Set ALLOWED_ORIGINS in your .env as a comma-separated list:
+//   ALLOWED_ORIGINS=https://yourapp.vercel.app,http://localhost:5173
+//
+// FRONTEND_URL is kept as a fallback to support single-origin deployments that
+// only set that variable (e.g. Render's auto-linked env vars).
+const allowedOrigins = [
+  ...(process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim()).filter(Boolean)
+    : []),
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+];
+
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL,
-    'https://frontend-self-seven-q2qagi0lqa.vercel.app',
-    'http://localhost:5173',
-  ].filter(Boolean),
+  origin: allowedOrigins.length > 0 ? allowedOrigins : false,
   credentials: true,
 }));
 
+// ── Body parsers ──────────────────────────────────────────────────────────────
 // Razorpay webhook needs the raw body for HMAC signature verification.
 // Mount BEFORE express.json() so the raw Buffer is preserved on req.body.
 app.use('/api/orders/webhook', express.raw({ type: 'application/json' }));
@@ -75,7 +85,6 @@ if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
 }
 
 // ── Graceful shutdown ─────────────────────────────────────────────────────────
-// Allows in-flight requests to complete and closes DB/socket connections cleanly.
 const shutdown = (signal) => {
   console.info(`[server] ${signal} received — shutting down gracefully`);
   if (server) {
@@ -85,7 +94,6 @@ const shutdown = (signal) => {
       console.info('[server] HTTP server closed. Exiting.');
       process.exit(0);
     });
-    // Force exit if graceful shutdown takes more than 10 seconds
     setTimeout(() => {
       console.error('[server] Graceful shutdown timed out — forcing exit');
       process.exit(1);
