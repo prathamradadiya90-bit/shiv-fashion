@@ -76,6 +76,7 @@ app.use('/api/contact', require('./routes/contactRoutes'));
 // ── Ensure uploads temp directory exists ─────────────────────────────────────
 const uploadDir = process.env.VERCEL
   ? path.join(os.tmpdir(), 'uploads')
+  
   : path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
