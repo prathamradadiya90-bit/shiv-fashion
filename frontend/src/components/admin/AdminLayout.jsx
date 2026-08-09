@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Package, ShoppingBag, Users, Tag, Settings, LogOut, Mail, Menu, X } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../store/slices/authSlice';
@@ -17,11 +17,10 @@ const AdminLayout = () => {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
-  useEffect(() => {
-    if (!userInfo || userInfo.role !== 'SUPERADMIN') {
-      navigate('/');
-    }
-  }, [userInfo, navigate]);
+  // Guard: redirect non-admins immediately, no flash of admin content
+  if (!userInfo || userInfo.role !== 'SUPERADMIN') {
+    return <Navigate to="/" replace />;
+  }
 
   const logoutHandler = async () => {
     try {

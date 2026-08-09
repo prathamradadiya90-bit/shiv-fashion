@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Edit, Trash2, Plus } from 'lucide-react';
+import { toast } from 'react-toastify';
 import api from '../../services/api';
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -14,6 +16,7 @@ const ProductList = () => {
         setProducts(data.products || data);
       } catch (error) {
         console.error(error);
+        toast.error('Failed to load products');
       } finally {
         setLoading(false);
       }
@@ -23,11 +26,16 @@ const ProductList = () => {
 
   const deleteHandler = async (id) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
+      setDeletingId(id);
       try {
         await api.delete(`/products/${id}`);
-        setProducts(products.filter((p) => p.id !== id));
+        setProducts((prev) => prev.filter((p) => p.id !== id));
+        toast.success('Product deleted successfully');
       } catch (error) {
         console.error(error);
+        toast.error(error?.response?.data?.message || 'Failed to delete product');
+      } finally {
+        setDeletingId(null);
       }
     }
   };
@@ -75,7 +83,12 @@ const ProductList = () => {
                       <Link to={`/admin/products/${product.id}/edit`} className="text-blue-600 hover:text-blue-800 mr-4 inline-block">
                         <Edit size={18} />
                       </Link>
-                      <button className="text-red-600 hover:text-red-800" onClick={() => deleteHandler(product.id)}>
+                      <button
+                        className="text-red-600 hover:text-red-800 disabled:opacity-40 disabled:cursor-not-allowed"
+                        onClick={() => deleteHandler(product.id)}
+                        disabled={deletingId === product.id}
+                        title="Delete product"
+                      >
                         <Trash2 size={18} />
                       </button>
                     </td>
