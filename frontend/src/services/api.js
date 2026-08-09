@@ -2,10 +2,10 @@ import axios from 'axios';
 import store from '../store/store';
 import { logout } from '../store/slices/authSlice';
 
-// In production (Vercel), always use /api — requests are proxied to the backend
-// by vercel.json rewrites on the same domain, so CORS never applies.
-// In local dev, Vite's proxy (vite.config.js) also rewrites /api → localhost:5000.
-const BASE_URL = import.meta.env.PROD ? '/api' : 'http://localhost:5000/api';
+// Backend URL — the backend's CORS middleware echoes the request origin back,
+// so cross-origin requests from any Vercel frontend domain work correctly.
+// VITE_API_URL must be set in Vercel dashboard → frontend project → Environment Variables.
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: BASE_URL,
