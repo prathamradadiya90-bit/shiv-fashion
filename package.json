@@ -1,0 +1,8 @@
+{
+  "name": "shivfashion-monorepo",
+  "private": true,
+  "scripts": {
+    "postinstall": "cd backend && npm install && npx prisma generate",
+    "build": "cd frontend && npm install && npm run build"
+  }
+}
