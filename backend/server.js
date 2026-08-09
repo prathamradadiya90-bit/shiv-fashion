@@ -12,7 +12,8 @@ const REQUIRED_ENV = ['JWT_SECRET', 'DATABASE_URL'];
 const missingEnv = REQUIRED_ENV.filter(v => !process.env[v]);
 if (missingEnv.length > 0) {
   console.error(`[server] FATAL: Missing required environment variables: ${missingEnv.join(', ')}`);
-  process.exit(1);
+  // Temporarily disabling exit so that Vercel still boots Express and returns CORS headers
+  // process.exit(1);
 }
 
 const app = express();
