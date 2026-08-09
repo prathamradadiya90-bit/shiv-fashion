@@ -35,17 +35,41 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Always allow all origins to fix the CORS issue for good
+    // Allow all origins
     callback(null, true);
   },
   credentials: true,
 };
 
-app.use(cors(corsOptions));
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    // Fallback if no origin is provided (e.g. some mobile clients/curl)
+    // Note: credentials: true does not allow '*' when origin is present,
+    // but if origin is not present, we can just set it to '*' or omit it.
+    // However, some strict browsers still fail if we don't handle it gracefully.
+    res.setHeader('Access-Control-Allow-Origin', '*'); 
+  }
+  
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS, PATCH, DELETE, POST, PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, Cookie'
+  );
 
-// Explicitly handle OPTIONS preflight for all routes so Vercel serverless
-// doesn't swallow it before Express can respond with the correct headers.
-app.options(/.*/, cors(corsOptions));
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
+
+// We can still keep the cors package as a fallback/additional layer just in case,
+// but the manual middleware above should handle the Vercel preflight issues.
+app.use(cors(corsOptions));
 
 // ── Body parsers ──────────────────────────────────────────────────────────────
 // Razorpay webhook needs the raw body for HMAC signature verification.
