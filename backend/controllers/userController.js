@@ -94,7 +94,48 @@ const toggleUserStatus = asyncHandler(async (req, res) => {
   res.json(updatedUser);
 });
 
+// @desc    Delete a user
+// @route   DELETE /api/users/:id
+// @access  Private/SuperAdmin
+const deleteUser = asyncHandler(async (req, res) => {
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid user ID format');
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: req.params.id },
+  });
+
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  if (user.role === 'SUPERADMIN') {
+    res.status(400);
+    throw new Error('Cannot delete a SuperAdmin');
+  }
+
+  // Check for order history and reviews
+  const ordersCount = await prisma.order.count({ where: { userId: req.params.id } });
+  if (ordersCount > 0) {
+    res.status(400);
+    throw new Error('Cannot delete user with existing orders. Please block the user instead.');
+  }
+
+  const reviewsCount = await prisma.review.count({ where: { userId: req.params.id } });
+  if (reviewsCount > 0) {
+    res.status(400);
+    throw new Error('Cannot delete user with existing reviews. Please block the user instead.');
+  }
+
+  await prisma.user.delete({ where: { id: req.params.id } });
+  res.json({ message: 'User deleted successfully' });
+});
+
 module.exports = {
   getUsers,
   toggleUserStatus,
+  deleteUser,
 };

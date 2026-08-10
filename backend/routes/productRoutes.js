@@ -7,13 +7,22 @@ const {
   updateProduct,
   deleteProduct,
   toggleWishlist,
-  createProductReview
+  createProductReview,
+  getAllReviews,
+  deleteReview
 } = require('../controllers/productController');
 const { protect, superAdmin } = require('../middleware/authMiddleware');
 
 router.route('/')
   .get(getProducts)
   .post(protect, superAdmin, createProduct);
+
+// Place /reviews/all before /:id so it doesn't get matched as an ID
+router.route('/reviews/all')
+  .get(protect, superAdmin, getAllReviews);
+
+router.route('/reviews/:id')
+  .delete(protect, superAdmin, deleteReview);
 
 router.route('/:id')
   .get(getProductById)

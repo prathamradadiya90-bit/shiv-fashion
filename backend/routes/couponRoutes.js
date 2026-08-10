@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getCoupons, createCoupon, deleteCoupon, applyCoupon } = require('../controllers/couponController');
+const { getCoupons, createCoupon, updateCoupon, deleteCoupon, applyCoupon } = require('../controllers/couponController');
 const { protect, superAdmin } = require('../middleware/authMiddleware');
 
 router.route('/')
@@ -10,6 +10,7 @@ router.route('/')
 router.post('/apply', protect, applyCoupon);
 
 router.route('/:id')
+  .put(protect, superAdmin, updateCoupon)
   .delete(protect, superAdmin, deleteCoupon);
 
 module.exports = router;

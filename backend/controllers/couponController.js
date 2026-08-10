@@ -71,6 +71,85 @@ const createCoupon = asyncHandler(async (req, res) => {
   res.status(201).json(coupon);
 });
 
+// @desc    Update a coupon
+// @route   PUT /api/coupons/:id
+// @access  Private/SuperAdmin
+const updateCoupon = asyncHandler(async (req, res) => {
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid coupon ID format');
+  }
+
+  const { code, discountType, value, minOrderValue, expiryDate, isActive } = req.body;
+  const existing = await prisma.coupon.findUnique({ where: { id: req.params.id } });
+  
+  if (!existing) {
+    res.status(404);
+    throw new Error('Coupon not found');
+  }
+
+  const updateData = {};
+
+  if (code) {
+    const normalizedCode = code.trim().toUpperCase();
+    if (normalizedCode !== existing.code) {
+      const codeExists = await prisma.coupon.findUnique({ where: { code: normalizedCode } });
+      if (codeExists) {
+        res.status(400);
+        throw new Error('Coupon code already exists');
+      }
+      updateData.code = normalizedCode;
+    }
+  }
+
+  if (discountType) {
+    if (!['PERCENTAGE', 'FIXED'].includes(discountType)) {
+      res.status(400);
+      throw new Error('discountType must be PERCENTAGE or FIXED');
+    }
+    updateData.discountType = discountType;
+  }
+
+  if (value !== undefined) {
+    if (isNaN(Number(value)) || Number(value) <= 0) {
+      res.status(400);
+      throw new Error('value must be a positive number');
+    }
+    updateData.value = Number(value);
+  }
+
+  const newType = updateData.discountType || existing.discountType;
+  const newValue = updateData.value !== undefined ? updateData.value : existing.value;
+  if (newType === 'PERCENTAGE' && newValue > 100) {
+    res.status(400);
+    throw new Error('Percentage discount cannot exceed 100');
+  }
+
+  if (minOrderValue !== undefined) {
+    updateData.minOrderValue = Number(minOrderValue);
+  }
+
+  if (expiryDate) {
+    const parsedExpiry = new Date(expiryDate);
+    if (isNaN(parsedExpiry.getTime())) {
+      res.status(400);
+      throw new Error('expiryDate is not a valid date');
+    }
+    updateData.expiryDate = parsedExpiry;
+  }
+
+  if (isActive !== undefined) {
+    updateData.isActive = Boolean(isActive);
+  }
+
+  const updatedCoupon = await prisma.coupon.update({
+    where: { id: req.params.id },
+    data: updateData,
+  });
+
+  res.json(updatedCoupon);
+});
+
 // @desc    Delete a coupon
 // @route   DELETE /api/coupons/:id
 // @access  Private/SuperAdmin
@@ -141,6 +220,7 @@ const applyCoupon = asyncHandler(async (req, res) => {
 module.exports = {
   getCoupons,
   createCoupon,
+  updateCoupon,
   deleteCoupon,
   applyCoupon,
 };

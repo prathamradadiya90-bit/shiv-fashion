@@ -250,6 +250,16 @@ const deleteProduct = asyncHandler(async (req, res) => {
     throw new Error('Product not found');
   }
 
+  // Check if product has order history
+  const orderItemsCount = await prisma.orderItem.count({
+    where: { productId: req.params.id }
+  });
+
+  if (orderItemsCount > 0) {
+    res.status(400);
+    throw new Error('Cannot delete product because it has order history. Please update it and set it to Inactive instead.');
+  }
+
   await deleteImages(product.images);
   await prisma.product.delete({ where: { id: req.params.id } });
 
@@ -363,6 +373,54 @@ const createProductReview = asyncHandler(async (req, res) => {
   res.status(201).json({ message: 'Review added', review: createdReview });
 });
 
+// @desc    Get all reviews (Admin)
+// @route   GET /api/products/reviews/all
+// @access  Private/SuperAdmin
+const getAllReviews = asyncHandler(async (req, res) => {
+  const reviews = await prisma.review.findMany({
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+      product: { select: { id: true, name: true } },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+  res.json(reviews);
+});
+
+// @desc    Delete a review (Admin)
+// @route   DELETE /api/products/reviews/:id
+// @access  Private/SuperAdmin
+const deleteReview = asyncHandler(async (req, res) => {
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid review ID format');
+  }
+
+  const review = await prisma.review.findUnique({ where: { id: req.params.id } });
+  if (!review) {
+    res.status(404);
+    throw new Error('Review not found');
+  }
+
+  const productId = review.productId;
+
+  await prisma.$transaction(async (tx) => {
+    await tx.review.delete({ where: { id: req.params.id } });
+
+    const productReviews = await tx.review.findMany({ where: { productId } });
+    const numReviews = productReviews.length;
+    const totalRating = productReviews.reduce((acc, item) => acc + item.rating, 0);
+    const avgRating = numReviews > 0 ? totalRating / numReviews : 0;
+
+    await tx.product.update({
+      where: { id: productId },
+      data: { rating: avgRating, numReviews },
+    });
+  });
+
+  res.json({ message: 'Review deleted successfully' });
+});
+
 module.exports = {
   getProducts,
   getProductById,
@@ -371,4 +429,6 @@ module.exports = {
   deleteProduct,
   toggleWishlist,
   createProductReview,
+  getAllReviews,
+  deleteReview,
 };

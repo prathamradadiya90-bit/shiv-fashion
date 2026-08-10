@@ -467,7 +467,10 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     throw new Error(`Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}`);
   }
 
-  const existingOrder = await prisma.order.findUnique({ where: { id: req.params.id } });
+  const existingOrder = await prisma.order.findUnique({ 
+    where: { id: req.params.id },
+    include: { items: true }
+  });
   if (!existingOrder) {
     res.status(404);
     throw new Error('Order not found');
@@ -487,11 +490,29 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   if (status !== undefined) updateData.status = status;
   if (trackingNumber !== undefined) updateData.trackingNumber = trackingNumber;
 
-  const order = await prisma.order.update({
-    where: { id: req.params.id },
-    data: updateData,
-    include: { user: { select: { name: true, email: true } } },
-  });
+  let order;
+  if (status === 'CANCELLED' && existingOrder.status !== 'CANCELLED') {
+    order = await prisma.$transaction(async (tx) => {
+      const updated = await tx.order.update({
+        where: { id: req.params.id },
+        data: updateData,
+        include: { user: { select: { name: true, email: true } } },
+      });
+      for (const item of existingOrder.items) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { increment: item.quantity } },
+        });
+      }
+      return updated;
+    });
+  } else {
+    order = await prisma.order.update({
+      where: { id: req.params.id },
+      data: updateData,
+      include: { user: { select: { name: true, email: true } } },
+    });
+  }
 
   if (status === 'SHIPPED') {
     sendEmail({
