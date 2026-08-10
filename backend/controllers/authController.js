@@ -20,6 +20,10 @@ const registerUser = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error('Name is required');
   }
+  if (name.length > 100) {
+    res.status(400);
+    throw new Error('Name cannot exceed 100 characters');
+  }
   if (!email || typeof email !== 'string') {
     res.status(400);
     throw new Error('Email is required');
@@ -156,6 +160,11 @@ const updateUserProfile = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error('Please enter a valid email address');
     }
+  }
+
+  if (req.body.name && typeof req.body.name === 'string' && req.body.name.length > 100) {
+    res.status(400);
+    throw new Error('Name cannot exceed 100 characters');
   }
 
   const user = await prisma.user.findUnique({ where: { id: req.user.id } });

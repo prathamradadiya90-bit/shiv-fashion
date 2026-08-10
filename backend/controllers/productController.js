@@ -113,6 +113,14 @@ const createProduct = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error('name, description, and category are required');
   }
+  if (typeof name === 'string' && name.length > 255) {
+    res.status(400);
+    throw new Error('Name cannot exceed 255 characters');
+  }
+  if (typeof description === 'string' && description.length > 5000) {
+    res.status(400);
+    throw new Error('Description cannot exceed 5000 characters');
+  }
   if (price === undefined || price === null || isNaN(parseFloat(price)) || parseFloat(price) < 0) {
     res.status(400);
     throw new Error('A valid price is required');
@@ -164,6 +172,15 @@ const updateProduct = asyncHandler(async (req, res) => {
   }
 
   const { name, description, category, price, discount, stock, isFeatured, isActive, images, sizes, colors } = req.body;
+
+  if (name && typeof name === 'string' && name.length > 255) {
+    res.status(400);
+    throw new Error('Name cannot exceed 255 characters');
+  }
+  if (description && typeof description === 'string' && description.length > 5000) {
+    res.status(400);
+    throw new Error('Description cannot exceed 5000 characters');
+  }
 
   const existingProduct = await prisma.product.findUnique({
     where: { id: req.params.id },
@@ -377,14 +394,23 @@ const createProductReview = asyncHandler(async (req, res) => {
 // @route   GET /api/products/reviews/all
 // @access  Private/SuperAdmin
 const getAllReviews = asyncHandler(async (req, res) => {
-  const reviews = await prisma.review.findMany({
-    include: {
-      user: { select: { id: true, name: true, email: true } },
-      product: { select: { id: true, name: true } },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-  res.json(reviews);
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const pageSize = 20;
+
+  const [reviews, total] = await Promise.all([
+    prisma.review.findMany({
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        product: { select: { id: true, name: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.review.count(),
+  ]);
+
+  res.json({ reviews, page, pages: Math.ceil(total / pageSize), total });
 });
 
 // @desc    Delete a review (Admin)

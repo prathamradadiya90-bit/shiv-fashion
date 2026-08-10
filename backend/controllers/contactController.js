@@ -14,13 +14,25 @@ const submitMessage = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error('Name is required');
   }
+  if (name.length > 100) {
+    res.status(400);
+    throw new Error('Name cannot exceed 100 characters');
+  }
   if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email.trim())) {
     res.status(400);
     throw new Error('A valid email address is required');
   }
+  if (subject && subject.length > 255) {
+    res.status(400);
+    throw new Error('Subject cannot exceed 255 characters');
+  }
   if (!message || typeof message !== 'string' || message.trim() === '') {
     res.status(400);
     throw new Error('Message is required');
+  }
+  if (message.length > 5000) {
+    res.status(400);
+    throw new Error('Message cannot exceed 5000 characters');
   }
 
   const contactMessage = await prisma.contactMessage.create({
@@ -43,10 +55,19 @@ const submitMessage = asyncHandler(async (req, res) => {
 // @route   GET /api/contact
 // @access  Private/SuperAdmin
 const getMessages = asyncHandler(async (req, res) => {
-  const messages = await prisma.contactMessage.findMany({
-    orderBy: { createdAt: 'desc' },
-  });
-  res.status(200).json(messages);
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const pageSize = 20;
+
+  const [messages, total] = await Promise.all([
+    prisma.contactMessage.findMany({
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.contactMessage.count(),
+  ]);
+
+  res.status(200).json({ messages, page, pages: Math.ceil(total / pageSize), total });
 });
 
 // @desc    Mark a message as read

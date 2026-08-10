@@ -6,8 +6,19 @@ const { isValidUUID } = require('../utils/validateUUID');
 // @route   GET /api/coupons
 // @access  Private/SuperAdmin
 const getCoupons = asyncHandler(async (req, res) => {
-  const coupons = await prisma.coupon.findMany({ orderBy: { createdAt: 'desc' } });
-  res.json(coupons);
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const pageSize = 20;
+
+  const [coupons, total] = await Promise.all([
+    prisma.coupon.findMany({
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.coupon.count(),
+  ]);
+
+  res.json({ coupons, page, pages: Math.ceil(total / pageSize), total });
 });
 
 // @desc    Create a coupon
