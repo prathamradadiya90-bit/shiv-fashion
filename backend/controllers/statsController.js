@@ -31,7 +31,9 @@ const getStats = asyncHandler(async (req, res) => {
       }),
     ]);
 
-  const totalRevenue = revenueResult._sum.totalAmount ?? 0;
+  // FIX #006: totalAmount is stored in paise — divide by 100 for display in rupees
+  const totalRevenuePaise = revenueResult._sum.totalAmount ?? 0;
+  const totalRevenue = totalRevenuePaise / 100;
 
   // Batch-fetch top product details in ONE query (no N+1)
   const topProductIds = topProductsRaw.map(item => item.productId);
@@ -51,7 +53,7 @@ const getStats = asyncHandler(async (req, res) => {
       return {
         id: product.id,
         name: product.name,
-        price: product.price,
+        price: product.price / 100, // FIX #006: convert paise → rupees for display
         image: product.images?.[0]?.url || '',
         sales: item._sum.quantity,
       };
@@ -68,7 +70,7 @@ const getStats = asyncHandler(async (req, res) => {
       id: o.id,
       customer: o.user?.name || 'Unknown',
       date: o.createdAt,
-      total: o.totalAmount,
+      total: o.totalAmount / 100, // FIX #006: convert paise → rupees for display
       status: o.status,
     })),
   });

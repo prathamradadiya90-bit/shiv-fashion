@@ -1,9 +1,15 @@
 node_modules/
-.env
 dist/
 .DS_Store
 *.log
 backend/uploads/
 
+# Vercel
 .vercel
-.env*
+
+# All .env files — including .env.local, .env.vercel, .env.vercel.prod, etc.
+# These may contain secrets and must NEVER be committed.
+.env
+.env.*
+**/.env
+**/.env.*

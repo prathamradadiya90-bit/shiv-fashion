@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const logger = require('./logger');
 
 /**
  * Send an email via SMTP.
@@ -27,11 +28,11 @@ const sendEmail = async (options) => {
 
     const info = await transporter.sendMail(message);
     // Log the Nodemailer message-id for audit trails — not the full payload
-    console.info(`[sendEmail] Sent to ${options.email} — messageId: ${info.messageId}`);
+    logger.info(`[sendEmail] Sent to ${options.email} — messageId: ${info.messageId}`);
     return true;
   } catch (error) {
     // Log full error server-side; caller receives false so it can decide next step
-    console.error(`[sendEmail] Failed to send to ${options.email}:`, error.message);
+    logger.error(`[sendEmail] Failed to send to ${options.email}: ${error.message}`);
     return false;
   }
 };

@@ -25,11 +25,11 @@ const AdminLayout = () => {
   const logoutHandler = async () => {
     try {
       await api.post('/auth/logout');
-      dispatch(logout());
-      navigate('/');
-    } catch (error) {
-      console.error('Logout failed:', error);
+    } catch {
+      // Ignore logout API errors — we always clear the local session regardless
     }
+    dispatch(logout());
+    navigate('/');
   };
 
   const navItems = [

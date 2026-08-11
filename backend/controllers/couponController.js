@@ -219,6 +219,23 @@ const applyCoupon = asyncHandler(async (req, res) => {
     throw new Error(`Minimum order value of ₹${coupon.minOrderValue} required for this coupon`);
   }
 
+  // FIX #005: check usage limits at preview time so the user sees the error
+  // before placing the order (better UX — the hard enforcement is in addOrderItems).
+  if (coupon.maxUsage > 0 && coupon.usageCount >= coupon.maxUsage) {
+    res.status(400);
+    throw new Error('This coupon has reached its maximum usage limit');
+  }
+
+  if (coupon.maxUsagePerUser > 0) {
+    const userUsageCount = await prisma.couponUsage.count({
+      where: { couponId: coupon.id, userId: req.user.id },
+    });
+    if (userUsageCount >= coupon.maxUsagePerUser) {
+      res.status(400);
+      throw new Error('You have already used this coupon the maximum number of times');
+    }
+  }
+
   // Return only what the frontend needs to display the discount preview
   res.json({
     code: coupon.code,

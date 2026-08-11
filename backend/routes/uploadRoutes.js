@@ -5,6 +5,7 @@ const upload = require('../middleware/uploadMiddleware');
 const cloudinary = require('../config/cloudinary');
 const { protect, superAdmin } = require('../middleware/authMiddleware');
 const asyncHandler = require('../middleware/asyncHandler');
+const logger = require('../utils/logger');
 
 /**
  * Helper: non-blocking async file removal.
@@ -16,7 +17,7 @@ const removeTempFile = async (filePath) => {
     await fs.promises.unlink(filePath);
   } catch (err) {
     if (err.code !== 'ENOENT') {
-      console.error(`[upload] Failed to remove temp file ${filePath}:`, err.message);
+      logger.error(`[upload] Failed to remove temp file ${filePath}: ${err.message}`);
     }
   }
 };

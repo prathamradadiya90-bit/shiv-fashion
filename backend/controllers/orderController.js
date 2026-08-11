@@ -3,6 +3,7 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
 const asyncHandler = require('../middleware/asyncHandler');
+const logger = require('../utils/logger');
 const {
   FREE_SHIPPING_THRESHOLD,
   SHIPPING_CHARGE,
@@ -93,14 +94,20 @@ const addOrderItems = asyncHandler(async (req, res) => {
   }
 
   // ── Compute totals in integer paise ───────────────────────────────────────
+  // product.price is stored in paise (Int) in the DB — do NOT multiply by 100 again.
+  // discount is stored in basis points (Int): 10% = 1000 basis points.
+  // OrderItem.price is stored in paise (Int).
+  // Order.totalAmount is stored in paise (Int).
   let totalAmountPaise = 0;
   const itemsForDb = [];
 
   for (const item of orderItems) {
     const product = productMap[item.productId];
-    let finalPricePaise = Math.round(product.price * 100);
+    // product.price is already in paise — no conversion needed
+    let finalPricePaise = product.price;
     if (product.discount > 0) {
-      finalPricePaise -= Math.round(finalPricePaise * (product.discount / 100));
+      // discount is in basis points (1000 = 10%) — divide by 10000 to get fraction
+      finalPricePaise -= Math.round(finalPricePaise * (product.discount / 10000));
     }
     totalAmountPaise += finalPricePaise * parseInt(item.quantity, 10);
     itemsForDb.push({
@@ -108,11 +115,12 @@ const addOrderItems = asyncHandler(async (req, res) => {
       size: item.size || 'Free size',
       color: item.color || '',
       quantity: parseInt(item.quantity, 10),
-      price: finalPricePaise / 100,
+      price: finalPricePaise, // stored in paise (Int) as per schema
     });
   }
 
   // ── Shipping and Tax ───────────────────────────────────────────────────────
+  // FREE_SHIPPING_THRESHOLD and SHIPPING_CHARGE are in rupees (from constants) — convert to paise
   const shippingPricePaise = totalAmountPaise > FREE_SHIPPING_THRESHOLD * 100
     ? 0
     : Math.round(SHIPPING_CHARGE * 100);
@@ -122,6 +130,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
   // ── Server-side coupon validation ─────────────────────────────────────────
   const { couponCode, isCOD } = req.body;
   let calculatedDiscountPaise = 0;
+  let validatedCoupon = null;
 
   if (couponCode && typeof couponCode === 'string') {
     const coupon = await prisma.coupon.findUnique({
@@ -131,26 +140,47 @@ const addOrderItems = asyncHandler(async (req, res) => {
       coupon &&
       coupon.isActive &&
       new Date() <= new Date(coupon.expiryDate) &&
-      finalTotalAmountPaise / 100 >= coupon.minOrderValue
+      finalTotalAmountPaise >= coupon.minOrderValue  // both in paise
     ) {
-      if (coupon.discountType === 'PERCENTAGE') {
-        calculatedDiscountPaise = Math.round(finalTotalAmountPaise * (coupon.value / 100));
-      } else {
-        calculatedDiscountPaise = Math.round(coupon.value * 100);
+      // FIX #005: check global usage limit (0 = unlimited)
+      if (coupon.maxUsage > 0 && coupon.usageCount >= coupon.maxUsage) {
+        res.status(400);
+        throw new Error('This coupon has reached its maximum usage limit');
       }
+
+      // FIX #005: check per-user usage limit (0 = unlimited)
+      if (coupon.maxUsagePerUser > 0) {
+        const userUsageCount = await prisma.couponUsage.count({
+          where: { couponId: coupon.id, userId: req.user.id },
+        });
+        if (userUsageCount >= coupon.maxUsagePerUser) {
+          res.status(400);
+          throw new Error('You have already used this coupon the maximum number of times');
+        }
+      }
+
+      if (coupon.discountType === 'PERCENTAGE') {
+        // coupon.value is in basis points (1000 = 10%) for PERCENTAGE type
+        calculatedDiscountPaise = Math.round(finalTotalAmountPaise * (coupon.value / 10000));
+      } else {
+        // coupon.value for FIXED type is already in paise (e.g. ₹50 = 5000 paise)
+        calculatedDiscountPaise = coupon.value;
+      }
+      validatedCoupon = coupon;
     }
   }
 
   finalTotalAmountPaise = Math.max(0, finalTotalAmountPaise - calculatedDiscountPaise);
 
-  const finalTotalAmount = finalTotalAmountPaise / 100;
-  const amountToCharge = isCOD ? COD_ADVANCE : finalTotalAmount;
+  // FIX #006: totalAmount stored in DB as paise (Int) — do NOT divide by 100.
+  // Razorpay also expects paise — pass directly.
+  const amountToChargePaise = isCOD ? Math.round(COD_ADVANCE * 100) : finalTotalAmountPaise;
 
   // ── Create Razorpay order ──────────────────────────────────────────────────
   let razorpayOrder;
   try {
     razorpayOrder = await razorpayInstance.orders.create({
-      amount: Math.round(amountToCharge * 100),
+      amount: amountToChargePaise,  // already in paise
       currency: 'INR',
       receipt: `rcpt_${Date.now()}`,
     });
@@ -187,16 +217,35 @@ const addOrderItems = asyncHandler(async (req, res) => {
       return await tx.order.create({
         data: {
           userId: req.user.id,
-          totalAmount: finalTotalAmount,
+          totalAmount: finalTotalAmountPaise, // FIX #006: store in paise (Int)
           status: 'PENDING',
           isCOD: Boolean(isCOD),
           shippingAddress: enhancedShippingAddress,
           razorpayOrderId: razorpayOrder.id,
+          couponCode: validatedCoupon ? validatedCoupon.code : null,
           items: { create: itemsForDb },
         },
         include: { items: true },
       });
     });
+
+    // FIX #005: record coupon usage and increment counter AFTER the order is committed
+    // so a rollback never leaves a phantom usage record.
+    if (validatedCoupon) {
+      await prisma.$transaction([
+        prisma.couponUsage.create({
+          data: {
+            couponId: validatedCoupon.id,
+            userId: req.user.id,
+            orderId: order.id,
+          },
+        }),
+        prisma.coupon.update({
+          where: { id: validatedCoupon.id },
+          data: { usageCount: { increment: 1 } },
+        }),
+      ]);
+    }
 
     res.status(201).json({ order, razorpayOrder });
   } catch (dbError) {
@@ -204,12 +253,11 @@ const addOrderItems = asyncHandler(async (req, res) => {
     // is not left with a dangling payment request.
     try {
       await razorpayInstance.orders.cancel(razorpayOrder.id);
-      console.info(`[addOrderItems] Cancelled orphaned Razorpay order ${razorpayOrder.id}`);
+      logger.info(`[addOrderItems] Cancelled orphaned Razorpay order ${razorpayOrder.id}`);
     } catch (cancelErr) {
       // Log prominently for manual reconciliation — do NOT swallow silently
-      console.error(
-        `[addOrderItems] CRITICAL: DB write failed AND Razorpay order ${razorpayOrder.id} could not be cancelled. Manual reconciliation required.`,
-        cancelErr.message
+      logger.error(
+        `[addOrderItems] CRITICAL: DB write failed AND Razorpay order ${razorpayOrder.id} could not be cancelled. Manual reconciliation required. cancelErr=${cancelErr.message}`
       );
     }
 
@@ -280,8 +328,9 @@ const verifyPayment = asyncHandler(async (req, res) => {
   sendEmail({
     email: updatedOrder.user.email,
     subject: `Shreeji Fashion - Order Confirmed (${updatedOrder.id})`,
-    message: `Hello ${updatedOrder.user.name},\n\nThank you for shopping with Shreeji Fashion!\nYour order (${updatedOrder.id}) has been confirmed and payment is successful.\nTotal Amount: ₹${updatedOrder.totalAmount}\n\nWe will notify you once your order is shipped.\n\nRegards,\nShreeji Fashion Team`,
-  }).catch(err => console.error('[verifyPayment] Email error:', err.message));
+    // FIX #006: totalAmount is in paise — divide by 100 for display
+    message: `Hello ${updatedOrder.user.name || 'Customer'},\n\nThank you for shopping with Shreeji Fashion!\nYour order (${updatedOrder.id}) has been confirmed and payment is successful.\nTotal Amount: ₹${(updatedOrder.totalAmount / 100).toFixed(2)}\n\nWe will notify you once your order is shipped.\n\nRegards,\nShreeji Fashion Team`,
+  }).catch(err => logger.error(`[verifyPayment] Email error: ${err.message}`));
 
   res.json({ message: 'Payment verified successfully' });
 });
@@ -312,7 +361,7 @@ const paymentCallback = asyncHandler(async (req, res) => {
 
   if (expectedSignature !== razorpay_signature) {
     // Signature mismatch — do not update order; redirect without marking paid
-    console.error(`[paymentCallback] Signature mismatch for order ${order.id}`);
+    logger.error(`[paymentCallback] Signature mismatch for order ${order.id}`);
     return res.redirect(`${frontendBase}/order/${order.id}`);
   }
 
@@ -337,16 +386,17 @@ const paymentCallback = asyncHandler(async (req, res) => {
         sendEmail({
           email: updatedOrder.user.email,
           subject: `Shreeji Fashion - Order Confirmed (${updatedOrder.id})`,
-          message: `Hello ${updatedOrder.user.name},\n\nThank you for shopping with Shreeji Fashion!\nYour order (${updatedOrder.id}) has been confirmed.\nTotal: ₹${updatedOrder.totalAmount}`,
-        }).catch(err => console.error('[paymentCallback] Email error:', err.message));
+          // FIX #006 + #008: totalAmount is in paise — divide by 100; name fallback
+          message: `Hello ${updatedOrder.user.name || 'Customer'},\n\nThank you for shopping with Shreeji Fashion!\nYour order (${updatedOrder.id}) has been confirmed.\nTotal: ₹${(updatedOrder.totalAmount / 100).toFixed(2)}`,
+        }).catch(err => logger.error(`[paymentCallback] Email error: ${err.message}`));
       } else {
-        console.error(
+        logger.error(
           `[paymentCallback] Payment ${razorpay_payment_id} status="${payment.status}" — not marking order PAID`
         );
       }
     } catch (fetchErr) {
       // If Razorpay fetch fails, do not mark paid — the webhook will handle it
-      console.error('[paymentCallback] Razorpay payment fetch error:', fetchErr.message);
+      logger.error(`[paymentCallback] Razorpay payment fetch error: ${fetchErr.message}`);
     }
   }
 
@@ -518,8 +568,8 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     sendEmail({
       email: order.user.email,
       subject: `Shreeji Fashion - Order Shipped (${order.id})`,
-      message: `Hello ${order.user.name},\n\nYour order (${order.id}) has been shipped.\n${trackingNumber ? `Tracking Number: ${trackingNumber}` : 'Your package is on its way.'}\n\nRegards,\nShreeji Fashion Team`,
-    }).catch(err => console.error('[updateOrderStatus] Email error:', err.message));
+      message: `Hello ${order.user.name || 'Customer'},\n\nYour order (${order.id}) has been shipped.\n${trackingNumber ? `Tracking Number: ${trackingNumber}` : 'Your package is on its way.'}\n\nRegards,\nShreeji Fashion Team`,
+    }).catch(err => logger.error(`[updateOrderStatus] Email error: ${err.message}`));
   }
 
   res.json(order);
@@ -551,10 +601,12 @@ const retryPayment = asyncHandler(async (req, res) => {
     throw new Error('Cannot retry payment for this order');
   }
 
-  const amountToCharge = order.isCOD ? COD_ADVANCE : order.totalAmount;
+  // FIX #006: order.totalAmount is stored in paise (Int) — pass directly.
+  // COD_ADVANCE is in rupees (constant) — convert to paise.
+  const amountToChargePaise = order.isCOD ? Math.round(COD_ADVANCE * 100) : order.totalAmount;
 
   const razorpayOrder = await razorpayInstance.orders.create({
-    amount: Math.round(amountToCharge * 100),
+    amount: amountToChargePaise,  // already in paise
     currency: 'INR',
     receipt: `rcpt_retry_${Date.now()}`,
   });
@@ -612,7 +664,7 @@ const razorpayWebhook = asyncHandler(async (req, res) => {
           razorpayPaymentId,
         },
       });
-      console.info(`[webhook] Order ${order.id} marked PAID via webhook`);
+      logger.info(`[webhook] Order ${order.id} marked PAID via webhook`);
     }
   }
 

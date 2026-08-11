@@ -26,8 +26,10 @@ const EditProduct = () => {
       try {
         const { data } = await api.get(`/products/${id}`);
         setName(data.name);
-        setPrice(data.price);
-        setDiscount(data.discount);
+        // FIX #006: API returns price in paise and discount in basis points
+        // Convert to rupees/percent for the input fields
+        setPrice(data.price / 100);
+        setDiscount(data.discount / 100);
         setDescription(data.description);
         setCategory(data.category);
         setStock(data.stock);

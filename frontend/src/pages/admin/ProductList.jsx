@@ -73,7 +73,7 @@ const ProductList = () => {
                     </td>
                     <td className="px-6 py-4 font-medium text-gray-900">{product.name}</td>
                     <td className="px-6 py-4 text-gray-600">{product.category}</td>
-                    <td className="px-6 py-4 font-medium">₹{product.price}</td>
+                    <td className="px-6 py-4 font-medium">₹{(product.price / 100).toFixed(2)}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${product.stock > 10 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                         {product.stock}

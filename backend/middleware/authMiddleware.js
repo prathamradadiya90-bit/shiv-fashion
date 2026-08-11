@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const prisma = require('../config/db');
+const logger = require('../utils/logger');
 
 const protect = async (req, res, next) => {
   let token;
@@ -41,7 +42,7 @@ const protect = async (req, res, next) => {
     // FIX #012: log only the error name/type — never the full error.message which
     // may reveal token structure, expiry details, or algorithm information.
     // Full error is available server-side via the error name for diagnostics.
-    console.error('Auth error: token verification failed —', error.name);
+    logger.error({ message: 'Token verification failed', errorName: error.name });
     return res.status(401).json({ message: 'Not authorized, token failed' });
   }
 };

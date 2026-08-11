@@ -51,6 +51,7 @@ model User {
   orders    Order[]
   wishlist  Product[] @relation("Wishlist")
   reviews   Review[]
+  couponUsages CouponUsage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -161,6 +162,10 @@ model Order {
   shippingAddress Json
   trackingNumber  String?
 
+  // FIX #005: track which coupon (if any) was applied to this order
+  couponCode      String?
+  couponUsage     CouponUsage?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -190,8 +195,32 @@ model Coupon {
   expiryDate     DateTime
   isActive       Boolean      @default(true)
 
+  // FIX #005: usage limits — 0 means unlimited
+  maxUsage       Int          @default(0)   // 0 = unlimited total uses
+  usageCount     Int          @default(0)   // incremented inside order transaction
+  maxUsagePerUser Int         @default(0)   // 0 = unlimited per user
+
+  usages         CouponUsage[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// FIX #005: tracks which user used which coupon on which order
+// Used to enforce per-user coupon limits without a race condition.
+model CouponUsage {
+  id        String   @id @default(uuid())
+  coupon    Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  couponId  String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   String   @unique   // one CouponUsage per order
+
+  createdAt DateTime @default(now())
+
+  @@unique([couponId, userId, orderId])
+  @@index([couponId, userId])
 }
 
 model ContactMessage {

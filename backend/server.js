@@ -8,36 +8,65 @@ const os = require('os');
 
 // ── Required environment variable guard ──────────────────────────────────────
 // Fail fast at startup rather than crashing mid-request in production.
-const REQUIRED_ENV = ['JWT_SECRET', 'DATABASE_URL'];
+const REQUIRED_ENV = [
+  'JWT_SECRET',
+  'DATABASE_URL',
+  'RAZORPAY_KEY_ID',
+  'RAZORPAY_KEY_SECRET',
+  'CLOUDINARY_CLOUD_NAME',
+  'CLOUDINARY_API_KEY',
+  'CLOUDINARY_API_SECRET',
+  'SMTP_HOST',
+  'SMTP_USER',
+  'SMTP_PASS',
+  'ALLOWED_ORIGINS',
+];
 const missingEnv = REQUIRED_ENV.filter(v => !process.env[v]);
 if (missingEnv.length > 0) {
+  // logger not available yet — use console.error intentionally (pre-logger startup)
   console.error(`[server] FATAL: Missing required environment variables: ${missingEnv.join(', ')}`);
-  // Temporarily disabling exit so that Vercel still boots Express and returns CORS headers
-  // process.exit(1);
+  if (!process.env.VERCEL) {
+    process.exit(1);
+  }
 }
+
+const logger = require('./utils/logger');
 
 const app = express();
 app.set('trust proxy', 1);
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
-// Single CORS middleware — no double-application of headers.
+// FIX #010: In production, restrict CORS to an explicit allowlist of known origins.
+// In development (no ALLOWED_ORIGINS env var set), fall back to echoing the
+// request origin so local dev still works without extra config.
 //
-// Rules:
-//  - Requests WITH an origin header: echo that origin back (allows any domain
-//    while still being compatible with credentials: true).
-//  - Requests WITHOUT an origin (server-to-server, curl, Razorpay webhooks):
-//    do NOT set credentials header and do NOT set '*' (avoids the browser
-//    hard-reject of Access-Control-Allow-Origin: * + credentials: true).
+// Set ALLOWED_ORIGINS in your .env as a comma-separated list, e.g.:
+//   ALLOWED_ORIGINS=https://shreejifashion.vercel.app,https://www.shreejifashion.com
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()).filter(Boolean)
+  : [];
+
+const isProduction = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
+
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
   if (origin) {
-    // Echo the request origin back — works for any frontend domain without
-    // needing an explicit allowlist, and is fully compatible with credentials.
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    // In production: only allow origins on the explicit allowlist.
+    // In development (allowedOrigins empty): echo any origin (safe for local dev).
+    const isAllowed = isProduction
+      ? allowedOrigins.includes(origin)
+      : true;
+
+    if (isAllowed) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    } else {
+      // Origin not allowed — return 403 immediately (no CORS headers = browser blocks it)
+      return res.status(403).json({ message: 'CORS: origin not allowed' });
+    }
   }
-  // No origin → no CORS headers needed (non-browser or same-origin request).
+  // No origin → no CORS headers needed (server-to-server, curl, Razorpay webhooks).
 
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS, PATCH, DELETE, POST, PUT');
   res.setHeader(
@@ -85,7 +114,7 @@ if (!fs.existsSync(uploadDir)) {
 
 // ── Global error handler ──────────────────────────────────────────────────────
 app.use((err, _req, res, _next) => {
-  console.error('[error]', err.stack || err.message);
+  logger.error({ message: err.message, stack: err.stack });
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   const isOperational = statusCode !== 500;
   res.status(statusCode).json({
@@ -98,22 +127,22 @@ const PORT = process.env.PORT || 5000;
 let server;
 if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
   server = app.listen(PORT, () => {
-    console.info(`[server] Running on port ${PORT}`);
+    logger.info(`[server] Running on port ${PORT}`);
   });
 }
 
 // ── Graceful shutdown ─────────────────────────────────────────────────────────
 const shutdown = (signal) => {
-  console.info(`[server] ${signal} received — shutting down gracefully`);
+  logger.info(`[server] ${signal} received — shutting down gracefully`);
   if (server) {
     server.close(async () => {
       const prisma = require('./config/db');
       await prisma.$disconnect().catch(() => {});
-      console.info('[server] HTTP server closed. Exiting.');
+      logger.info('[server] HTTP server closed. Exiting.');
       process.exit(0);
     });
     setTimeout(() => {
-      console.error('[server] Graceful shutdown timed out — forcing exit');
+      logger.error('[server] Graceful shutdown timed out — forcing exit');
       process.exit(1);
     }, 10000);
   } else {

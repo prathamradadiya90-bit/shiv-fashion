@@ -121,22 +121,32 @@ const createProduct = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error('Description cannot exceed 5000 characters');
   }
-  if (price === undefined || price === null || isNaN(parseFloat(price)) || parseFloat(price) < 0) {
+  if (price === undefined || price === null || isNaN(parseFloat(price)) || parseFloat(price) <= 0) {
     res.status(400);
-    throw new Error('A valid price is required');
+    throw new Error('A valid price greater than 0 is required');
+  }
+  const parsedDiscount = parseFloat(discount) || 0;
+  if (parsedDiscount < 0 || parsedDiscount > 100) {
+    res.status(400);
+    throw new Error('discount must be between 0 and 100');
   }
   if (stock !== undefined && (isNaN(parseInt(stock, 10)) || parseInt(stock, 10) < 0)) {
     res.status(400);
     throw new Error('stock must be a non-negative integer');
   }
 
+  // FIX #006: admin UI sends price in rupees and discount as a percentage (0–100).
+  // Store in DB as paise (Int) and basis points (Int) respectively.
+  const pricePaise = Math.round(parseFloat(price) * 100);
+  const discountBasisPoints = Math.round(parsedDiscount * 100);
+
   const product = await prisma.product.create({
     data: {
       name,
       description,
       category,
-      price: parseFloat(price),
-      discount: parseFloat(discount) || 0,
+      price: pricePaise,
+      discount: discountBasisPoints,
       stock: parseInt(stock, 10) || 0,
       isFeatured: Boolean(isFeatured),
       isActive: true,
@@ -196,8 +206,9 @@ const updateProduct = asyncHandler(async (req, res) => {
     name,
     description,
     category,
-    price: price !== undefined ? parseFloat(price) : undefined,
-    discount: discount !== undefined ? parseFloat(discount) : undefined,
+    // FIX #006: convert rupees → paise and % → basis points
+    price: price !== undefined ? Math.round(parseFloat(price) * 100) : undefined,
+    discount: discount !== undefined ? Math.round(parseFloat(discount) * 100) : undefined,
     stock: stock !== undefined ? parseInt(stock, 10) : undefined,
     isFeatured: isFeatured !== undefined ? Boolean(isFeatured) : undefined,
     isActive: isActive !== undefined ? Boolean(isActive) : undefined,

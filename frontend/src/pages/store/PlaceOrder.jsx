@@ -85,6 +85,11 @@ const PlaceOrder = () => {
 
   const placeOrderHandler = async () => {
     try {
+      if (!import.meta.env.VITE_RAZORPAY_KEY_ID) {
+        toast.error('Payment configuration missing. Please contact support.');
+        return;
+      }
+
       const res = await loadRazorpayScript();
       if (!res) {
         toast.error('Razorpay SDK failed to load. Are you online?');
@@ -106,7 +111,7 @@ const PlaceOrder = () => {
       // the browser session (cookies not re-sent on redirect) and triggers the
       // 401 interceptor → auto-logout. Use only the handler function for the SPA flow.
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TKUQLqqkzetbPC',
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: data.razorpayOrder.amount,
         currency: data.razorpayOrder.currency,
         name: 'Shreeji Fashion',
