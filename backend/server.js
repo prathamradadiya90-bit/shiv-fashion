@@ -103,6 +103,8 @@ app.use('/api/stats', require('./routes/statsRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
 app.use('/api/contact', require('./routes/contactRoutes'));
 
+app.get('/api/config/razorpay', (req, res) => res.json({ keyId: process.env.RAZORPAY_KEY_ID }));
+
 // ── Ensure uploads temp directory exists ─────────────────────────────────────
 const uploadDir = process.env.VERCEL
   ? path.join(os.tmpdir(), 'uploads')

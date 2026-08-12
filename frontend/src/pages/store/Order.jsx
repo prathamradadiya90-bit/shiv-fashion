@@ -44,14 +44,15 @@ const Order = () => {
       // NOTE: Do NOT set callback_url — it causes a hard page redirect which loses
       // the browser session (cookies not re-sent on redirect) and triggers the
       // 401 interceptor → auto-logout. Use only the handler function for the SPA flow.
-      if (!import.meta.env.VITE_RAZORPAY_KEY_ID) {
+      const { data: config } = await api.get('/config/razorpay');
+      if (!config || !config.keyId) {
         toast.error('Razorpay key is not configured');
         setIsPaying(false);
         return;
       }
 
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        key: config.keyId,
         amount: data.razorpayOrder.amount,
         currency: data.razorpayOrder.currency,
         name: 'Shreeji Fashion',
