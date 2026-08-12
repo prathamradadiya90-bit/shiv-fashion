@@ -72,8 +72,8 @@ const createCoupon = asyncHandler(async (req, res) => {
     data: {
       code: normalizedCode,
       discountType,
-      value: Number(value),
-      minOrderValue: minOrderValue != null ? Number(minOrderValue) : 0,
+      value: Math.round(Number(value) * 100),
+      minOrderValue: minOrderValue != null ? Math.round(Number(minOrderValue) * 100) : 0,
       expiryDate: parsedExpiry,
       isActive: isActive !== undefined ? Boolean(isActive) : true,
     },
@@ -126,18 +126,18 @@ const updateCoupon = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error('value must be a positive number');
     }
-    updateData.value = Number(value);
+    updateData.value = Math.round(Number(value) * 100);
   }
 
   const newType = updateData.discountType || existing.discountType;
   const newValue = updateData.value !== undefined ? updateData.value : existing.value;
-  if (newType === 'PERCENTAGE' && newValue > 100) {
+  if (newType === 'PERCENTAGE' && newValue > 10000) {
     res.status(400);
     throw new Error('Percentage discount cannot exceed 100');
   }
 
   if (minOrderValue !== undefined) {
-    updateData.minOrderValue = Number(minOrderValue);
+    updateData.minOrderValue = Math.round(Number(minOrderValue) * 100);
   }
 
   if (expiryDate) {
@@ -216,7 +216,7 @@ const applyCoupon = asyncHandler(async (req, res) => {
   }
   if (Number(orderValue) < coupon.minOrderValue) {
     res.status(400);
-    throw new Error(`Minimum order value of ₹${coupon.minOrderValue} required for this coupon`);
+    throw new Error(`Minimum order value of ₹${coupon.minOrderValue / 100} required for this coupon`);
   }
 
   // FIX #005: check usage limits at preview time so the user sees the error

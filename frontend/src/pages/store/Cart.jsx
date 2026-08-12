@@ -9,6 +9,9 @@ const Cart = () => {
   const dispatch = useDispatch();
 
   const { cartItems } = useSelector((state) => state.cart);
+  const { userInfo } = useSelector((state) => state.auth);
+
+  if (!userInfo) return null;
 
   const checkoutHandler = () => {
     navigate('/shipping'); // Will implement checkout flow next
@@ -78,7 +81,7 @@ const Cart = () => {
                         >-</button>
                         <span className="px-3 font-medium">{item.quantity}</span>
                         <button 
-                          onClick={() => dispatch(addToCart({ ...item, quantity: item.quantity + 1 }))} 
+                          onClick={() => dispatch(addToCart({ ...item, quantity: Math.min(item.quantity + 1, item.stock || 20) }))} 
                           className="px-2 py-1 text-gray-600 hover:bg-gray-100"
                         >+</button>
                       </div>
@@ -107,7 +110,11 @@ const Cart = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
-                  <span className="text-green-600 font-medium">Free</span>
+                  {calculateSubtotal() >= 5000 ? (
+                    <span className="text-green-600 font-medium">Free</span>
+                  ) : (
+                    <span className="font-medium">₹250</span>
+                  )}
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Tax</span>

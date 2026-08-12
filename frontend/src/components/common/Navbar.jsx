@@ -12,6 +12,17 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const dropdownRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const logoutHandler = async () => {
     try {
@@ -28,7 +39,7 @@ const Navbar = () => {
       <div className="bg-primary border-b border-primary-dark">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5">
           <p className="text-xs text-center text-secondary tracking-wide font-medium">
-            ✦ Shipping ₹299 / pc · ₹5,000+ → ₹499 / pc | Pay ₹500 advance + COD available ✦
+            ✦ Flat ₹250 Shipping · Free Shipping on orders over ₹5,000 | Pay ₹500 advance + COD available ✦
           </p>
         </div>
       </div>
@@ -67,7 +78,7 @@ const Navbar = () => {
                 <Link to="/wishlist" className="text-gray-800 hover:text-primary transition-colors hidden sm:block">
                   <Heart className="w-5 h-5" />
                 </Link>
-                <div className="relative">
+                <div className="relative" ref={dropdownRef}>
                   <button 
                     onClick={() => setDropdownOpen(!dropdownOpen)}
                     className="flex items-center space-x-1 text-gray-800 hover:text-primary transition-colors font-medium"

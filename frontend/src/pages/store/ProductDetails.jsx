@@ -45,12 +45,11 @@ const ProductDetails = () => {
    * Compute the final price using integer (paise) arithmetic to avoid
    * floating-point drift (e.g. 0.1 + 0.2 !== 0.3).
    */
-  const computeFinalPrice = (basePrice, discountPercent) => {
-    const basePaise = Math.round(basePrice * 100);
-    const discountPaise = discountPercent > 0
-      ? Math.round(basePaise * (discountPercent / 100))
+  const computeFinalPrice = (basePricePaise, discountBasisPoints) => {
+    const discountPaise = discountBasisPoints > 0
+      ? Math.round(basePricePaise * (discountBasisPoints / 10000))
       : 0;
-    return (basePaise - discountPaise) / 100;
+    return (basePricePaise - discountPaise) / 100;
   };
 
   const handleAddToCart = () => {
@@ -122,7 +121,7 @@ const ProductDetails = () => {
             <div className="mb-6 mt-4 flex items-end space-x-4">
               <span className="text-4xl font-bold text-primary">₹{finalPrice.toFixed(2)}</span>
               {product.discount > 0 && (
-                <span className="text-lg text-gray-400 line-through">₹{product.price.toFixed(2)}</span>
+                <span className="text-lg text-gray-400 line-through">₹{(product.price / 100).toFixed(2)}</span>
               )}
             </div>
 

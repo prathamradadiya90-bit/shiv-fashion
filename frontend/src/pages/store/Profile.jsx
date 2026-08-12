@@ -25,7 +25,12 @@ const Profile = () => {
   const submitHandler = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await api.put('/auth/profile', { name, email, phone, password });
+      const { data } = await api.put('/auth/profile', { 
+        name, 
+        email, 
+        phone, 
+        password: password.trim() ? password : undefined 
+      });
       dispatch(setCredentials(data));
       toast.success('Profile Updated Successfully');
     } catch (error) {

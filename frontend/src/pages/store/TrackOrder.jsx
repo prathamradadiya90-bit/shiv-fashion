@@ -178,7 +178,7 @@ const TrackOrder = () => {
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Total</p>
-                        <p className="font-bold text-[#800020]">₹{order.totalAmount}</p>
+                        <p className="font-bold text-[#800020]">₹{(order.totalAmount / 100).toFixed(2)}</p>
                       </div>
                     </div>
                   </div>
@@ -244,7 +244,7 @@ const TrackOrder = () => {
                             <div className="flex-grow">
                               <p className="font-bold text-gray-800 line-clamp-1">{item.name}</p>
                               <p className="text-xs text-gray-500 mt-1">Qty: {item.quantity} | Size: {item.size} | Color: {item.color}</p>
-                              <p className="text-sm font-bold text-[#800020] mt-1">₹{item.price}</p>
+                              <p className="text-sm font-bold text-[#800020] mt-1">₹{(item.price / 100).toFixed(2)}</p>
                             </div>
                           </div>
                         ))}

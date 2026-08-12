@@ -93,8 +93,10 @@ const AddProduct = () => {
               >
                 <option value="">Select Category</option>
                 <option value="Bridal">Bridal</option>
-                <option value="Navratri Special">Navratri Special</option>
-                <option value="Party Wear">Party Wear</option>
+                <option value="Festive">Festive</option>
+                <option value="Party">Party</option>
+                <option value="Designer">Designer</option>
+                <option value="Casual">Casual</option>
               </select>
             </div>
           </div>

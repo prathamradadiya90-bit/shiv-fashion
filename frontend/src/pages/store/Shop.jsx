@@ -22,7 +22,11 @@ const Shop = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const { data } = await api.get(`/products?pageNumber=${page}`);
+        const queryParamsObj = new URLSearchParams({ pageNumber: page });
+        if (searchTerm) queryParamsObj.append('search', searchTerm);
+        if (categoryParam) queryParamsObj.append('category', categoryParam);
+
+        const { data } = await api.get(`/products?${queryParamsObj.toString()}`);
         setProducts(data.products || data);
         if (data.pages) setPages(data.pages);
       } catch (error) {
@@ -32,7 +36,7 @@ const Shop = () => {
       }
     };
     fetchProducts();
-  }, [page]);
+  }, [page, searchTerm, categoryParam]);
 
   const toggleWishlist = async (e, id) => {
     e.preventDefault(); // Prevent navigating to product details
@@ -65,10 +69,11 @@ const Shop = () => {
     let matchesPrice = true;
     if (selectedPrices.length > 0) {
       matchesPrice = selectedPrices.some(priceRange => {
-        if (priceRange === 'Under ₹2,000') return p.price < 2000;
-        if (priceRange === '₹2,000 - ₹5,000') return p.price >= 2000 && p.price <= 5000;
-        if (priceRange === '₹5,000 - ₹10,000') return p.price >= 5000 && p.price <= 10000;
-        if (priceRange === 'Above ₹10,000') return p.price > 10000;
+        const priceInRupees = p.price / 100;
+        if (priceRange === 'Under ₹2,000') return priceInRupees < 2000;
+        if (priceRange === '₹2,000 - ₹5,000') return priceInRupees >= 2000 && priceInRupees <= 5000;
+        if (priceRange === '₹5,000 - ₹10,000') return priceInRupees >= 5000 && priceInRupees <= 10000;
+        if (priceRange === 'Above ₹10,000') return priceInRupees > 10000;
         return true;
       });
     }
@@ -180,7 +185,7 @@ const Shop = () => {
                   <div className="p-4">
                     <h3 className="text-md font-bold text-gray-800 mb-1 truncate group-hover:text-primary transition-colors">{item.name}</h3>
                     <div className="flex justify-between items-center mt-2">
-                      <span className="font-bold text-primary text-lg">₹{item.price}</span>
+                      <span className="font-bold text-primary text-lg">₹{(item.price / 100).toFixed(2)}</span>
                       <button className="text-xs bg-primary text-white px-3 py-1.5 rounded transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 active:scale-95 group-hover:bg-primary-light">
                         View Details
                       </button>

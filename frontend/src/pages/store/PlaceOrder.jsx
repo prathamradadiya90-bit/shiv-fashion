@@ -54,9 +54,9 @@ const PlaceOrder = () => {
   let discountPaise = 0;
   if (appliedCoupon) {
     if (appliedCoupon.discountType === 'PERCENTAGE') {
-      discountPaise = Math.round((cartPaise + shippingPaise + taxPaise) * (appliedCoupon.value / 100));
+      discountPaise = Math.round((cartPaise + shippingPaise + taxPaise) * (appliedCoupon.value / 10000));
     } else {
-      discountPaise = toPaise(appliedCoupon.value);
+      discountPaise = appliedCoupon.value;
     }
   }
 
@@ -69,7 +69,7 @@ const PlaceOrder = () => {
     try {
       const { data } = await api.post('/coupons/apply', {
         code: couponCode.trim().toUpperCase(),
-        orderValue: fmt(cartPaise),
+        orderValue: cartPaise,
       });
       setAppliedCoupon({
         code: data.code,

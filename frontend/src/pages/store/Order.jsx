@@ -44,8 +44,14 @@ const Order = () => {
       // NOTE: Do NOT set callback_url — it causes a hard page redirect which loses
       // the browser session (cookies not re-sent on redirect) and triggers the
       // 401 interceptor → auto-logout. Use only the handler function for the SPA flow.
+      if (!import.meta.env.VITE_RAZORPAY_KEY_ID) {
+        toast.error('Razorpay key is not configured');
+        setIsPaying(false);
+        return;
+      }
+
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TKUQLqqkzetbPC',
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: data.razorpayOrder.amount,
         currency: data.razorpayOrder.currency,
         name: 'Shreeji Fashion',
@@ -144,8 +150,8 @@ const Order = () => {
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <h3 className="font-bold text-lg mb-4 pb-2 border-b">Payment Summary</h3>
-          <p><strong>Status:</strong> <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold uppercase">{order.paymentStatus}</span></p>
-          <p className="mt-2"><strong>Total Amount:</strong> <span className="font-bold text-primary">₹{order.totalAmount}</span></p>
+          <p><strong>Status:</strong> <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${order.paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{order.paymentStatus}</span></p>
+          <p className="mt-2"><strong>Total Amount:</strong> <span className="font-bold text-primary">₹{(order.totalAmount / 100).toFixed(2)}</span></p>
           {order.paymentStatus === 'UNPAID' && (
             <button
               type="button"
@@ -169,7 +175,7 @@ const Order = () => {
                 <p className="text-sm text-gray-500">Size: {item.size} | Color: {item.color}</p>
               </div>
               <div className="font-medium">
-                {item.quantity} x ₹{item.price}
+                {item.quantity} x ₹{(item.price / 100).toFixed(2)}
               </div>
             </div>
           ))}

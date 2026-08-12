@@ -312,7 +312,7 @@ const Home = () => {
                     </Link>
                     <div className="flex items-center gap-2 mt-2">
                       <span className="text-lg font-bold text-gray-900">
-                        ₹{item.price - (item.price * (item.discount / 100))}
+                        ₹{((item.price - (item.price * (item.discount / 10000))) / 100).toFixed(2)}
                       </span>
                     </div>
                   </div>

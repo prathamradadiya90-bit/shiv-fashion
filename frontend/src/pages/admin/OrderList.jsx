@@ -73,7 +73,7 @@ const OrderList = () => {
                     <td className="px-6 py-4 font-medium text-gray-900">{order.id.slice(-6)}</td>
                     <td className="px-6 py-4 text-gray-600">{order.user?.name || '—'}</td>
                     <td className="px-6 py-4 text-gray-600">{new Date(order.createdAt).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 font-medium">₹{order.totalAmount}</td>
+                    <td className="px-6 py-4 font-medium">₹{(order.totalAmount / 100).toFixed(2)}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${order.paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                         {order.paymentStatus}

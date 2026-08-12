@@ -74,7 +74,7 @@ const MyOrders = () => {
                     <tr key={order.id}>
                       <td className="px-4 py-3 font-medium text-gray-900">{order.id.slice(-6)}</td>
                       <td className="px-4 py-3 text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</td>
-                      <td className="px-4 py-3 font-bold">₹{order.totalAmount}</td>
+                      <td className="px-4 py-3 font-bold">₹{(order.totalAmount / 100).toFixed(2)}</td>
                       <td className="px-4 py-3">
                         {order.paymentStatus === 'PAID' ? (
                           <span className="text-green-600 font-medium">Yes</span>

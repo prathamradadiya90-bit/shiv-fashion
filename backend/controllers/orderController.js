@@ -249,17 +249,11 @@ const addOrderItems = asyncHandler(async (req, res) => {
 
     res.status(201).json({ order, razorpayOrder });
   } catch (dbError) {
-    // FIX #008: attempt to cancel the orphaned Razorpay order so the customer
-    // is not left with a dangling payment request.
-    try {
-      await razorpayInstance.orders.cancel(razorpayOrder.id);
-      logger.info(`[addOrderItems] Cancelled orphaned Razorpay order ${razorpayOrder.id}`);
-    } catch (cancelErr) {
-      // Log prominently for manual reconciliation — do NOT swallow silently
-      logger.error(
-        `[addOrderItems] CRITICAL: DB write failed AND Razorpay order ${razorpayOrder.id} could not be cancelled. Manual reconciliation required. cancelErr=${cancelErr.message}`
-      );
-    }
+    // Razorpay Node.js SDK does not expose an orders.cancel() method.
+    // Log prominently for manual reconciliation if needed.
+    logger.error(
+      `[addOrderItems] CRITICAL: DB write failed. Orphaned Razorpay order ${razorpayOrder.id} was created. Manual reconciliation may be required. dbError=${dbError.message}`
+    );
 
     const isStockError = dbError.message.includes('out of stock');
     res.status(isStockError ? 400 : 500);
