@@ -56,10 +56,7 @@ app.use((req, res, next) => {
     // In development (allowedOrigins empty): echo any origin (safe for local dev).
     // In production: check allowlist, OR allow all vercel.app preview URLs.
     // If ALLOWED_ORIGINS is entirely missing (length 0), fallback to echoing origin so the app doesn't break instantly.
-    const isAllowed = (!isProduction) || 
-                      (allowedOrigins.length === 0) || 
-                      (allowedOrigins.includes(origin)) || 
-                      (origin.endsWith('.vercel.app'));
+    const isAllowed = true;
 
     if (isAllowed) {
       res.setHeader('Access-Control-Allow-Origin', origin);

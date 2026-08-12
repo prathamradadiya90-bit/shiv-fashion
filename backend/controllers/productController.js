@@ -202,6 +202,14 @@ const updateProduct = asyncHandler(async (req, res) => {
     throw new Error('Product not found');
   }
 
+  if (price !== undefined) {
+    const parsedPrice = parseFloat(price);
+    if (isNaN(parsedPrice) || parsedPrice <= 0) {
+      res.status(400);
+      throw new Error('A valid price greater than 0 is required');
+    }
+  }
+
   const updateData = {
     name,
     description,

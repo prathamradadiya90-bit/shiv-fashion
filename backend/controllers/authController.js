@@ -114,10 +114,11 @@ const loginUser = asyncHandler(async (req, res) => {
 // @route   POST /api/auth/logout
 // @access  Private
 const logoutUser = asyncHandler(async (req, res) => {
+  const isProduction = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
   res.cookie('jwt', '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV !== 'development',
-    sameSite: process.env.NODE_ENV !== 'development' ? 'none' : 'strict',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'strict',
     expires: new Date(0),
   });
   res.status(200).json({ message: 'Logged out successfully' });
@@ -230,10 +231,11 @@ const logoutAllDevices = asyncHandler(async (req, res) => {
     data: { tokenVersion: { increment: 1 } },
   });
 
+  const isProduction = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
   res.cookie('jwt', '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV !== 'development',
-    sameSite: process.env.NODE_ENV !== 'development' ? 'none' : 'strict',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'strict',
     expires: new Date(0),
   });
 

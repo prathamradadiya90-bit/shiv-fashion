@@ -78,7 +78,7 @@ const Wishlist = () => {
                   <h3 className="font-bold text-gray-900 mb-1 truncate">{product.name}</h3>
                 </Link>
                 <div className="flex justify-between items-center mt-2">
-                  <span className="font-bold text-primary">₹{(product.price / 100).toFixed(2)}</span>
+                  <span className="font-bold text-primary">₹{((Number(product.price) || 0) / 100).toFixed(2)}</span>
                   <Link to={`/product/${product.id}`} className="text-sm font-medium text-gray-600 hover:text-primary transition underline">
                     View Details
                   </Link>

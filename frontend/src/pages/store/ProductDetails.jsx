@@ -46,10 +46,10 @@ const ProductDetails = () => {
    * floating-point drift (e.g. 0.1 + 0.2 !== 0.3).
    */
   const computeFinalPrice = (basePricePaise, discountBasisPoints) => {
-    const discountPaise = discountBasisPoints > 0
-      ? Math.round(basePricePaise * (discountBasisPoints / 10000))
-      : 0;
-    return (basePricePaise - discountPaise) / 100;
+    const p = Number(basePricePaise) || 0;
+    const d = Number(discountBasisPoints) || 0;
+    const discountPaise = d > 0 ? Math.round(p * (d / 10000)) : 0;
+    return (p - discountPaise) / 100;
   };
 
   const handleAddToCart = () => {
