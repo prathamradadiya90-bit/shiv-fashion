@@ -44,13 +44,13 @@ const initSocket = (server) => {
   });
 
   io.on('connection', (socket) => {
-    logger.info(`Socket connected: ${socket.id} for user ${socket.userId}`);
+    logger.debug(`Socket connected: ${socket.id} for user ${socket.userId}`);
     
     // Join user-specific room
     socket.join(`user_${socket.userId}`);
 
     socket.on('disconnect', () => {
-      logger.info(`Socket disconnected: ${socket.id}`);
+      logger.debug(`Socket disconnected: ${socket.id}`);
     });
   });
 

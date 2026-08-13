@@ -227,13 +227,21 @@ const updateProduct = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error('images must be an array');
     }
-    if (images.length > 0) {
-      await deleteImages(existingProduct.images);
-      updateData.images = {
-        deleteMany: {},
-        create: images.map(img => ({ url: img.url, publicId: img.publicId })),
-      };
+
+    // Only delete images from Cloudinary that are actually being removed
+    const imagesToDelete = existingProduct.images.filter(
+      oldImg => !images.some(newImg => newImg.publicId === oldImg.publicId)
+    );
+
+    if (imagesToDelete.length > 0) {
+      await deleteImages(imagesToDelete);
     }
+
+    // Replace images in DB with the provided list (even if it's empty)
+    updateData.images = {
+      deleteMany: {},
+      create: images.map(img => ({ url: String(img.url), publicId: String(img.publicId) })),
+    };
   }
 
   if (sizes !== undefined) {
