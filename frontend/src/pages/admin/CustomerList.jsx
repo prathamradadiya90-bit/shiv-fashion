@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Ban, CheckCircle } from 'lucide-react';
+import { Ban, CheckCircle, Download } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 
@@ -35,6 +35,12 @@ const CustomerList = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Customers Management</h2>
+        <button
+          onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/export/users`, '_blank')}
+          className="flex items-center gap-2 bg-gray-800 text-white px-4 py-2 rounded hover:bg-black transition-colors text-sm font-medium"
+        >
+          <Download size={16} /> Export CSV
+        </button>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">

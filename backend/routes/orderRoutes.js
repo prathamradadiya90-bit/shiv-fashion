@@ -12,6 +12,7 @@ const {
   razorpayWebhook,
   trackOrder,
   paymentCallback,
+  refundOrder,
 } = require('../controllers/orderController');
 const { protect, superAdmin } = require('../middleware/authMiddleware');
 
@@ -48,6 +49,7 @@ router.route('/myorders').get(protect, getMyOrders);
 router.route('/:id').get(protect, getOrderById);
 router.route('/:id/pay').post(protect, verifyPayment);
 router.route('/:id/retry-pay').post(protect, retryPayment);
+router.route('/:id/refund').post(protect, superAdmin, refundOrder);
 router.route('/:id/status').put(protect, superAdmin, updateOrderStatus);
 
 module.exports = router;

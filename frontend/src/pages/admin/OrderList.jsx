@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye } from 'lucide-react';
+import { Eye, Download, RefreshCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
@@ -42,10 +42,33 @@ const OrderList = () => {
     }
   };
 
+  const handleRefund = async (orderId) => {
+    if (!window.confirm('Are you sure you want to initiate a full refund for this order?')) return;
+    try {
+      await api.post(`/orders/${orderId}/refund`);
+      setOrders(orders.map(order =>
+        order.id === orderId ? { ...order, paymentStatus: 'REFUNDED', status: 'CANCELLED' } : order
+      ));
+      toast.success('Refund initiated successfully');
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to initiate refund');
+    }
+  };
+
+  const handleExport = () => {
+    window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/export/orders`, '_blank');
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Orders Management</h2>
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-2 bg-gray-800 text-white px-4 py-2 rounded hover:bg-black transition-colors text-sm font-medium"
+        >
+          <Download size={16} /> Export CSV
+        </button>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -92,7 +115,16 @@ const OrderList = () => {
                         <option value="CANCELLED">Cancelled</option>
                       </select>
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 text-right flex justify-end gap-3 items-center">
+                      {order.paymentStatus === 'PAID' && order.status !== 'CANCELLED' && (
+                        <button 
+                          onClick={() => handleRefund(order.id)}
+                          className="text-red-500 hover:text-red-700 transition-colors inline-block"
+                          title="Initiate Refund"
+                        >
+                          <RefreshCcw size={18} />
+                        </button>
+                      )}
                       <Link to={`/order/${order.id}`} className="text-gray-500 hover:text-primary transition-colors inline-block">
                         <Eye size={18} />
                       </Link>

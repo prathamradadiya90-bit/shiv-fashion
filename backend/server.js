@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const compression = require('compression');
 
 // ── Required environment variable guard ──────────────────────────────────────
 // Fail fast at startup rather than crashing mid-request in production.
@@ -31,9 +32,28 @@ if (missingEnv.length > 0) {
 }
 
 const logger = require('./utils/logger');
+const http = require('http');
+const { initSocket } = require('./utils/socket');
+
+// ── Global Exception Guards ────────────────────────────────────────────────────
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error(`[unhandledRejection] Unhandled Rejection at: ${promise}, reason: ${reason}`);
+});
+
+process.on('uncaughtException', (err) => {
+  logger.error(`[uncaughtException] Uncaught Exception: ${err.message}`, { stack: err.stack });
+  process.exit(1);
+});
 
 const app = express();
 app.set('trust proxy', 1);
+
+// Enable response compression (gzip/deflate)
+app.use(compression());
+
+const httpServer = http.createServer(app);
+// Initialize Socket.io on the HTTP server
+initSocket(httpServer);
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 // FIX #010: In production, restrict CORS to an explicit allowlist of known origins.
@@ -102,6 +122,8 @@ app.use('/api/coupons', require('./routes/couponRoutes'));
 app.use('/api/stats', require('./routes/statsRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
 app.use('/api/contact', require('./routes/contactRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/export', require('./routes/exportRoutes'));
 
 app.get('/api/config/razorpay', (req, res) => res.json({ keyId: process.env.RAZORPAY_KEY_ID }));
 
@@ -128,7 +150,7 @@ app.use((err, _req, res, _next) => {
 const PORT = process.env.PORT || 5000;
 let server;
 if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
-  server = app.listen(PORT, () => {
+  server = httpServer.listen(PORT, () => {
     logger.info(`[server] Running on port ${PORT}`);
   });
 }

@@ -12,6 +12,7 @@ const {
   MAX_ITEM_QUANTITY,
 } = require('../utils/constants');
 const { isValidUUID } = require('../utils/validateUUID');
+const { sendNotification } = require('../utils/socket');
 
 if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
   throw new Error('RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET must be set');
@@ -326,6 +327,15 @@ const verifyPayment = asyncHandler(async (req, res) => {
     message: `Hello ${updatedOrder.user.name || 'Customer'},\n\nThank you for shopping with Shreeji Fashion!\nYour order (${updatedOrder.id}) has been confirmed and payment is successful.\nTotal Amount: ₹${(updatedOrder.totalAmount / 100).toFixed(2)}\n\nWe will notify you once your order is shipped.\n\nRegards,\nShreeji Fashion Team`,
   }).catch(err => logger.error(`[verifyPayment] Email error: ${err.message}`));
 
+  await sendNotification(
+    updatedOrder.userId,
+    'Payment Successful',
+    `Your payment for order ${updatedOrder.id} is confirmed.`,
+    'PAYMENT_SUCCESS',
+    updatedOrder.id,
+    'Order'
+  );
+
   res.json({ message: 'Payment verified successfully' });
 });
 
@@ -383,6 +393,15 @@ const paymentCallback = asyncHandler(async (req, res) => {
           // FIX #006 + #008: totalAmount is in paise — divide by 100; name fallback
           message: `Hello ${updatedOrder.user.name || 'Customer'},\n\nThank you for shopping with Shreeji Fashion!\nYour order (${updatedOrder.id}) has been confirmed.\nTotal: ₹${(updatedOrder.totalAmount / 100).toFixed(2)}`,
         }).catch(err => logger.error(`[paymentCallback] Email error: ${err.message}`));
+
+        await sendNotification(
+          updatedOrder.userId,
+          'Payment Successful',
+          `Your payment for order ${updatedOrder.id} is confirmed.`,
+          'PAYMENT_SUCCESS',
+          updatedOrder.id,
+          'Order'
+        );
       } else {
         logger.error(
           `[paymentCallback] Payment ${razorpay_payment_id} status="${payment.status}" — not marking order PAID`
@@ -564,6 +583,15 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       subject: `Shreeji Fashion - Order Shipped (${order.id})`,
       message: `Hello ${order.user.name || 'Customer'},\n\nYour order (${order.id}) has been shipped.\n${trackingNumber ? `Tracking Number: ${trackingNumber}` : 'Your package is on its way.'}\n\nRegards,\nShreeji Fashion Team`,
     }).catch(err => logger.error(`[updateOrderStatus] Email error: ${err.message}`));
+
+    await sendNotification(
+      order.userId,
+      'Order Shipped',
+      `Your order ${order.id} has been shipped.${trackingNumber ? ` Tracking: ${trackingNumber}` : ''}`,
+      'ORDER_SHIPPED',
+      order.id,
+      'Order'
+    );
   }
 
   res.json(order);
@@ -756,6 +784,76 @@ const trackOrder = asyncHandler(async (req, res) => {
   res.json(maskedOrders);
 });
 
+// @desc    Process a refund for an order (Admin only)
+// @route   POST /api/orders/:id/refund
+// @access  Private/SuperAdmin
+const refundOrder = asyncHandler(async (req, res) => {
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid order ID format');
+  }
+
+  const order = await prisma.order.findUnique({
+    where: { id: req.params.id },
+    include: { user: true },
+  });
+
+  if (!order) {
+    res.status(404);
+    throw new Error('Order not found');
+  }
+
+  if (order.paymentStatus !== 'PAID' || !order.razorpayPaymentId) {
+    res.status(400);
+    throw new Error('Order is not paid or missing payment ID');
+  }
+
+  if (order.status === 'CANCELLED' || order.paymentStatus === 'REFUNDED') {
+    res.status(400);
+    throw new Error('Order is already cancelled or refunded');
+  }
+
+  // Amount is in paise, pass directly to Razorpay
+  const amountToRefundPaise = order.isCOD ? Math.round(COD_ADVANCE * 100) : order.totalAmount;
+
+  try {
+    const refund = await razorpayInstance.payments.refund(order.razorpayPaymentId, {
+      amount: amountToRefundPaise,
+      speed: 'normal',
+    });
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: order.id },
+      data: {
+        paymentStatus: 'REFUNDED',
+        status: 'CANCELLED',
+      },
+    });
+
+    // Notify user
+    sendEmail({
+      email: order.user.email,
+      subject: `Shreeji Fashion - Order Refunded (${order.id})`,
+      message: `Hello ${order.user.name || 'Customer'},\n\nYour order (${order.id}) has been cancelled and a refund of ₹${(amountToRefundPaise / 100).toFixed(2)} has been initiated.\nIt will reflect in your account within 5-7 business days.\n\nRegards,\nShreeji Fashion Team`,
+    }).catch(err => logger.error(`[refundOrder] Email error: ${err.message}`));
+
+    await sendNotification(
+      order.userId,
+      'Refund Initiated',
+      `A refund of ₹${(amountToRefundPaise / 100).toFixed(2)} for order ${order.id} has been initiated.`,
+      'REFUND_INITIATED',
+      order.id,
+      'Order'
+    );
+
+    res.json({ message: 'Refund initiated successfully', refund, order: updatedOrder });
+  } catch (error) {
+    logger.error(`[refundOrder] Razorpay refund failed for order ${order.id}: ${error.message}`);
+    res.status(500);
+    throw new Error('Failed to initiate refund with payment gateway');
+  }
+});
+
 module.exports = {
   addOrderItems,
   verifyPayment,
@@ -767,4 +865,5 @@ module.exports = {
   razorpayWebhook,
   trackOrder,
   paymentCallback,
+  refundOrder,
 };

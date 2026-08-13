@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { ShoppingCart, User, Search, Menu, Heart, LogOut } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu, Heart, LogOut, Bell } from 'lucide-react';
 import { logout } from '../../store/slices/authSlice';
 import api from '../../services/api';
 
@@ -14,15 +14,49 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = React.useRef(null);
 
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const notificationRef = React.useRef(null);
+
   React.useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setNotificationOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  React.useEffect(() => {
+    if (userInfo) {
+      const fetchNotifications = async () => {
+        try {
+          const { data } = await api.get('/notifications');
+          setNotifications(data.data || []);
+          const unreadRes = await api.get('/notifications/unread-count');
+          setUnreadCount(unreadRes.data.count || 0);
+        } catch (err) {
+          console.error(err);
+        }
+      };
+      fetchNotifications();
+    }
+  }, [userInfo]);
+
+  const handleMarkAsRead = async (id) => {
+    try {
+      await api.patch(`/notifications/${id}/read`);
+      setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const logoutHandler = async () => {
     try {
@@ -78,6 +112,43 @@ const Navbar = () => {
                 <Link to="/wishlist" className="text-gray-800 hover:text-primary transition-colors hidden sm:block">
                   <Heart className="w-5 h-5" />
                 </Link>
+                    <div className="relative" ref={notificationRef}>
+                  <button 
+                    onClick={() => setNotificationOpen(!notificationOpen)}
+                    className="flex items-center space-x-1 text-gray-800 hover:text-primary transition-colors font-medium relative"
+                  >
+                    <Bell className="w-5 h-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center shadow-sm">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+                  
+                  {notificationOpen && (
+                    <div className="absolute right-0 mt-2 w-72 bg-white rounded-md shadow-lg py-1 border border-gray-100 z-50 max-h-96 overflow-y-auto">
+                      <div className="px-4 py-2 border-b border-gray-100 flex justify-between items-center">
+                        <p className="text-sm font-bold text-gray-900">Notifications</p>
+                      </div>
+                      {notifications.length === 0 ? (
+                        <div className="px-4 py-3 text-sm text-gray-500 text-center">No notifications</div>
+                      ) : (
+                        notifications.map(notif => (
+                          <div 
+                            key={notif.id} 
+                            onClick={() => !notif.isRead && handleMarkAsRead(notif.id)}
+                            className={`px-4 py-3 border-b border-gray-50 text-sm cursor-pointer ${notif.isRead ? 'bg-white opacity-60' : 'bg-blue-50/50 font-medium'}`}
+                          >
+                            <p className="text-gray-900 mb-1">{notif.title}</p>
+                            <p className="text-gray-600 text-xs">{notif.body}</p>
+                            <p className="text-gray-400 text-[10px] mt-1">{new Date(notif.createdAt).toLocaleDateString()}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <div className="relative" ref={dropdownRef}>
                   <button 
                     onClick={() => setDropdownOpen(!dropdownOpen)}

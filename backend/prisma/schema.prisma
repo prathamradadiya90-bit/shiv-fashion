@@ -52,9 +52,14 @@ model User {
   wishlist  Product[] @relation("Wishlist")
   reviews   Review[]
   couponUsages CouponUsage[]
+  notifications Notification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime? // For soft deletes
+
+  @@index([email])
+  @@index([role])
 }
 
 model Address {
@@ -72,6 +77,8 @@ model Address {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model Product {
@@ -102,6 +109,11 @@ model Product {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime? // For soft deletes
+
+  @@index([category])
+  @@index([isActive])
+  @@index([price])
 }
 
 model Review {
@@ -117,6 +129,9 @@ model Review {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([productId])
 }
 
 model Image {
@@ -125,6 +140,8 @@ model Image {
   publicId  String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId String
+
+  @@index([productId])
 }
 
 model Size {
@@ -132,6 +149,8 @@ model Size {
   name      String // S, M, L, XL, XXL
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId String
+
+  @@index([productId])
 }
 
 model Color {
@@ -140,6 +159,8 @@ model Color {
   hexCode   String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId String
+
+  @@index([productId])
 }
 
 model Order {
@@ -168,6 +189,12 @@ model Order {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime? // For soft deletes
+
+  @@index([userId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([razorpayOrderId])
 }
 
 model OrderItem {
@@ -182,6 +209,9 @@ model OrderItem {
   color     String
   quantity  Int
   price     Int // price at time of purchase, stored in paise
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 model Coupon {
@@ -204,6 +234,9 @@ model Coupon {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime? // For soft deletes
+
+  @@index([code])
 }
 
 // FIX #005: tracks which user used which coupon on which order
@@ -233,4 +266,25 @@ model ContactMessage {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([isRead])
+}
+
+model Notification {
+  id            String   @id @default(uuid())
+  title         String
+  body          String
+  type          String   // e.g., 'ORDER_PLACED', 'PAYMENT_SUCCESS'
+  isRead        Boolean  @default(false)
+  referenceId   String?  // ID of the related order, payment, etc.
+  referenceType String?  // e.g., 'Order', 'Payment'
+  
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+
+  createdAt     DateTime @default(now())
+  readAt        DateTime?
+
+  @@index([userId])
+  @@index([isRead])
 }
