@@ -1,23 +1,10 @@
 {
   "outputDirectory": "frontend/dist",
   "buildCommand": "cd backend && npm install && npx prisma generate && cd ../frontend && npm install && npm run build",
-  "builds": [
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    },
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node"
-    }
-  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.js"
+      "destination": "/api"
     },
     {
       "source": "/(.*)",
