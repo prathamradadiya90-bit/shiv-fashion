@@ -126,14 +126,29 @@ apiRouter.use('/export', require('./routes/exportRoutes'));
 apiRouter.get('/config/razorpay', (req, res) => res.json({ keyId: process.env.RAZORPAY_KEY_ID }));
 apiRouter.get('/health', (req, res) => res.send('Shreeji Fashion API is running'));
 
-apiRouter.get('/migrate-db', async (req, res) => {
+apiRouter.get('/force-migrate', async (req, res) => {
   try {
-    const prisma = require('./config/db');
-    await prisma.$executeRawUnsafe(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "deletedAt" TIMESTAMP(3)`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "deletedAt" TIMESTAMP(3)`);
-    res.send('Migration successful!');
-  } catch (err) {
-    res.status(500).send('Migration failed: ' + err.message + '\\n' + err.stack);
+    const { execSync } = require('child_process');
+    const fs = require('fs');
+    const path = require('path');
+    
+    const tmpDir = '/tmp/prisma-migrate';
+    if (!fs.existsSync(tmpDir)) {
+      fs.mkdirSync(tmpDir);
+    }
+    
+    const schemaPath = path.join(__dirname, 'prisma/schema.prisma');
+    const tmpSchemaPath = path.join(tmpDir, 'schema.prisma');
+    fs.copyFileSync(schemaPath, tmpSchemaPath);
+    
+    const output = execSync(`npx --yes prisma@6.19.3 db push --schema=schema.prisma --accept-data-loss`, {
+      cwd: tmpDir,
+      env: { ...process.env }
+    });
+    
+    res.send('<pre>' + output.toString() + '</pre>');
+  } catch (error) {
+    res.status(500).send('<pre>Error: ' + error.message + '\n\nStdout:\n' + (error.stdout ? error.stdout.toString() : '') + '\n\nStderr:\n' + (error.stderr ? error.stderr.toString() : '') + '</pre>');
   }
 });
 
