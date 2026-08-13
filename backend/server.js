@@ -77,7 +77,11 @@ initSocket(httpServer);
 //   ALLOWED_ORIGINS=https://shreejifashion.vercel.app,https://www.shreejifashion.com
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()).filter(Boolean)
-  : ['http://localhost:5173', 'http://localhost:3000']; // fallback for local dev
+  : ['http://localhost:5173', 'http://localhost:3000', 'https://shreejifashion.vercel.app'];
+
+if (process.env.FRONTEND_URL && !allowedOrigins.includes(process.env.FRONTEND_URL)) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+} // fallback for local dev
 
 app.use(cors({
   origin: function (origin, callback) {
