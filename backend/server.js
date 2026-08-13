@@ -120,6 +120,8 @@ apiRouter.use('/notifications', require('./routes/notificationRoutes'));
 apiRouter.use('/export', require('./routes/exportRoutes'));
 
 apiRouter.get('/config/razorpay', (req, res) => res.json({ keyId: process.env.RAZORPAY_KEY_ID }));
+apiRouter.get('/health', (req, res) => res.send('Shreeji Fashion API is running'));
+apiRouter.get('/', (req, res) => res.send('Shreeji Fashion API is running (v1)'));
 
 app.use('/api/v1', apiRouter);
 app.use('/v1', apiRouter);
@@ -134,6 +136,11 @@ const uploadDir = process.env.VERCEL
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
+
+// ── 404 Handler ───────────────────────────────────────────────────────────────
+app.use((req, res, next) => {
+  res.status(404).json({ message: `Not Found - ${req.originalUrl}` });
+});
 
 // ── Global error handler ──────────────────────────────────────────────────────
 app.use((err, _req, res, _next) => {
