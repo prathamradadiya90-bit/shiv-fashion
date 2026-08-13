@@ -125,6 +125,18 @@ apiRouter.use('/export', require('./routes/exportRoutes'));
 
 apiRouter.get('/config/razorpay', (req, res) => res.json({ keyId: process.env.RAZORPAY_KEY_ID }));
 apiRouter.get('/health', (req, res) => res.send('Shreeji Fashion API is running'));
+
+apiRouter.get('/migrate-db', async (req, res) => {
+  try {
+    const prisma = require('../config/db');
+    await prisma.$executeRawUnsafe(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "deletedAt" TIMESTAMP(3)`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "deletedAt" TIMESTAMP(3)`);
+    res.send('Migration successful!');
+  } catch (err) {
+    res.status(500).send('Migration failed: ' + err.message + '\\n' + err.stack);
+  }
+});
+
 apiRouter.get('/', (req, res) => res.send('Shreeji Fashion API is running (v1)'));
 
 app.use('/api/v1', apiRouter);
