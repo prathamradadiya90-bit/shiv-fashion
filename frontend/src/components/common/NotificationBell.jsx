@@ -45,15 +45,20 @@ const NotificationBell = () => {
       // Remove '/api' from BASE_URL if it exists since socket connects to the root domain
       const SOCKET_URL = BASE_URL.replace(/\/api$/, '');
 
-      socket = io(SOCKET_URL, {
-        withCredentials: true,
-        auth: { token: userInfo.token }
-      });
+      // Disable Socket.io if the backend is on Vercel, as Vercel serverless doesn't support WebSockets
+      if (!SOCKET_URL.includes('vercel.app')) {
+        socket = io(SOCKET_URL, {
+          withCredentials: true,
+          auth: { token: userInfo.token }
+        });
+      }
 
-      socket.on('new_notification', (notification) => {
-        setNotifications((prev) => [notification, ...prev]);
-        setUnreadCount((prev) => prev + 1);
-      });
+      if (socket) {
+        socket.on('new_notification', (notification) => {
+          setNotifications((prev) => [notification, ...prev]);
+          setUnreadCount((prev) => prev + 1);
+        });
+      }
     }
 
     return () => {
