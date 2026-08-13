@@ -2,7 +2,7 @@
   "name": "shivfashion-monorepo",
   "private": true,
   "scripts": {
-    "postinstall": "cd backend && npm install && npx prisma generate",
+    "postinstall": "node -e \"if(process.env.VERCEL !== '1') { require('child_process').execSync('cd backend && npm install && npx prisma generate', {stdio:'inherit'}) }\"",
     "build": "cd frontend && npm install && npm run build"
   }
 }
