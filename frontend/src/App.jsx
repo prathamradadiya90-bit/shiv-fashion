@@ -40,6 +40,7 @@ const About = lazy(() => import('./pages/store/About'));
 const PrivacyPolicy = lazy(() => import('./pages/store/PrivacyPolicy'));
 const Terms = lazy(() => import('./pages/store/Terms'));
 const ReturnPolicy = lazy(() => import('./pages/store/ReturnPolicy'));
+const Notifications = lazy(() => import('./pages/store/Notifications'));
 
 // Lazy Load Admin Pages
 const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
@@ -71,6 +72,7 @@ function App() {
             <Route path="profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
             <Route path="my-orders" element={<PrivateRoute><MyOrders /></PrivateRoute>} />
             <Route path="wishlist" element={<PrivateRoute><Wishlist /></PrivateRoute>} />
+            <Route path="notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
             <Route path="forgot-password" element={<ForgotPassword />} />

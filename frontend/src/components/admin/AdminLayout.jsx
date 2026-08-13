@@ -4,6 +4,7 @@ import { LayoutDashboard, Package, ShoppingBag, Users, Tag, Settings, LogOut, Ma
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../store/slices/authSlice';
 import api from '../../services/api';
+import NotificationBell from '../common/NotificationBell';
 
 const AdminLayout = () => {
   const location = useLocation();
@@ -112,11 +113,14 @@ const AdminLayout = () => {
               {navItems.find(item => location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path)))?.name || 'Dashboard'}
             </h2>
           </div>
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold">
-              {getInitials(userInfo?.name)}
+          <div className="flex items-center space-x-6">
+            <NotificationBell />
+            <div className="flex items-center">
+              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold">
+                {getInitials(userInfo?.name)}
+              </div>
+              <span className="ml-3 font-medium text-gray-700 hidden sm:block">{userInfo?.name || 'Super Admin'}</span>
             </div>
-            <span className="ml-3 font-medium text-gray-700">{userInfo?.name || 'Super Admin'}</span>
           </div>
         </header>
         

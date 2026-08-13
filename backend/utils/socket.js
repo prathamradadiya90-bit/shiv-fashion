@@ -18,14 +18,16 @@ const initSocket = (server) => {
   // Authentication Middleware
   io.use((socket, next) => {
     try {
-      // Look for token in cookies (via headers.cookie string parsing) or handshake auth
-      const cookies = socket.handshake.headers.cookie;
-      let token = null;
-
-      if (cookies) {
-        const jwtCookie = cookies.split('; ').find(row => row.startsWith('jwt='));
-        if (jwtCookie) {
-          token = jwtCookie.split('=')[1];
+      // Look for token in auth payload or cookies
+      let token = socket.handshake.auth?.token;
+      
+      if (!token) {
+        const cookies = socket.handshake.headers.cookie;
+        if (cookies) {
+          const jwtCookie = cookies.split('; ').find(row => row.startsWith('jwt='));
+          if (jwtCookie) {
+            token = jwtCookie.split('=')[1];
+          }
         }
       }
 
@@ -86,8 +88,41 @@ const sendNotification = async (userId, title, body, type, referenceId = null, r
   }
 };
 
+// Helper function to create DB notification and emit real-time event to all admins
+const sendNotificationToAdmins = async (title, body, type, referenceId = null, referenceType = null) => {
+  try {
+    const admins = await prisma.user.findMany({ where: { role: 'SUPERADMIN' } });
+    
+    if (admins.length > 0) {
+      const notifications = await Promise.all(
+        admins.map(admin => 
+          prisma.notification.create({
+            data: {
+              userId: admin.id,
+              title,
+              body,
+              type,
+              referenceId,
+              referenceType,
+            }
+          })
+        )
+      );
+
+      if (io) {
+        admins.forEach((admin, index) => {
+          io.to(`user_${admin.id}`).emit('new_notification', notifications[index]);
+        });
+      }
+    }
+  } catch (error) {
+    logger.error(`Error sending notification to admins: ${error.message}`);
+  }
+};
+
 module.exports = {
   initSocket,
   getIo,
   sendNotification,
+  sendNotificationToAdmins,
 };

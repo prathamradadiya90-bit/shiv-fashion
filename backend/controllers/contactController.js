@@ -1,6 +1,7 @@
 const prisma = require('../config/db');
 const asyncHandler = require('../middleware/asyncHandler');
 const { isValidUUID } = require('../utils/validateUUID');
+const { sendNotificationToAdmins } = require('../utils/socket');
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -43,6 +44,15 @@ const submitMessage = asyncHandler(async (req, res) => {
       message: message.trim(),
     },
   });
+
+  // Notify admins of new contact message
+  await sendNotificationToAdmins(
+    'New Contact Message',
+    `You received a new message from ${contactMessage.name}.`,
+    'NEW_MESSAGE',
+    contactMessage.id,
+    'ContactMessage'
+  );
 
   res.status(201).json({
     success: true,

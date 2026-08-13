@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
 const asyncHandler = require('../middleware/asyncHandler');
 const { RESET_TOKEN_EXPIRES_MINUTES } = require('../utils/constants');
+const { sendNotificationToAdmins } = require('../utils/socket');
 
 // Simple RFC-5322–inspired email regex used for server-side validation
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -59,6 +60,15 @@ const registerUser = asyncHandler(async (req, res) => {
   });
 
   if (user) {
+    // Notify admins of new registration
+    await sendNotificationToAdmins(
+      'New User Registration',
+      `${user.name} has registered an account.`,
+      'NEW_USER',
+      user.id,
+      'User'
+    );
+
     const token = generateToken(res, user.id, user.tokenVersion);
     res.status(201).json({
       id: user.id,
