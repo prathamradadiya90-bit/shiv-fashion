@@ -128,7 +128,7 @@ apiRouter.get('/health', (req, res) => res.send('Shreeji Fashion API is running'
 
 apiRouter.get('/migrate-db', async (req, res) => {
   try {
-    const prisma = require('../config/db');
+    const prisma = require('./config/db');
     await prisma.$executeRawUnsafe(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "deletedAt" TIMESTAMP(3)`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "deletedAt" TIMESTAMP(3)`);
     res.send('Migration successful!');
