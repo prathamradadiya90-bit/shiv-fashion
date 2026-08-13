@@ -7,7 +7,6 @@ const fs = require('fs');
 const os = require('os');
 const compression = require('compression');
 const helmet = require('helmet');
-const xss = require('xss-clean');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 
@@ -102,9 +101,6 @@ app.use('/api/orders/webhook', express.raw({ type: 'application/json' }));
 
 app.use(express.json());
 app.use(cookieParser());
-
-// Data sanitization against XSS
-app.use(xss());
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/', (_req, res) => res.send('Shreeji Fashion API is running'));
