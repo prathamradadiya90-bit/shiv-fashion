@@ -6,6 +6,10 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const compression = require('compression');
+const helmet = require('helmet');
+const xss = require('xss-clean');
+const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 
 // ── Required environment variable guard ──────────────────────────────────────
 // Fail fast at startup rather than crashing mid-request in production.
@@ -51,56 +55,45 @@ app.set('trust proxy', 1);
 // Enable response compression (gzip/deflate)
 app.use(compression());
 
+// Set security HTTP headers
+app.use(helmet());
+
+// Global Rate Limiting: max 500 requests per 15 minutes per IP
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 500,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many requests from this IP, please try again later.' },
+});
+app.use('/api', globalLimiter);
+
 const httpServer = http.createServer(app);
 // Initialize Socket.io on the HTTP server
 initSocket(httpServer);
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
-// FIX #010: In production, restrict CORS to an explicit allowlist of known origins.
-// In development (no ALLOWED_ORIGINS env var set), fall back to echoing the
-// request origin so local dev still works without extra config.
-//
+// Restrict CORS to an explicit allowlist of known origins.
 // Set ALLOWED_ORIGINS in your .env as a comma-separated list, e.g.:
 //   ALLOWED_ORIGINS=https://shreejifashion.vercel.app,https://www.shreejifashion.com
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()).filter(Boolean)
-  : [];
+  : ['http://localhost:5173', 'http://localhost:3000']; // fallback for local dev
 
-const isProduction = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
-
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-
-  if (origin) {
-    // In production: only allow origins on the explicit allowlist.
-    // In development (allowedOrigins empty): echo any origin (safe for local dev).
-    // In production: check allowlist, OR allow all vercel.app preview URLs.
-    // If ALLOWED_ORIGINS is entirely missing (length 0), fallback to echoing origin so the app doesn't break instantly.
-    const isAllowed = true;
-
-    if (isAllowed) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-    } else {
-      // Origin not allowed — return 403 immediately (no CORS headers = browser blocks it)
-      return res.status(403).json({ message: 'CORS: origin not allowed' });
+app.use(cors({
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps, curl, or webhooks)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
     }
-  }
-  // No origin → no CORS headers needed (server-to-server, curl, Razorpay webhooks).
-
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS, PATCH, DELETE, POST, PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, Cookie'
-  );
-
-  // Handle preflight immediately — do NOT pass OPTIONS to route handlers.
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end();
-  }
-
-  next();
-});
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['X-CSRF-Token', 'X-Requested-With', 'Accept', 'Accept-Version', 'Content-Length', 'Content-MD5', 'Content-Type', 'Date', 'X-Api-Version', 'Authorization', 'Cookie'],
+}));
 
 // ── Body parsers ──────────────────────────────────────────────────────────────
 // Razorpay webhook needs the raw body for HMAC signature verification.
@@ -109,6 +102,9 @@ app.use('/api/orders/webhook', express.raw({ type: 'application/json' }));
 
 app.use(express.json());
 app.use(cookieParser());
+
+// Data sanitization against XSS
+app.use(xss());
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/', (_req, res) => res.send('Shreeji Fashion API is running'));
