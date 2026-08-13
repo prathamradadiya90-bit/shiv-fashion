@@ -65,7 +65,7 @@ const globalLimiter = rateLimit({
   legacyHeaders: false,
   message: { message: 'Too many requests from this IP, please try again later.' },
 });
-app.use('/api', globalLimiter);
+app.use(globalLimiter);
 
 const httpServer = http.createServer(app);
 // Initialize Socket.io on the HTTP server
@@ -98,6 +98,7 @@ app.use(cors({
 // Razorpay webhook needs the raw body for HMAC signature verification.
 // Mount BEFORE express.json() so the raw Buffer is preserved on req.body.
 app.use('/api/orders/webhook', express.raw({ type: 'application/json' }));
+app.use('/orders/webhook', express.raw({ type: 'application/json' }));
 
 app.use(express.json());
 app.use(cookieParser());
@@ -106,18 +107,22 @@ app.use(cookieParser());
 app.get('/', (_req, res) => res.send('Shreeji Fashion API is running'));
 
 // ── Routes ────────────────────────────────────────────────────────────────────
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/users', require('./routes/userRoutes'));
-app.use('/api/products', require('./routes/productRoutes'));
-app.use('/api/orders', require('./routes/orderRoutes'));
-app.use('/api/coupons', require('./routes/couponRoutes'));
-app.use('/api/stats', require('./routes/statsRoutes'));
-app.use('/api/upload', require('./routes/uploadRoutes'));
-app.use('/api/contact', require('./routes/contactRoutes'));
-app.use('/api/notifications', require('./routes/notificationRoutes'));
-app.use('/api/export', require('./routes/exportRoutes'));
+const apiRouter = express.Router();
+apiRouter.use('/auth', require('./routes/authRoutes'));
+apiRouter.use('/users', require('./routes/userRoutes'));
+apiRouter.use('/products', require('./routes/productRoutes'));
+apiRouter.use('/orders', require('./routes/orderRoutes'));
+apiRouter.use('/coupons', require('./routes/couponRoutes'));
+apiRouter.use('/stats', require('./routes/statsRoutes'));
+apiRouter.use('/upload', require('./routes/uploadRoutes'));
+apiRouter.use('/contact', require('./routes/contactRoutes'));
+apiRouter.use('/notifications', require('./routes/notificationRoutes'));
+apiRouter.use('/export', require('./routes/exportRoutes'));
 
-app.get('/api/config/razorpay', (req, res) => res.json({ keyId: process.env.RAZORPAY_KEY_ID }));
+apiRouter.get('/config/razorpay', (req, res) => res.json({ keyId: process.env.RAZORPAY_KEY_ID }));
+
+app.use('/api', apiRouter);
+app.use('/', apiRouter);
 
 // ── Ensure uploads temp directory exists ─────────────────────────────────────
 const uploadDir = process.env.VERCEL
