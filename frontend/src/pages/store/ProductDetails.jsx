@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Star, Truck, Shield, RefreshCw, Heart } from 'lucide-react';
+import { Truck, Shield, RefreshCw, Heart } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { addToCart } from '../../store/slices/cartSlice';
@@ -21,6 +21,9 @@ const ProductDetails = () => {
   const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
 
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [zoomStyle, setZoomStyle] = useState({});
+
   const { userInfo } = useSelector((state) => state.auth);
 
   useEffect(() => {
@@ -34,11 +37,29 @@ const ProductDetails = () => {
       const { data } = await api.get(`/products/${id}`);
       setProduct(data);
       if (data.colors?.length > 0) setSelectedColor(data.colors[0].name);
+      setActiveImageIndex(0);
     } catch {
       setError('Product not found or is unavailable.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleMouseMove = (e) => {
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
+    setZoomStyle({
+      transformOrigin: `${x}% ${y}%`,
+      transform: 'scale(2)'
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setZoomStyle({
+      transformOrigin: 'center center',
+      transform: 'scale(1)'
+    });
   };
 
   /**
@@ -105,13 +126,39 @@ const ProductDetails = () => {
 
           {/* Image Gallery */}
           <div className="space-y-4">
-            <div className="h-[500px] rounded-lg overflow-hidden border border-gray-100 bg-gray-50 group">
+            <div 
+              className="h-[500px] rounded-lg overflow-hidden border border-gray-100 bg-gray-50 group relative cursor-crosshair"
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+            >
               <img
-                src={product.images?.[0]?.url || `https://source.unsplash.com/random/600x800/?chaniya,choli,${product.id}`}
+                src={product.images?.[activeImageIndex]?.url || `https://source.unsplash.com/random/600x800/?chaniya,choli,${product.id}`}
                 alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-700 ease-out hover:scale-105"
+                className="w-full h-full object-cover transition-transform duration-200 ease-out"
+                style={zoomStyle}
               />
             </div>
+            
+            {/* Thumbnails */}
+            {product.images && product.images.length > 1 && (
+              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                {product.images.map((img, idx) => (
+                  <button
+                    key={img.id || idx}
+                    onClick={() => setActiveImageIndex(idx)}
+                    className={`flex-shrink-0 w-20 h-24 rounded-md overflow-hidden border-2 transition-all ${
+                      activeImageIndex === idx ? 'border-primary opacity-100' : 'border-transparent opacity-60 hover:opacity-100 hover:border-gray-300'
+                    }`}
+                  >
+                    <img
+                      src={img.url}
+                      alt={`${product.name} thumbnail ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product Info */}

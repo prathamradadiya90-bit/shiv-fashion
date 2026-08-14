@@ -12,7 +12,8 @@ const {
   MAX_ITEM_QUANTITY,
 } = require('../utils/constants');
 const { isValidUUID } = require('../utils/validateUUID');
-const { sendNotification } = require('../utils/socket');
+const { sendNotification, sendNotificationToAdmins } = require('../utils/socket');
+const { generateInvoicePdf } = require('../utils/generateInvoicePdf');
 
 if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
   throw new Error('RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET must be set');
@@ -246,6 +247,29 @@ const addOrderItems = asyncHandler(async (req, res) => {
           data: { usageCount: { increment: 1 } },
         }),
       ]);
+    }
+
+    // Automated Low-Stock Alert: notify admins if any ordered product has <= 3 units remaining
+    try {
+      const productIds = itemsForDb.map((i) => i.productId);
+      const lowStockProducts = await prisma.product.findMany({
+        where: {
+          id: { in: productIds },
+          stock: { lte: 3 },
+        },
+        select: { id: true, name: true, stock: true },
+      });
+
+      for (const prod of lowStockProducts) {
+        sendNotificationToAdmins(
+          'LOW_STOCK',
+          'Low Stock Alert',
+          `Product "${prod.name}" has ${prod.stock === 0 ? 'run OUT OF STOCK' : `only ${prod.stock} item(s) remaining`}.`,
+          'Product'
+        );
+      }
+    } catch (notifErr) {
+      logger.error(`[addOrderItems] Low stock notification error: ${notifErr.message}`);
     }
 
     res.status(201).json({ order, razorpayOrder });
@@ -494,22 +518,79 @@ const getOrderById = asyncHandler(async (req, res) => {
 // @desc    Get all orders (Admin)
 // @route   GET /api/orders
 // @access  Private/SuperAdmin
-// FIX #015: added pagination — never load all orders into memory
 const getOrders = asyncHandler(async (req, res) => {
-  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
-  const pageSize = 20;
+  const { status, search, paymentStatus, pageSize: customPageSize, page: pageQuery } = req.query;
+
+  const page = Math.max(1, parseInt(pageQuery, 10) || 1);
+  const pageSize = Math.min(100, Math.max(1, parseInt(customPageSize, 10) || 20));
+
+  const whereConditions = [];
+
+  // Filter by status if provided and not 'ALL'
+  if (status && status.toUpperCase() !== 'ALL') {
+    const upperStatus = status.toUpperCase();
+    const VALID_STATUSES = ['PENDING', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
+    if (VALID_STATUSES.includes(upperStatus)) {
+      whereConditions.push({ status: upperStatus });
+    }
+  }
+
+  // Filter by paymentStatus if provided and not 'ALL'
+  if (paymentStatus && paymentStatus.toUpperCase() !== 'ALL') {
+    const upperPayment = paymentStatus.toUpperCase();
+    const VALID_PAYMENTS = ['UNPAID', 'PAID', 'FAILED', 'REFUNDED'];
+    if (VALID_PAYMENTS.includes(upperPayment)) {
+      whereConditions.push({ paymentStatus: upperPayment });
+    }
+  }
+
+  // Search by order ID, customer name, email, or tracking number
+  if (search && search.trim()) {
+    const term = search.trim();
+    whereConditions.push({
+      OR: [
+        { id: { contains: term, mode: 'insensitive' } },
+        { trackingNumber: { contains: term, mode: 'insensitive' } },
+        { user: { name: { contains: term, mode: 'insensitive' } } },
+        { user: { email: { contains: term, mode: 'insensitive' } } },
+        { user: { phone: { contains: term, mode: 'insensitive' } } },
+      ],
+    });
+  }
+
+  const filter = whereConditions.length > 0 ? { AND: whereConditions } : {};
 
   const [orders, total] = await Promise.all([
     prisma.order.findMany({
-      include: { user: { select: { id: true, name: true } } },
+      where: filter,
+      include: {
+        user: { select: { id: true, name: true, email: true, phone: true } },
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                images: { take: 1, select: { url: true } },
+              },
+            },
+          },
+        },
+      },
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),
-    prisma.order.count(),
+    prisma.order.count({ where: filter }),
   ]);
 
-  res.json({ orders, page, pages: Math.ceil(total / pageSize), total });
+  res.json({
+    orders,
+    page,
+    pages: Math.ceil(total / pageSize),
+    total,
+    pageSize,
+  });
 });
 
 // @desc    Update order status (Admin)
@@ -854,6 +935,216 @@ const refundOrder = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Customer cancels order (PENDING or CONFIRMED before shipping)
+// @route   POST /api/orders/:id/cancel
+// @access  Private
+const cancelOrder = asyncHandler(async (req, res) => {
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid order ID format');
+  }
+
+  const order = await prisma.order.findUnique({
+    where: { id: req.params.id },
+    include: { items: true, user: true },
+  });
+
+  if (!order) {
+    res.status(404);
+    throw new Error('Order not found');
+  }
+
+  if (order.userId !== req.user.id && req.user.role !== 'SUPERADMIN') {
+    res.status(403);
+    throw new Error('Not authorized to cancel this order');
+  }
+
+  if (order.status === 'CANCELLED') {
+    res.status(400);
+    throw new Error('Order is already cancelled');
+  }
+
+  if (['SHIPPED', 'DELIVERED'].includes(order.status)) {
+    res.status(400);
+    throw new Error(`Cannot cancel order that has already been ${order.status.toLowerCase()}`);
+  }
+
+  let refundResult = null;
+  let paymentStatus = order.paymentStatus;
+
+  // If order was paid via online gateway, process refund
+  if (order.paymentStatus === 'PAID' && order.razorpayPaymentId) {
+    const amountToRefundPaise = order.isCOD ? Math.round(COD_ADVANCE * 100) : order.totalAmount;
+    try {
+      refundResult = await razorpayInstance.payments.refund(order.razorpayPaymentId, {
+        amount: amountToRefundPaise,
+        speed: 'normal',
+      });
+      paymentStatus = 'REFUNDED';
+    } catch (refundError) {
+      logger.error(`[cancelOrder] Razorpay refund error for order ${order.id}: ${refundError.message}`);
+      // If refund fails, order is still marked cancelled, but payment remains to be manually refunded
+    }
+  }
+
+  const updatedOrder = await prisma.$transaction(async (tx) => {
+    const updated = await tx.order.update({
+      where: { id: order.id },
+      data: {
+        status: 'CANCELLED',
+        paymentStatus: paymentStatus,
+      },
+      include: { user: { select: { name: true, email: true } } },
+    });
+
+    for (const item of order.items) {
+      await tx.product.update({
+        where: { id: item.productId },
+        data: { stock: { increment: item.quantity } },
+      });
+    }
+
+    return updated;
+  });
+
+  sendEmail({
+    email: order.user.email,
+    subject: `Shreeji Fashion - Order Cancelled (${order.id})`,
+    message: `Hello ${order.user.name || 'Customer'},\n\nYour order (${order.id}) has been cancelled successfully.${
+      paymentStatus === 'REFUNDED' ? '\nA refund has been initiated and will reflect in your account in 5-7 business days.' : ''
+    }\n\nRegards,\nShreeji Fashion Team`,
+  }).catch(err => logger.error(`[cancelOrder] Email error: ${err.message}`));
+
+  await sendNotification(
+    order.userId,
+    'Order Cancelled',
+    `Your order ${order.id} has been cancelled.${paymentStatus === 'REFUNDED' ? ' Refund has been initiated.' : ''}`,
+    'ORDER_CANCELLED',
+    order.id,
+    'Order'
+  );
+
+  await sendNotificationToAdmins(
+    'Order Cancelled by Customer',
+    `Order ${order.id} was cancelled by ${order.user.name || 'customer'}.`,
+    'ORDER_CANCELLED',
+    order.id,
+    'Order'
+  );
+
+  res.json({
+    message: 'Order cancelled successfully',
+    order: updatedOrder,
+    refund: refundResult,
+  });
+});
+
+// @desc    Customer requests return for DELIVERED order
+// @route   POST /api/orders/:id/return
+// @access  Private
+const requestOrderReturn = asyncHandler(async (req, res) => {
+  const { reason, comments } = req.body;
+
+  if (!reason || typeof reason !== 'string' || !reason.trim()) {
+    res.status(400);
+    throw new Error('Please provide a reason for the return request');
+  }
+
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid order ID format');
+  }
+
+  const order = await prisma.order.findUnique({
+    where: { id: req.params.id },
+    include: { user: true, items: { include: { product: true } } },
+  });
+
+  if (!order) {
+    res.status(404);
+    throw new Error('Order not found');
+  }
+
+  if (order.userId !== req.user.id && req.user.role !== 'SUPERADMIN') {
+    res.status(403);
+    throw new Error('Not authorized to request return for this order');
+  }
+
+  if (order.status !== 'DELIVERED') {
+    res.status(400);
+    throw new Error('Only delivered orders are eligible for return requests');
+  }
+
+  const returnDetails = `Reason: ${reason.trim()}${comments ? `\nComments: ${comments.trim()}` : ''}`;
+
+  await sendNotificationToAdmins(
+    'Order Return Request',
+    `Customer ${order.user.name || order.user.email} requested return for order ${order.id}.\n${returnDetails}`,
+    'RETURN_REQUEST',
+    order.id,
+    'Order'
+  );
+
+  await sendNotification(
+    order.userId,
+    'Return Request Submitted',
+    `Your return request for order ${order.id} has been received. Our team will review it within 24-48 hours.`,
+    'RETURN_REQUESTED',
+    order.id,
+    'Order'
+  );
+
+  sendEmail({
+    email: order.user.email,
+    subject: `Shreeji Fashion - Return Request Received (${order.id})`,
+    message: `Hello ${order.user.name || 'Customer'},\n\nWe have received your return request for order ${order.id}.\n\nDetails:\n${returnDetails}\n\nOur team is reviewing your request and will contact you within 24-48 business hours with next steps.\n\nRegards,\nShreeji Fashion Team`,
+  }).catch(err => logger.error(`[requestOrderReturn] Email error: ${err.message}`));
+
+  res.json({
+    message: 'Return request submitted successfully. Our team will review it shortly.',
+    orderId: order.id,
+  });
+});
+
+// @desc    Download PDF invoice for order (Customer & Admin)
+// @route   GET /api/orders/:id/invoice
+// @access  Private
+const getOrderInvoice = asyncHandler(async (req, res) => {
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid order ID format');
+  }
+
+  const order = await prisma.order.findUnique({
+    where: { id: req.params.id },
+    include: {
+      user: { select: { id: true, name: true, email: true, phone: true } },
+      items: {
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    res.status(404);
+    throw new Error('Order not found');
+  }
+
+  if (order.userId !== req.user.id && req.user.role !== 'SUPERADMIN') {
+    res.status(403);
+    throw new Error('Not authorized to access invoice for this order');
+  }
+
+  generateInvoicePdf(order, res);
+});
+
 module.exports = {
   addOrderItems,
   verifyPayment,
@@ -866,4 +1157,7 @@ module.exports = {
   trackOrder,
   paymentCallback,
   refundOrder,
+  cancelOrder,
+  requestOrderReturn,
+  getOrderInvoice,
 };

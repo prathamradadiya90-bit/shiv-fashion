@@ -9,21 +9,45 @@ const { isValidUUID } = require('../utils/validateUUID');
 // FIX #020: minPrice/maxPrice are validated with isFinite() before use so NaN
 //           values from non-numeric query strings are rejected, not silently passed to Prisma.
 const getProducts = asyncHandler(async (req, res) => {
-  const { category, search, minPrice, maxPrice, priceRanges, sortBy, pageNumber } = req.query;
+  const { category, search, minPrice, maxPrice, priceRanges, sortBy, pageNumber, pageSize: customPageSize, isActive, isFeatured } = req.query;
 
-  const pageSize = 12;
-  const page = parseInt(pageNumber, 10) || 1;
-  const filter = { isActive: true };
+  const pageSize = Math.min(100, Math.max(1, parseInt(customPageSize, 10) || 12));
+  const page = Math.max(1, parseInt(pageNumber, 10) || 1);
+  const whereConditions = [];
 
-  if (category) {
-    filter.category = category;
+  // Active status filter
+  if (isActive === 'all') {
+    // Show both active and inactive
+  } else if (isActive === 'false' || isActive === false) {
+    whereConditions.push({ isActive: false });
+  } else if (isActive === 'true' || isActive === true) {
+    whereConditions.push({ isActive: true });
+  } else {
+    // Default to active items for public storefront
+    whereConditions.push({ isActive: true });
   }
 
-  if (search) {
-    filter.name = {
-      contains: search,
-      mode: 'insensitive',
-    };
+  // Featured filter
+  if (isFeatured === 'true' || isFeatured === true) {
+    whereConditions.push({ isFeatured: true });
+  } else if (isFeatured === 'false' || isFeatured === false) {
+    whereConditions.push({ isFeatured: false });
+  }
+
+  // Category filter
+  if (category && category !== 'all' && category !== 'All') {
+    whereConditions.push({ category: { equals: category, mode: 'insensitive' } });
+  }
+
+  // Search across name, description, and category
+  if (search && search.trim()) {
+    whereConditions.push({
+      OR: [
+        { name: { contains: search.trim(), mode: 'insensitive' } },
+        { description: { contains: search.trim(), mode: 'insensitive' } },
+        { category: { contains: search.trim(), mode: 'insensitive' } },
+      ],
+    });
   }
 
   if (minPrice !== undefined || maxPrice !== undefined) {
@@ -43,9 +67,10 @@ const getProducts = asyncHandler(async (req, res) => {
       throw new Error('minPrice cannot be greater than maxPrice');
     }
 
-    filter.price = {};
-    if (minPrice !== undefined) filter.price.gte = parsedMin;
-    if (maxPrice !== undefined) filter.price.lte = parsedMax;
+    const priceCondition = {};
+    if (minPrice !== undefined) priceCondition.gte = Math.round(parsedMin * 100);
+    if (maxPrice !== undefined) priceCondition.lte = Math.round(parsedMax * 100);
+    whereConditions.push({ price: priceCondition });
   }
 
   if (priceRanges) {
@@ -56,8 +81,10 @@ const getProducts = asyncHandler(async (req, res) => {
       if (max !== '') condition.lte = Math.round(parseFloat(max) * 100);
       return { price: condition };
     });
-    filter.OR = ranges;
+    whereConditions.push({ OR: ranges });
   }
+
+  const filter = whereConditions.length > 0 ? { AND: whereConditions } : {};
 
   const count = await prisma.product.count({ where: filter });
 
@@ -78,6 +105,7 @@ const getProducts = asyncHandler(async (req, res) => {
     page,
     pages: Math.ceil(count / pageSize),
     total: count,
+    pageSize,
   });
 });
 
@@ -485,6 +513,49 @@ const deleteReview = asyncHandler(async (req, res) => {
   res.json({ message: 'Review deleted successfully' });
 });
 
+// @desc    Get distinct product categories
+// @route   GET /api/products/categories
+// @access  Public
+const getCategories = asyncHandler(async (req, res) => {
+  const categories = await prisma.product.findMany({
+    select: { category: true },
+    distinct: ['category'],
+    where: { category: { not: '' } },
+  });
+
+  const uniqueCategories = [...new Set(categories.map(c => c.category).filter(Boolean))];
+  res.json(uniqueCategories);
+});
+
+// @desc    Toggle product active status (Admin)
+// @route   PATCH /api/products/:id/status
+// @access  Private/SuperAdmin
+const toggleProductStatus = asyncHandler(async (req, res) => {
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid product ID format');
+  }
+
+  const product = await prisma.product.findUnique({ where: { id: req.params.id } });
+  if (!product) {
+    res.status(404);
+    throw new Error('Product not found');
+  }
+
+  const newStatus = req.body.isActive !== undefined ? Boolean(req.body.isActive) : !product.isActive;
+
+  const updatedProduct = await prisma.product.update({
+    where: { id: req.params.id },
+    data: { isActive: newStatus },
+    include: { images: true, sizes: true, colors: true },
+  });
+
+  res.json({
+    message: `Product ${newStatus ? 'activated' : 'deactivated'} successfully`,
+    product: updatedProduct,
+  });
+});
+
 module.exports = {
   getProducts,
   getProductById,
@@ -495,4 +566,6 @@ module.exports = {
   createProductReview,
   getAllReviews,
   deleteReview,
+  getCategories,
+  toggleProductStatus,
 };

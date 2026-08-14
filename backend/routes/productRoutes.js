@@ -9,7 +9,9 @@ const {
   toggleWishlist,
   createProductReview,
   getAllReviews,
-  deleteReview
+  deleteReview,
+  getCategories,
+  toggleProductStatus,
 } = require('../controllers/productController');
 const { protect, superAdmin } = require('../middleware/authMiddleware');
 
@@ -17,7 +19,10 @@ router.route('/')
   .get(getProducts)
   .post(protect, superAdmin, createProduct);
 
-// Place /reviews/all before /:id so it doesn't get matched as an ID
+// Place /categories and /reviews/all before /:id so they don't get matched as an ID
+router.route('/categories')
+  .get(getCategories);
+
 router.route('/reviews/all')
   .get(protect, superAdmin, getAllReviews);
 
@@ -28,6 +33,10 @@ router.route('/:id')
   .get(getProductById)
   .put(protect, superAdmin, updateProduct)
   .delete(protect, superAdmin, deleteProduct);
+
+router.route('/:id/status')
+  .patch(protect, superAdmin, toggleProductStatus)
+  .put(protect, superAdmin, toggleProductStatus);
 
 router.route('/:id/wishlist')
   .post(protect, toggleWishlist);

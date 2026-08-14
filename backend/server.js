@@ -121,6 +121,7 @@ apiRouter.use('/stats', require('./routes/statsRoutes'));
 apiRouter.use('/upload', require('./routes/uploadRoutes'));
 apiRouter.use('/contact', require('./routes/contactRoutes'));
 apiRouter.use('/notifications', require('./routes/notificationRoutes'));
+apiRouter.use('/addresses', require('./routes/addressRoutes'));
 apiRouter.use('/export', require('./routes/exportRoutes'));
 
 apiRouter.get('/config/razorpay', (req, res) => res.json({ keyId: process.env.RAZORPAY_KEY_ID }));
