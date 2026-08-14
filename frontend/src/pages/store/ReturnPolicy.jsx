@@ -1,8 +1,14 @@
 import React from 'react';
+import SEO from '../../components/common/SEO';
 
 const ReturnPolicy = () => {
   return (
     <div className="bg-[#fdfbf6] min-h-screen py-20 animate-fade-in">
+      <SEO
+        title="Return & Refund Policy | Shreeji Fashion Surat"
+        description="Read the return, exchange, and refund policy for Shreeji Fashion. 7-day hassle-free returns for unused ethnic wear items."
+        keywords="return policy, exchange policy, shreeji fashion refunds, chaniya choli returns"
+      />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
         <div className="bg-white p-8 md:p-12 rounded-2xl shadow-xl shadow-gray-100/50 border border-gray-100">
           
@@ -51,7 +57,7 @@ const ReturnPolicy = () => {
             <section>
               <h2 className="text-2xl font-serif text-gray-900 mb-4 border-b pb-2">How to Initiate a Return</h2>
               <p>
-                Contact us at <a href="mailto:hello@swastikhouse.com" className="text-[#800020] hover:underline font-medium">hello@swastikhouse.com</a> or WhatsApp with your order number and reason for return. Our team will provide return instructions and a return shipping address.
+                Contact us at <a href="mailto:support@shivfashion.com" className="text-[#800020] hover:underline font-medium">support@shivfashion.com</a> with your order number and reason for return. Our team will provide return instructions and a return shipping address.
               </p>
             </section>
           </div>

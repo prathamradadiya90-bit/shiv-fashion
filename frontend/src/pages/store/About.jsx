@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import SEO from '../../components/common/SEO';
 
 const FAQItem = ({ question, answer }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -52,15 +53,44 @@ const About = () => {
     }
   ];
 
+  const aboutSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'AboutPage',
+        name: 'About Shreeji Fashion Surat',
+        url: 'https://shreejifashion.vercel.app/about',
+        description: 'Learn about Shreeji Fashion, our master artisans in Surat, and our dedication to handcrafted authentic Gujarati ethnic wear and bridal chaniya cholis.',
+      },
+      {
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((faq) => ({
+          '@type': 'Question',
+          name: faq.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: faq.answer,
+          },
+        })),
+      },
+    ],
+  };
+
   return (
     <div className="bg-[#fdfbf6] min-h-screen py-20 animate-fade-in">
+      <SEO
+        title="About Us & FAQs | Authentic Ethnic Heritage | Shreeji Fashion"
+        description="Learn about Shreeji Fashion Surat, our artisan heritage, craftsmanship in designer Chaniya Choli, and frequently asked questions about orders and shipping."
+        keywords="about shreeji fashion, ethnic wear artisans surat, chaniya choli manufacturer surat, lehenga faqs"
+        schema={aboutSchema}
+      />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
         
         {/* About Section */}
         <div className="text-center mb-16">
           <p className="text-secondary text-sm font-bold tracking-[0.2em] uppercase mb-6">Our Story</p>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading text-primary mb-10 relative inline-block">
-            About Swastik House
+            About Shreeji Fashion
             <div className="absolute left-1/2 -bottom-6 transform -translate-x-1/2 w-32 border-b-2 border-secondary/20"></div>
           </h1>
           

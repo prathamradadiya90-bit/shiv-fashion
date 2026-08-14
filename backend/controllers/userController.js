@@ -7,12 +7,42 @@ const { isValidUUID } = require('../utils/validateUUID');
 // @access  Private/SuperAdmin
 // FIX #016: added pagination; replaced per-user order array with DB-level aggregate
 //           so we never load all orders into Node.js memory.
+// @desc    Get all users
+// @route   GET /api/users
+// @access  Private/SuperAdmin
 const getUsers = asyncHandler(async (req, res) => {
-  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
-  const pageSize = 20;
+  const { search, status, pageSize: customPageSize, page: pageQuery } = req.query;
+
+  const page = Math.max(1, parseInt(pageQuery, 10) || 1);
+  const pageSize = Math.min(100, Math.max(1, parseInt(customPageSize, 10) || 20));
+
+  const whereConditions = [];
+
+  // Status filtering
+  if (status && status.toLowerCase() !== 'all') {
+    const capitalizedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    if (['Active', 'Blocked'].includes(capitalizedStatus)) {
+      whereConditions.push({ status: capitalizedStatus });
+    }
+  }
+
+  // Search filtering across name, email, and phone
+  if (search && search.trim()) {
+    const term = search.trim();
+    whereConditions.push({
+      OR: [
+        { name: { contains: term, mode: 'insensitive' } },
+        { email: { contains: term, mode: 'insensitive' } },
+        { phone: { contains: term, mode: 'insensitive' } },
+      ],
+    });
+  }
+
+  const filter = whereConditions.length > 0 ? { AND: whereConditions } : {};
 
   const [users, total] = await Promise.all([
     prisma.user.findMany({
+      where: filter,
       select: {
         id: true,
         name: true,
@@ -21,7 +51,6 @@ const getUsers = asyncHandler(async (req, res) => {
         role: true,
         status: true,
         createdAt: true,
-        // Aggregate at DB level — avoids loading every order row into memory
         _count: { select: { orders: true } },
         orders: {
           select: { totalAmount: true },
@@ -31,7 +60,7 @@ const getUsers = asyncHandler(async (req, res) => {
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),
-    prisma.user.count(),
+    prisma.user.count({ where: filter }),
   ]);
 
   const formattedUsers = users.map(user => {
@@ -49,7 +78,13 @@ const getUsers = asyncHandler(async (req, res) => {
     };
   });
 
-  res.json({ users: formattedUsers, page, pages: Math.ceil(total / pageSize), total });
+  res.json({
+    users: formattedUsers,
+    page,
+    pages: Math.ceil(total / pageSize),
+    total,
+    pageSize,
+  });
 });
 
 // @desc    Toggle user status (Block/Unblock)

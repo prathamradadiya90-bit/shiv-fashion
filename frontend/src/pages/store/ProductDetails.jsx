@@ -5,6 +5,7 @@ import { Truck, Shield, RefreshCw, Heart } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { addToCart } from '../../store/slices/cartSlice';
+import SEO from '../../components/common/SEO';
 
 const MAX_QUANTITY = 20; // mirrors backend MAX_ITEM_QUANTITY constant
 
@@ -119,8 +120,42 @@ const ProductDetails = () => {
 
   const finalPrice = computeFinalPrice(product.price, product.discount);
 
+  const productSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    image: (product.images || []).map((img) => img.url),
+    description: product.description || `Shop authentic designer ${product.name} crafted in Surat. Premium ethnic fabric with detailed traditional handwork.`,
+    sku: `SKU-${product.id.slice(-8).toUpperCase()}`,
+    brand: {
+      '@type': 'Brand',
+      name: 'Shreeji Fashion',
+    },
+    offers: {
+      '@type': 'Offer',
+      url: `https://shreejifashion.vercel.app/product/${product.id}`,
+      priceCurrency: 'INR',
+      price: (finalPrice / 100).toFixed(2),
+      priceValidUntil: '2027-12-31',
+      itemCondition: 'https://schema.org/NewCondition',
+      availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      seller: {
+        '@type': 'Organization',
+        name: 'Shreeji Fashion',
+      },
+    },
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <SEO
+        title={`${product.name} | Designer Chaniya Choli Surat | Shreeji Fashion`}
+        description={`Buy ${product.name} online at ₹${(finalPrice / 100).toFixed(2)}. Authentic Surat ethnic craftsmanship, ${product.stock > 0 ? 'in stock' : 'pre-order'} with worldwide delivery.`}
+        keywords={`${product.name}, ${product.category} chaniya choli, buy ${product.name} online, surat ethnic wear, traditional lehenga`}
+        ogType="product"
+        ogImage={product.images?.[0]?.url || 'https://shreejifashion.vercel.app/og-image.jpg'}
+        schema={productSchema}
+      />
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-10 mb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
 

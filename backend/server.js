@@ -107,6 +107,17 @@ app.use('/orders/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 app.use(cookieParser());
 
+const { generateSitemapXml } = require('./utils/generateSitemapXml');
+
+// ── SEO & Search Engine Crawl Endpoints ─────────────────────────────────────────
+app.get('/sitemap.xml', generateSitemapXml);
+apiRouter.get('/sitemap.xml', generateSitemapXml);
+
+app.get('/robots.txt', (_req, res) => {
+  res.type('text/plain');
+  res.send(`User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /cart\nDisallow: /checkout\nDisallow: /profile\nDisallow: /api/\n\nSitemap: ${process.env.FRONTEND_URL || 'https://shreejifashion.vercel.app'}/sitemap.xml\n`);
+});
+
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/', (_req, res) => res.send('Shreeji Fashion API is running'));
 
@@ -127,7 +138,9 @@ apiRouter.use('/export', require('./routes/exportRoutes'));
 apiRouter.get('/config/razorpay', (req, res) => res.json({ keyId: process.env.RAZORPAY_KEY_ID }));
 apiRouter.get('/health', (req, res) => res.send('Shreeji Fashion API is running'));
 
-apiRouter.get('/force-migrate', async (req, res) => {
+const { protect, superAdmin } = require('./middleware/authMiddleware');
+
+apiRouter.get('/force-migrate', protect, superAdmin, async (req, res) => {
   try {
     const { execSync } = require('child_process');
     const fs = require('fs');

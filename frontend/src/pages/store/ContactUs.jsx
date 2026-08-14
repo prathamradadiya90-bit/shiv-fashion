@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
+import SEO from '../../components/common/SEO';
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -33,8 +34,36 @@ const ContactUs = () => {
     }
   };
 
+  const contactSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ContactPage',
+    name: 'Contact Shreeji Fashion Surat',
+    url: 'https://shreejifashion.vercel.app/contact',
+    description: 'Get in touch with Shreeji Fashion for custom chaniya choli inquiries, bridal appointments, order support, and wholesale inquiries.',
+    mainEntity: {
+      '@type': 'ClothingStore',
+      name: 'Shreeji Fashion Studio',
+      telephone: '+91-9876543210',
+      email: 'support@shivfashion.com',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Old Bombay Market, Ring Road',
+        addressLocality: 'Surat',
+        addressRegion: 'Gujarat',
+        postalCode: '395002',
+        addressCountry: 'IN',
+      },
+    },
+  };
+
   return (
     <div className="container mx-auto px-4 py-12">
+      <SEO
+        title="Contact Us | Shreeji Fashion Surat Studio & Support"
+        description="Contact Shreeji Fashion in Surat, Gujarat. Reach our customer support team for custom bridal chaniya choli inquiries, sizing assistance, and order status."
+        keywords="contact shreeji fashion, surat lehenga store address, chaniya choli studio surat, ethnic wear customer care"
+        schema={contactSchema}
+      />
       <div className="text-center mb-12">
         <h1 className="text-4xl font-heading font-bold text-primary mb-4">Contact Us</h1>
         <p className="text-gray-600 max-w-2xl mx-auto">

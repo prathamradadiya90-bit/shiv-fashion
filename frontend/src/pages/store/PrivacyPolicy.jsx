@@ -1,8 +1,14 @@
 import React from 'react';
+import SEO from '../../components/common/SEO';
 
 const PrivacyPolicy = () => {
   return (
     <div className="bg-[#fdfbf6] min-h-screen py-20 animate-fade-in">
+      <SEO
+        title="Privacy Policy | Shreeji Fashion Surat"
+        description="Learn how Shreeji Fashion protects your personal data, handles secure payments through Razorpay, and ensures privacy."
+        keywords="privacy policy, shreeji fashion data protection, terms of privacy"
+      />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
         <div className="bg-white p-8 md:p-12 rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-gray-100">
           <div className="text-center mb-12">
@@ -56,14 +62,14 @@ const PrivacyPolicy = () => {
             <section>
               <h2 className="text-2xl font-heading text-primary mb-4">Your Rights</h2>
               <p>
-                You may request access to, correction of, or deletion of your personal data by contacting us at <a href="mailto:hello@swastikhouse.com" className="text-primary font-medium hover:underline">hello@swastikhouse.com</a>. We will respond within 30 days.
+                You may request access to, correction of, or deletion of your personal data by contacting us at <a href="mailto:support@shivfashion.com" className="text-primary font-medium hover:underline">support@shivfashion.com</a>. We will respond within 30 days.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-heading text-primary mb-4">Contact</h2>
               <p>
-                For privacy-related queries, email us at <a href="mailto:hello@swastikhouse.com" className="text-primary font-medium hover:underline">hello@swastikhouse.com</a> or write to Swastik House, G-14, 16, Old Bombay Market, Surat 395010.
+                For privacy-related queries, email us at <a href="mailto:support@shivfashion.com" className="text-primary font-medium hover:underline">support@shivfashion.com</a> or write to Shreeji Fashion, Old Bombay Market, Ring Road, Surat 395002.
               </p>
             </section>
           </div>

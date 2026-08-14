@@ -3,6 +3,7 @@ import { Filter, ChevronDown, Search, Heart } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
+import SEO from '../../components/common/SEO';
 
 const Shop = () => {
   const [products, setProducts] = useState([]);
@@ -14,14 +15,14 @@ const Shop = () => {
   const [sortBy, setSortBy] = useState('Latest');
   const [total, setTotal] = useState(0);
 
-  useEffect(() => {
-    setPage(1);
-  }, [searchTerm, categoryParam, selectedPrices, sortBy]);
-  
   const location = useLocation();
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const categoryParam = queryParams.get('category');
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, categoryParam, selectedPrices, sortBy]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -82,8 +83,30 @@ const Shop = () => {
 
   // Client-side filtering and sorting replaced with server-side logic
 
+  const shopSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: categoryParam ? `${categoryParam} Chaniya Choli Collection` : 'All Ethnic Wear & Chaniya Choli Collection',
+    url: `https://shreejifashion.vercel.app/shop${categoryParam ? `?category=${encodeURIComponent(categoryParam)}` : ''}`,
+    description: 'Browse authentic designer Chaniya Choli, Navratri festive lehenga, bridal collections, and Gujarati traditional wear with worldwide shipping.',
+    breadcrumb: {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://shreejifashion.vercel.app/' },
+        { '@type': 'ListItem', position: 2, name: 'Shop', item: 'https://shreejifashion.vercel.app/shop' },
+        ...(categoryParam ? [{ '@type': 'ListItem', position: 3, name: categoryParam, item: `https://shreejifashion.vercel.app/shop?category=${encodeURIComponent(categoryParam)}` }] : []),
+      ],
+    },
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
+      <SEO
+        title={categoryParam ? `${categoryParam} Chaniya Choli Collection | Shreeji Fashion Surat` : 'Shop Designer Chaniya Choli & Lehengas Online | Shreeji Fashion'}
+        description={`Explore ${categoryParam || 'exclusive'} designer Chaniya Cholis and ethnic lehengas. Premium Gujarati craftsmanship with direct shipping from Surat.`}
+        keywords="buy chaniya choli online, navratri lehenga shop, designer bridal choli, gujarati traditional attire, surat textile market online"
+        schema={shopSchema}
+      />
       {/* Page Header */}
       <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
         <div>

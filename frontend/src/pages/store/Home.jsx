@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Check, ShoppingBag, ArrowDown, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../../services/api';
+import SEO from '../../components/common/SEO';
 
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -69,8 +70,73 @@ const Home = () => {
     }
   };
 
+  const homeSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': 'https://shreejifashion.vercel.app/#organization',
+        name: 'Shreeji Fashion',
+        url: 'https://shreejifashion.vercel.app',
+        logo: 'https://shreejifashion.vercel.app/favicon.svg',
+        description: 'Premier manufacturer and retailer of authentic designer Chaniya Choli, Navratri ghagra, bridal lehengas, and Gujarati ethnic wear.',
+        telephone: '+91-9876543210',
+        email: 'support@shivfashion.com',
+        sameAs: [
+          'https://instagram.com/shreejifashion',
+          'https://facebook.com/shreejifashion',
+        ],
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: 'Ring Road Textile Market',
+          addressLocality: 'Surat',
+          addressRegion: 'Gujarat',
+          postalCode: '395002',
+          addressCountry: 'IN',
+        },
+      },
+      {
+        '@type': 'ClothingStore',
+        '@id': 'https://shreejifashion.vercel.app/#store',
+        name: 'Shreeji Fashion Surat',
+        image: 'https://shreejifashion.vercel.app/og-image.jpg',
+        priceRange: '₹₹',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: 'Ring Road Textile Market',
+          addressLocality: 'Surat',
+          addressRegion: 'Gujarat',
+          postalCode: '395002',
+          addressCountry: 'IN',
+        },
+        geo: {
+          '@type': 'GeoCoordinates',
+          latitude: 21.1702,
+          longitude: 72.8311,
+        },
+      },
+      {
+        '@type': 'WebSite',
+        '@id': 'https://shreejifashion.vercel.app/#website',
+        url: 'https://shreejifashion.vercel.app',
+        name: 'Shreeji Fashion',
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: 'https://shreejifashion.vercel.app/shop?search={search_term_string}',
+          'query-input': 'required name=search_term_string',
+        },
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-accent overflow-x-hidden">
+      <SEO
+        title="Designer Chaniya Choli Surat | Navratri & Bridal Lehenga | Shreeji Fashion"
+        description="Explore exquisite designer Chaniya Choli, Navratri ghagra, bridal lehengas, and authentic Gujarati ethnic wear. Handcrafted in Surat with worldwide delivery."
+        keywords="designer chaniya choli surat, navratri chaniya choli online, bridal lehenga surat, gujarati ethnic wear, gamthi lehenga, kutch work choli"
+        schema={homeSchema}
+      />
       {/* Hero Section */}
       <section className="relative h-[95vh] min-h-[600px] flex items-center justify-center bg-[#2a0812] overflow-hidden">
         {/* Parallax Background Image */}

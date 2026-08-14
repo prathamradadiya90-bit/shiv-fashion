@@ -1,0 +1,30 @@
+User-agent: *
+Allow: /
+Allow: /shop
+Allow: /about
+Allow: /contact
+Allow: /faq
+Allow: /privacy
+Allow: /terms
+Allow: /returns
+Allow: /product/
+
+# Block private user workflows and admin control panels
+Disallow: /admin/
+Disallow: /admin
+Disallow: /cart
+Disallow: /shipping
+Disallow: /placeorder
+Disallow: /order/
+Disallow: /profile
+Disallow: /my-orders
+Disallow: /wishlist
+Disallow: /notifications
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /api/
+Disallow: /api/*
+
+Sitemap: https://shreejifashion.vercel.app/sitemap.xml
