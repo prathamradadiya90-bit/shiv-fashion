@@ -113,7 +113,6 @@ const { generateSitemapXml } = require('./utils/generateSitemapXml');
 
 // ── SEO & Search Engine Crawl Endpoints ─────────────────────────────────────────
 app.get('/sitemap.xml', generateSitemapXml);
-apiRouter.get('/sitemap.xml', generateSitemapXml);
 
 app.get('/robots.txt', (_req, res) => {
   res.type('text/plain');
