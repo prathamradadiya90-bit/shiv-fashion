@@ -8,9 +8,9 @@ let io;
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: process.env.ALLOWED_ORIGINS 
-        ? process.env.ALLOWED_ORIGINS.split(',') 
-        : ['http://localhost:5173', 'http://localhost:3000'],
+      origin: process.env.ALLOWED_ORIGINS
+        ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()).filter(Boolean)
+        : ['https://shiv-fashion.vercel.app'],
       credentials: true,
     },
   });
@@ -20,7 +20,7 @@ const initSocket = (server) => {
     try {
       // Look for token in auth payload or cookies
       let token = socket.handshake.auth?.token;
-      
+
       if (!token) {
         const cookies = socket.handshake.headers.cookie;
         if (cookies) {
@@ -45,7 +45,7 @@ const initSocket = (server) => {
 
   io.on('connection', (socket) => {
     logger.debug(`Socket connected: ${socket.id} for user ${socket.userId}`);
-    
+
     // Join user-specific room
     socket.join(`user_${socket.userId}`);
 
@@ -81,7 +81,7 @@ const sendNotification = async (userId, title, body, type, referenceId = null, r
     if (io) {
       io.to(`user_${userId}`).emit('new_notification', notification);
     }
-    
+
     return notification;
   } catch (error) {
     logger.error(`Error sending notification: ${error.message}`);
@@ -92,10 +92,10 @@ const sendNotification = async (userId, title, body, type, referenceId = null, r
 const sendNotificationToAdmins = async (title, body, type, referenceId = null, referenceType = null) => {
   try {
     const admins = await prisma.user.findMany({ where: { role: 'SUPERADMIN' } });
-    
+
     if (admins.length > 0) {
       const notifications = await Promise.all(
-        admins.map(admin => 
+        admins.map(admin =>
           prisma.notification.create({
             data: {
               userId: admin.id,

@@ -9,7 +9,7 @@ const { isValidUUID } = require('../utils/validateUUID');
 // FIX #020: minPrice/maxPrice are validated with isFinite() before use so NaN
 //           values from non-numeric query strings are rejected, not silently passed to Prisma.
 const getProducts = asyncHandler(async (req, res) => {
-  const { category, search, minPrice, maxPrice, pageNumber } = req.query;
+  const { category, search, minPrice, maxPrice, priceRanges, sortBy, pageNumber } = req.query;
 
   const pageSize = 12;
   const page = parseInt(pageNumber, 10) || 1;
@@ -48,6 +48,17 @@ const getProducts = asyncHandler(async (req, res) => {
     if (maxPrice !== undefined) filter.price.lte = parsedMax;
   }
 
+  if (priceRanges) {
+    const ranges = priceRanges.split(',').map(r => {
+      const [min, max] = r.split('-');
+      let condition = {};
+      if (min !== '') condition.gte = Math.round(parseFloat(min) * 100);
+      if (max !== '') condition.lte = Math.round(parseFloat(max) * 100);
+      return { price: condition };
+    });
+    filter.OR = ranges;
+  }
+
   const count = await prisma.product.count({ where: filter });
 
   const products = await prisma.product.findMany({
@@ -57,7 +68,7 @@ const getProducts = asyncHandler(async (req, res) => {
       sizes: true,
       colors: true,
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: sortBy === 'LowToHigh' ? { price: 'asc' } : (sortBy === 'HighToLow' ? { price: 'desc' } : { createdAt: 'desc' }),
     skip: pageSize * (page - 1),
     take: pageSize,
   });

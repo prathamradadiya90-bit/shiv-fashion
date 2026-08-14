@@ -12,6 +12,11 @@ const Shop = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPrices, setSelectedPrices] = useState([]);
   const [sortBy, setSortBy] = useState('Latest');
+  const [total, setTotal] = useState(0);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, categoryParam, selectedPrices, sortBy]);
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -25,10 +30,23 @@ const Shop = () => {
         const queryParamsObj = new URLSearchParams({ pageNumber: page });
         if (searchTerm) queryParamsObj.append('search', searchTerm);
         if (categoryParam) queryParamsObj.append('category', categoryParam);
+        if (sortBy) queryParamsObj.append('sortBy', sortBy);
+
+        if (selectedPrices.length > 0) {
+          const ranges = selectedPrices.map(range => {
+            if (range === 'Under ₹2,000') return '0-1999.99';
+            if (range === '₹2,000 - ₹5,000') return '2000-5000';
+            if (range === '₹5,000 - ₹10,000') return '5000.01-10000';
+            if (range === 'Above ₹10,000') return '10000.01-';
+            return '';
+          }).filter(Boolean).join(',');
+          queryParamsObj.append('priceRanges', ranges);
+        }
 
         const { data } = await api.get(`/products?${queryParamsObj.toString()}`);
         setProducts(data.products || data);
         if (data.pages) setPages(data.pages);
+        setTotal(data.total || (data.products ? data.products.length : data.length) || 0);
       } catch (error) {
         console.error(error);
       } finally {
@@ -36,7 +54,7 @@ const Shop = () => {
       }
     };
     fetchProducts();
-  }, [page, searchTerm, categoryParam]);
+  }, [page, searchTerm, categoryParam, selectedPrices, sortBy]);
 
   const toggleWishlist = async (e, id) => {
     e.preventDefault(); // Prevent navigating to product details
@@ -62,30 +80,7 @@ const Shop = () => {
     );
   };
 
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryParam ? p.category === categoryParam : true;
-    
-    let matchesPrice = true;
-    if (selectedPrices.length > 0) {
-      matchesPrice = selectedPrices.some(priceRange => {
-        const priceInRupees = p.price / 100;
-        if (priceRange === 'Under ₹2,000') return priceInRupees < 2000;
-        if (priceRange === '₹2,000 - ₹5,000') return priceInRupees >= 2000 && priceInRupees <= 5000;
-        if (priceRange === '₹5,000 - ₹10,000') return priceInRupees >= 5000 && priceInRupees <= 10000;
-        if (priceRange === 'Above ₹10,000') return priceInRupees > 10000;
-        return true;
-      });
-    }
-
-    return matchesSearch && matchesCategory && matchesPrice;
-  });
-
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (sortBy === 'LowToHigh') return a.price - b.price;
-    if (sortBy === 'HighToLow') return b.price - a.price;
-    return new Date(b.createdAt) - new Date(a.createdAt); // Latest
-  });
+  // Client-side filtering and sorting replaced with server-side logic
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -142,7 +137,7 @@ const Shop = () => {
         <div className="flex-grow">
           {/* Top Bar */}
           <div className="flex justify-between items-center mb-6 bg-white p-3 rounded-lg shadow-sm border border-gray-100">
-            <span className="text-sm text-gray-500">Showing {filteredProducts.length} products</span>
+            <span className="text-sm text-gray-500">Showing {total} products</span>
             <select 
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -157,10 +152,10 @@ const Shop = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {loading ? (
               <p>Loading products...</p>
-            ) : sortedProducts.length === 0 ? (
+            ) : products.length === 0 ? (
               <p>No products found.</p>
             ) : (
-              sortedProducts.map((item, idx) => (
+              products.map((item, idx) => (
                 <Link 
                   to={`/product/${item.id}`} 
                   key={item.id} 
