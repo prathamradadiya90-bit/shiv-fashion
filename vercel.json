@@ -1,14 +1,30 @@
 {
-  "outputDirectory": "frontend/dist",
-  "buildCommand": "cd backend && npm install && npx prisma generate && cd ../frontend && npm install && npm run build",
+  "services": {
+    "backend": {
+      "root": "backend",
+      "entrypoint": "server.js",
+      "buildCommand": "npm install && npx prisma generate"
+    },
+    "frontend": {
+      "root": "frontend",
+      "buildCommand": "npm install && npm run build",
+      "outputDirectory": "dist"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api"
+      "destination": {
+        "type": "service",
+        "service": "backend"
+      }
     },
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": {
+        "type": "service",
+        "service": "frontend"
+      }
     }
   ]
 }
