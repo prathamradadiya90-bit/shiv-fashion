@@ -13,7 +13,9 @@ const getProducts = asyncHandler(async (req, res) => {
 
   const pageSize = Math.min(100, Math.max(1, parseInt(customPageSize, 10) || 12));
   const page = Math.max(1, parseInt(pageNumber, 10) || 1);
-  const whereConditions = [];
+  const whereConditions = [
+    { deletedAt: null },
+  ];
 
   // Active status filter
   if (isActive === 'all') {
@@ -134,7 +136,7 @@ const getProductById = asyncHandler(async (req, res) => {
     },
   });
 
-  if (!product) {
+  if (!product || product.deletedAt) {
     res.status(404);
     throw new Error('Product not found');
   }
@@ -328,25 +330,21 @@ const deleteProduct = asyncHandler(async (req, res) => {
     include: { images: true },
   });
 
-  if (!product) {
+  if (!product || product.deletedAt) {
     res.status(404);
     throw new Error('Product not found');
   }
 
-  // Check if product has order history
-  const orderItemsCount = await prisma.orderItem.count({
-    where: { productId: req.params.id }
+  // Soft delete product and deactivate so order history foreign keys are never violated
+  await prisma.product.update({
+    where: { id: req.params.id },
+    data: {
+      deletedAt: new Date(),
+      isActive: false,
+    },
   });
 
-  if (orderItemsCount > 0) {
-    res.status(400);
-    throw new Error('Cannot delete product because it has order history. Please update it and set it to Inactive instead.');
-  }
-
-  await deleteImages(product.images);
-  await prisma.product.delete({ where: { id: req.params.id } });
-
-  res.json({ message: 'Product and associated images removed' });
+  res.json({ message: 'Product archived successfully' });
 });
 
 // @desc    Toggle product in wishlist
@@ -520,7 +518,7 @@ const getCategories = asyncHandler(async (req, res) => {
   const categories = await prisma.product.findMany({
     select: { category: true },
     distinct: ['category'],
-    where: { category: { not: '' } },
+    where: { category: { not: '' }, deletedAt: null },
   });
 
   const uniqueCategories = [...new Set(categories.map(c => c.category).filter(Boolean))];

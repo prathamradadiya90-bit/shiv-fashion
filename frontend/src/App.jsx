@@ -37,6 +37,7 @@ const MyOrders = lazy(() => import('./pages/store/MyOrders'));
 const Wishlist = lazy(() => import('./pages/store/Wishlist'));
 const TrackOrder = lazy(() => import('./pages/store/TrackOrder'));
 const About = lazy(() => import('./pages/store/About'));
+const FAQ = lazy(() => import('./pages/store/FAQ'));
 const PrivacyPolicy = lazy(() => import('./pages/store/PrivacyPolicy'));
 const Terms = lazy(() => import('./pages/store/Terms'));
 const ReturnPolicy = lazy(() => import('./pages/store/ReturnPolicy'));
@@ -65,7 +66,7 @@ function App() {
             <Route path="shop" element={<Shop />} />
             <Route path="contact" element={<ContactUs />} />
             <Route path="product/:id" element={<ProductDetails />} />
-            <Route path="cart" element={<PrivateRoute><Cart /></PrivateRoute>} />
+            <Route path="cart" element={<Cart />} />
             <Route path="shipping" element={<PrivateRoute><Shipping /></PrivateRoute>} />
             <Route path="placeorder" element={<PrivateRoute><PlaceOrder /></PrivateRoute>} />
             <Route path="order/:id" element={<PrivateRoute><Order /></PrivateRoute>} />
@@ -79,7 +80,7 @@ function App() {
             <Route path="reset-password/:token" element={<ResetPassword />} />
             <Route path="track-order" element={<TrackOrder />} />
             <Route path="about" element={<About />} />
-            <Route path="faq" element={<About />} />
+            <Route path="faq" element={<FAQ />} />
             <Route path="privacy" element={<PrivacyPolicy />} />
             <Route path="terms" element={<Terms />} />
             <Route path="returns" element={<ReturnPolicy />} />

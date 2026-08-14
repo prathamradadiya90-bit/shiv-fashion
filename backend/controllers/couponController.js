@@ -11,11 +11,12 @@ const getCoupons = asyncHandler(async (req, res) => {
 
   const [coupons, total] = await Promise.all([
     prisma.coupon.findMany({
+      where: { deletedAt: null },
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),
-    prisma.coupon.count(),
+    prisma.coupon.count({ where: { deletedAt: null } }),
   ]);
 
   res.json({ coupons, page, pages: Math.ceil(total / pageSize), total });
@@ -172,13 +173,20 @@ const deleteCoupon = asyncHandler(async (req, res) => {
   }
 
   const existing = await prisma.coupon.findUnique({ where: { id: req.params.id } });
-  if (!existing) {
+  if (!existing || existing.deletedAt) {
     res.status(404);
     throw new Error('Coupon not found');
   }
 
-  await prisma.coupon.delete({ where: { id: req.params.id } });
-  res.json({ message: 'Coupon removed' });
+  await prisma.coupon.update({
+    where: { id: req.params.id },
+    data: {
+      deletedAt: new Date(),
+      isActive: false,
+    },
+  });
+
+  res.json({ message: 'Coupon archived/deleted successfully' });
 });
 
 // @desc    Apply a coupon (validates and returns discount details)
@@ -202,7 +210,7 @@ const applyCoupon = asyncHandler(async (req, res) => {
   const normalizedCode = code.trim().toUpperCase();
   const coupon = await prisma.coupon.findUnique({ where: { code: normalizedCode } });
 
-  if (!coupon) {
+  if (!coupon || coupon.deletedAt) {
     res.status(404);
     throw new Error('Invalid coupon code');
   }

@@ -15,15 +15,11 @@ const safeParse = (key, fallback) => {
   }
 };
 
-// Only restore cart from localStorage if the user is actually logged in.
-// This prevents guests from seeing a cart badge or accessing stale cart data.
-const isLoggedIn = !!localStorage.getItem('userInfo');
-
+// Cart state persistence supports guest users as well as authenticated customers.
+// Guest cart items are preserved in localStorage and seamlessly migrate when the user registers or logs in.
 const initialState = {
-  cartItems: isLoggedIn
-    ? (safeParse('cartItems', []) || []).filter(item => item && item.id)
-    : [],
-  shippingAddress: isLoggedIn ? safeParse('shippingAddress', {}) || {} : {},
+  cartItems: (safeParse('cartItems', []) || []).filter(item => item && item.id),
+  shippingAddress: safeParse('shippingAddress', {}) || {},
 };
 
 const updateCartInStorage = (state) => {

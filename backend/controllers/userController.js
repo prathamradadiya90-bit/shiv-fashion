@@ -16,7 +16,9 @@ const getUsers = asyncHandler(async (req, res) => {
   const page = Math.max(1, parseInt(pageQuery, 10) || 1);
   const pageSize = Math.min(100, Math.max(1, parseInt(customPageSize, 10) || 20));
 
-  const whereConditions = [];
+  const whereConditions = [
+    { deletedAt: null },
+  ];
 
   // Status filtering
   if (status && status.toLowerCase() !== 'all') {
@@ -142,7 +144,7 @@ const deleteUser = asyncHandler(async (req, res) => {
     where: { id: req.params.id },
   });
 
-  if (!user) {
+  if (!user || user.deletedAt) {
     res.status(404);
     throw new Error('User not found');
   }
@@ -152,21 +154,17 @@ const deleteUser = asyncHandler(async (req, res) => {
     throw new Error('Cannot delete a SuperAdmin');
   }
 
-  // Check for order history and reviews
-  const ordersCount = await prisma.order.count({ where: { userId: req.params.id } });
-  if (ordersCount > 0) {
-    res.status(400);
-    throw new Error('Cannot delete user with existing orders. Please block the user instead.');
-  }
+  // Soft delete user and deactivate session
+  await prisma.user.update({
+    where: { id: req.params.id },
+    data: {
+      deletedAt: new Date(),
+      status: 'Blocked',
+      tokenVersion: { increment: 1 },
+    },
+  });
 
-  const reviewsCount = await prisma.review.count({ where: { userId: req.params.id } });
-  if (reviewsCount > 0) {
-    res.status(400);
-    throw new Error('Cannot delete user with existing reviews. Please block the user instead.');
-  }
-
-  await prisma.user.delete({ where: { id: req.params.id } });
-  res.json({ message: 'User deleted successfully' });
+  res.json({ message: 'User deleted/archived successfully' });
 });
 
 module.exports = {

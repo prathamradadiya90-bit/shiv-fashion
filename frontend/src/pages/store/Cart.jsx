@@ -11,10 +11,8 @@ const Cart = () => {
   const { cartItems } = useSelector((state) => state.cart);
   const { userInfo } = useSelector((state) => state.auth);
 
-  if (!userInfo) return null;
-
   const checkoutHandler = () => {
-    navigate('/shipping'); // Will implement checkout flow next
+    navigate('/shipping'); // Will redirect to login if not logged in via PrivateRoute
   };
 
   const calculateSubtotal = () => {
