@@ -69,7 +69,9 @@ app.use(globalLimiter);
 
 const httpServer = http.createServer(app);
 // Initialize Socket.io on the HTTP server
-initSocket(httpServer);
+if (typeof initSocket === 'function' && !process.env.VERCEL) {
+  initSocket(httpServer);
+}
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 // Restrict CORS to an explicit allowlist of known origins.
