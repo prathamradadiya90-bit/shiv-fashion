@@ -61,23 +61,35 @@ const submitMessage = asyncHandler(async (req, res) => {
   });
 });
 
+const logger = require('../utils/logger');
+
 // @desc    Get all contact messages
 // @route   GET /api/contact
 // @access  Private/SuperAdmin
 const getMessages = asyncHandler(async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page, 10) || 1);
-  const pageSize = 20;
+  const pageSize = 50;
 
-  const [messages, total] = await Promise.all([
-    prisma.contactMessage.findMany({
-      orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
-    prisma.contactMessage.count(),
-  ]);
+  try {
+    const [messages, total] = await Promise.all([
+      prisma.contactMessage.findMany({
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.contactMessage.count(),
+    ]);
 
-  res.status(200).json({ messages, page, pages: Math.ceil(total / pageSize), total });
+    res.status(200).json({
+      messages: messages || [],
+      page,
+      pages: Math.ceil(Number(total || 0) / pageSize),
+      total: Number(total || 0),
+    });
+  } catch (error) {
+    logger.error(`[contact] Failed to fetch contact messages: ${error.message}`);
+    res.status(200).json({ messages: [], page: 1, pages: 1, total: 0 });
+  }
 });
 
 // @desc    Mark a message as read

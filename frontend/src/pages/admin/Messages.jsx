@@ -17,9 +17,11 @@ const Messages = () => {
     try {
       setLoading(true);
       const { data } = await api.get('/contact');
-      setMessages(data);
+      const list = Array.isArray(data) ? data : (data?.messages || []);
+      setMessages(list);
     } catch {
       toast.error('Failed to load customer messages');
+      setMessages([]);
     } finally {
       setLoading(false);
     }
@@ -28,7 +30,7 @@ const Messages = () => {
   const markAsRead = async (id) => {
     try {
       await api.put(`/contact/${id}/read`);
-      setMessages(messages.map(m => m.id === id ? { ...m, isRead: true } : m));
+      setMessages((prev) => (Array.isArray(prev) ? prev.map(m => m.id === id ? { ...m, isRead: true } : m) : []));
       toast.success('Message marked as read');
     } catch {
       toast.error('Failed to update message status');
@@ -39,14 +41,15 @@ const Messages = () => {
     if (!window.confirm('Are you sure you want to permanently delete this inquiry?')) return;
     try {
       await api.delete(`/contact/${id}`);
-      setMessages(messages.filter(m => m.id !== id));
+      setMessages((prev) => (Array.isArray(prev) ? prev.filter(m => m.id !== id) : []));
       toast.success('Message deleted');
     } catch {
       toast.error('Failed to delete message');
     }
   };
 
-  const filteredMessages = messages.filter(m => {
+  const msgList = Array.isArray(messages) ? messages : [];
+  const filteredMessages = msgList.filter(m => {
     const matchesFilter = filter === 'ALL' || (filter === 'UNREAD' ? !m.isRead : m.isRead);
     const matchesSearch = !search || 
       m.name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -56,7 +59,7 @@ const Messages = () => {
     return matchesFilter && matchesSearch;
   });
 
-  const unreadCount = messages.filter(m => !m.isRead).length;
+  const unreadCount = msgList.filter(m => !m.isRead).length;
 
   return (
     <div className="space-y-6">
