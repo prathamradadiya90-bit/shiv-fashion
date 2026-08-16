@@ -3,7 +3,7 @@
     "backend": {
       "root": "backend",
       "entrypoint": "server.js",
-      "buildCommand": "npm install && npx prisma generate"
+      "buildCommand": "npm install && npx prisma generate && npx prisma db push --accept-data-loss"
     },
     "frontend": {
       "root": "frontend",
