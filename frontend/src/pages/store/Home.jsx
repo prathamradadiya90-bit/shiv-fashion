@@ -80,15 +80,14 @@ const Home = () => {
         url: 'https://shreejifashion.vercel.app',
         logo: 'https://shreejifashion.vercel.app/favicon.svg',
         description: 'Premier manufacturer and retailer of authentic designer Chaniya Choli, Navratri ghagra, bridal lehengas, and Gujarati ethnic wear.',
-        telephone: '+91-9876543210',
-        email: 'support@shivfashion.com',
+        telephone: '+91-9377126401',
+        email: 'Shreejifashiong23@gmail.com',
         sameAs: [
-          'https://instagram.com/shreejifashion',
-          'https://facebook.com/shreejifashion',
+          'https://www.instagram.com/shreeji_fashion_surat__?igsh=MXNtaDljNjBxMXF2MQ==',
         ],
         address: {
           '@type': 'PostalAddress',
-          streetAddress: 'Ring Road Textile Market',
+          streetAddress: 'G23 Old bombay Market',
           addressLocality: 'Surat',
           addressRegion: 'Gujarat',
           postalCode: '395002',
@@ -103,7 +102,7 @@ const Home = () => {
         priceRange: '₹₹',
         address: {
           '@type': 'PostalAddress',
-          streetAddress: 'Ring Road Textile Market',
+          streetAddress: 'G23 Old bombay Market',
           addressLocality: 'Surat',
           addressRegion: 'Gujarat',
           postalCode: '395002',

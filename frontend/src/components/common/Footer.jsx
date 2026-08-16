@@ -41,13 +41,13 @@ const Footer = () => {
             
             {/* Social Links */}
             <div className="flex gap-4">
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="group relative w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all duration-300">
+              <a href="https://www.instagram.com/shreeji_fashion_surat__?igsh=MXNtaDljNjBxMXF2MQ==" target="_blank" rel="noopener noreferrer" className="group relative w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all duration-300">
                 <Instagram className="w-4 h-4 text-white/70 group-hover:text-[#D4AF37] group-hover:scale-110 transition-all duration-300" />
               </a>
               <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="group relative w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all duration-300">
                 <Facebook className="w-4 h-4 text-white/70 group-hover:text-[#D4AF37] group-hover:scale-110 transition-all duration-300" />
               </a>
-              <a href="https://wa.me/919574517921" target="_blank" rel="noopener noreferrer" className="group relative w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all duration-300">
+              <a href="https://wa.me/919377126401" target="_blank" rel="noopener noreferrer" className="group relative w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all duration-300">
                 <MessageCircle className="w-4 h-4 text-white/70 group-hover:text-[#D4AF37] group-hover:scale-110 transition-all duration-300" />
               </a>
             </div>
@@ -104,8 +104,8 @@ const Footer = () => {
                   <MapPin className="w-4 h-4 text-[#D4AF37]" />
                 </div>
                 <p className="text-white/70 leading-relaxed pt-1">
-                  <a href="https://maps.google.com/?q=G-14,+16,+Old+Bombay+Market,+Surat,+Gujarat+395010" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors duration-300">
-                    G-14, 16, Old Bombay Market,<br/>Surat, Gujarat 395010
+                  <a href="https://maps.google.com/?q=G23,+Old+Bombay+Market,+Surat,+Gujarat" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors duration-300">
+                    G23 Old bombay Market,<br/>Surat, Gujarat
                   </a>
                 </p>
               </div>
@@ -113,13 +113,16 @@ const Footer = () => {
                 <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-[#D4AF37]/10 group-hover:text-[#D4AF37] transition-colors duration-300">
                   <Phone className="w-4 h-4 text-[#D4AF37]" />
                 </div>
-                <p><a href="tel:+919574517921" className="text-white/70 hover:text-[#D4AF37] transition-colors duration-300">+91 95745 17921</a></p>
+                <p>
+                  <a href="tel:+919377126401" className="text-white/70 hover:text-[#D4AF37] transition-colors duration-300">+91 93771 26401</a><br/>
+                  <a href="tel:+918734975590" className="text-white/70 hover:text-[#D4AF37] transition-colors duration-300">+91 87349 75590</a>
+                </p>
               </div>
               <div className="flex items-center gap-4 text-sm group">
                 <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-[#D4AF37]/10 group-hover:text-[#D4AF37] transition-colors duration-300">
                   <Mail className="w-4 h-4 text-[#D4AF37]" />
                 </div>
-                <p><a href="mailto:hello@shreejifashion.com" className="text-white/70 hover:text-[#D4AF37] transition-colors duration-300">hello@shreejifashion.com</a></p>
+                <p><a href="mailto:Shreejifashiong23@gmail.com" className="text-white/70 hover:text-[#D4AF37] transition-colors duration-300">Shreejifashiong23@gmail.com</a></p>
               </div>
             </div>
           </div>

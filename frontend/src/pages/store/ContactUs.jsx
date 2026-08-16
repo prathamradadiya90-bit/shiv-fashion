@@ -43,11 +43,11 @@ const ContactUs = () => {
     mainEntity: {
       '@type': 'ClothingStore',
       name: 'Shreeji Fashion Studio',
-      telephone: '+91-9876543210',
-      email: 'support@shivfashion.com',
+      telephone: '+91-9377126401',
+      email: 'Shreejifashiong23@gmail.com',
       address: {
         '@type': 'PostalAddress',
-        streetAddress: 'Old Bombay Market, Ring Road',
+        streetAddress: 'G23 Old bombay Market',
         addressLocality: 'Surat',
         addressRegion: 'Gujarat',
         postalCode: '395002',
@@ -82,7 +82,7 @@ const ContactUs = () => {
               <div>
                 <h3 className="font-bold text-xl text-primary mb-2">Our Store</h3>
                 <p className="text-gray-600">
-                  Old Bombay Market, <br />
+                  G23 Old bombay Market, <br />
                   Surat, Gujarat, <br />
                   India
                 </p>
@@ -98,7 +98,8 @@ const ContactUs = () => {
               <div>
                 <h3 className="font-bold text-xl text-primary mb-2">Call Us</h3>
                 <p className="text-gray-600">
-                  +91 95745 17921 <br />
+                  +91 93771 26401 <br />
+                  +91 87349 75590 <br />
                   Mon - Sat, 10am - 8pm
                 </p>
               </div>
@@ -113,8 +114,7 @@ const ContactUs = () => {
               <div>
                 <h3 className="font-bold text-xl text-primary mb-2">Email Us</h3>
                 <p className="text-gray-600">
-                  info@shreejifashion.com <br />
-                  support@shreejifashion.com
+                  Shreejifashiong23@gmail.com <br />
                 </p>
               </div>
             </div>
