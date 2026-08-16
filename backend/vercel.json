@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm install && npx prisma generate && npx prisma db push --accept-data-loss",
+  "buildCommand": "npm install && npx prisma generate",
   "builds": [
     {
       "src": "api/index.js",
