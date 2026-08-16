@@ -142,10 +142,10 @@ const generateInvoicePdf = (order, res) => {
     .fontSize(9)
     .font('Helvetica-Bold')
     .text('ITEM DESCRIPTION', 48, tableTop + 6)
-    .text('SIZE / COLOR', 280, tableTop + 6)
-    .text('QTY', 390, tableTop + 6, { align: 'center', width: 35 })
-    .text('PRICE', 435, tableTop + 6, { align: 'right', width: 50 })
-    .text('TOTAL', 495, tableTop + 6, { align: 'right', width: 52 });
+    .text('SIZE / COLOR', 260, tableTop + 6)
+    .text('QTY', 360, tableTop + 6, { align: 'center', width: 35 })
+    .text('PRICE', 400, tableTop + 6, { align: 'right', width: 70 })
+    .text('TOTAL', 475, tableTop + 6, { align: 'right', width: 75 });
 
   let y = tableTop + 26;
 
@@ -167,23 +167,23 @@ const generateInvoicePdf = (order, res) => {
       .fillColor(TEXT_DARK)
       .fontSize(9)
       .font('Helvetica-Bold')
-      .text(item.product?.name || 'Product', 48, y, { width: 225, lineBreak: false });
+      .text(item.product?.name || 'Product', 48, y, { width: 205, lineBreak: false });
 
     doc
       .font('Helvetica')
       .fillColor(TEXT_MUTED)
-      .text(`${item.size || 'Free size'} | ${item.color || 'Standard'}`, 280, y, { width: 105, lineBreak: false });
+      .text(`${item.size || 'Free size'} | ${item.color || 'Standard'}`, 260, y, { width: 95, lineBreak: false });
 
     doc
       .fillColor(TEXT_DARK)
-      .text(String(item.quantity), 390, y, { align: 'center', width: 35 });
+      .text(String(item.quantity), 360, y, { align: 'center', width: 35 });
 
     doc
-      .text(`₹${(item.price / 100).toFixed(2)}`, 435, y, { align: 'right', width: 50 });
+      .text(`Rs. ${(item.price / 100).toFixed(2)}`, 400, y, { align: 'right', width: 70 });
 
     doc
       .font('Helvetica-Bold')
-      .text(`₹${(itemTotalPaise / 100).toFixed(2)}`, 495, y, { align: 'right', width: 52 });
+      .text(`Rs. ${(itemTotalPaise / 100).toFixed(2)}`, 475, y, { align: 'right', width: 75 });
 
     y += 24;
   });
@@ -199,27 +199,27 @@ const generateInvoicePdf = (order, res) => {
   y += 12;
 
   // ── TOTALS BOX ──────────────────────────────────────────────────────────────
-  const totalsX = 350;
+  const totalsX = 330;
 
   doc
     .fillColor(TEXT_MUTED)
     .fontSize(9)
     .font('Helvetica')
     .text('Subtotal:', totalsX, y)
-    .text(`₹${(calculatedSubtotalPaise / 100).toFixed(2)}`, 450, y, { align: 'right', width: 97 });
+    .text(`Rs. ${(calculatedSubtotalPaise / 100).toFixed(2)}`, 435, y, { align: 'right', width: 115 });
 
   y += 15;
 
   if (order.couponCode) {
     doc
       .text(`Coupon Discount (${order.couponCode}):`, totalsX, y)
-      .text(`Applied`, 450, y, { align: 'right', width: 97 });
+      .text(`Applied`, 435, y, { align: 'right', width: 115 });
     y += 15;
   }
 
   doc
     .text('Shipping & Delivery:', totalsX, y)
-    .text('Free', 450, y, { align: 'right', width: 97 });
+    .text('Free', 435, y, { align: 'right', width: 115 });
 
   y += 15;
 
@@ -234,7 +234,7 @@ const generateInvoicePdf = (order, res) => {
   y += 6;
 
   doc
-    .rect(totalsX - 6, y - 2, 211, 24)
+    .rect(totalsX - 6, y - 2, 231, 24)
     .fillColor('#FEF2F2')
     .fill();
 
@@ -243,7 +243,7 @@ const generateInvoicePdf = (order, res) => {
     .fontSize(11)
     .font('Helvetica-Bold')
     .text('GRAND TOTAL:', totalsX, y + 4)
-    .text(`₹${(order.totalAmount / 100).toFixed(2)}`, 450, y + 4, { align: 'right', width: 97 });
+    .text(`Rs. ${(order.totalAmount / 100).toFixed(2)}`, 435, y + 4, { align: 'right', width: 115 });
 
   // ── FOOTER & TERMS ──────────────────────────────────────────────────────────
   const footerY = 720;
