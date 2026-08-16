@@ -21,8 +21,8 @@ const getNotifications = asyncHandler(async (req, res) => {
   res.json({
     data: notifications,
     page,
-    pages: Math.ceil(total / pageSize),
-    total,
+    pages: Math.ceil(Number(total) / pageSize),
+    total: Number(total),
   });
 });
 
@@ -84,7 +84,7 @@ const getUnreadCount = asyncHandler(async (req, res) => {
     },
   });
 
-  res.json({ count });
+  res.json({ count: Number(count) });
 });
 
 module.exports = {
