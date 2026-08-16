@@ -20,6 +20,17 @@
       }
     },
     {
+      "source": "/assets/(.*)",
+      "destination": {
+        "type": "service",
+        "service": "frontend"
+      }
+    },
+    {
+      "source": "/((?!api/|assets/|.*\\..*).*)",
+      "destination": "/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": {
         "type": "service",
