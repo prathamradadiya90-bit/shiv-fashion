@@ -50,7 +50,19 @@ const ProductDetails = () => {
   // Link Copied State
   const [copiedLink, setCopiedLink] = useState(false);
 
+  const [isWishlisted, setIsWishlisted] = useState(false);
+
   const { userInfo } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (userInfo && id) {
+      api.get('/auth/profile')
+        .then(({ data }) => {
+          setIsWishlisted(data.wishlist?.some(item => item.id === id) || false);
+        })
+        .catch(console.error);
+    }
+  }, [userInfo, id]);
 
   useEffect(() => {
     fetchProduct();
@@ -128,6 +140,7 @@ const ProductDetails = () => {
     try {
       const { data } = await api.post(`/products/${id}/wishlist`);
       toast.success(data.message);
+      setIsWishlisted(data.isWished);
     } catch {
       toast.error('Failed to update wishlist');
     }
@@ -399,10 +412,14 @@ const ProductDetails = () => {
 
               <button
                 onClick={toggleWishlist}
-                className="w-12 h-12 flex-shrink-0 flex items-center justify-center border border-slate-200 rounded-xl text-slate-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50/50 shadow-xs active:scale-95 transition-all"
-                title="Save to Wishlist"
+                className={`w-12 h-12 flex-shrink-0 flex items-center justify-center border rounded-xl shadow-xs active:scale-95 transition-all ${
+                  isWishlisted 
+                    ? 'text-rose-600 border-rose-300 bg-rose-50' 
+                    : 'border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50/50'
+                }`}
+                title={isWishlisted ? "Remove from Wishlist" : "Save to Wishlist"}
               >
-                <Heart size={20} />
+                <Heart size={20} fill={isWishlisted ? "currentColor" : "none"} />
               </button>
             </div>
 

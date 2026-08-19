@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, ChevronDown, Search, Heart } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import SEO from '../../components/common/SEO';
@@ -14,6 +15,19 @@ const Shop = () => {
   const [selectedPrices, setSelectedPrices] = useState([]);
   const [sortBy, setSortBy] = useState('Latest');
   const [total, setTotal] = useState(0);
+  const [wishlistIds, setWishlistIds] = useState(new Set());
+
+  const { userInfo } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (userInfo) {
+      api.get('/auth/profile')
+        .then(({ data }) => {
+          setWishlistIds(new Set(data.wishlist?.map(item => item.id) || []));
+        })
+        .catch(console.error);
+    }
+  }, [userInfo]);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -59,11 +73,21 @@ const Shop = () => {
 
   const toggleWishlist = async (e, id) => {
     e.preventDefault(); // Prevent navigating to product details
+    if (!userInfo) return toast.error('Please login to use wishlist');
     try {
       const { data } = await api.post(`/products/${id}/wishlist`);
       toast.success(data.message);
+      setWishlistIds(prev => {
+        const newSet = new Set(prev);
+        if (data.isWished) {
+          newSet.add(id);
+        } else {
+          newSet.delete(id);
+        }
+        return newSet;
+      });
     } catch (error) {
-      toast.error(error?.response?.data?.message || 'Please login to use wishlist');
+      toast.error(error?.response?.data?.message || 'Failed to update wishlist');
     }
   };
 
@@ -194,9 +218,9 @@ const Shop = () => {
 
                     <button 
                       onClick={(e) => toggleWishlist(e, item.id)}
-                      className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-sm text-gray-400 hover:text-red-500 z-20 transition"
+                      className={`absolute top-3 right-3 bg-white p-2 rounded-full shadow-sm z-20 transition ${wishlistIds.has(item.id) ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
                     >
-                      <Heart size={18} />
+                      <Heart size={18} fill={wishlistIds.has(item.id) ? "currentColor" : "none"} />
                     </button>
                     <div className="absolute inset-0 z-10"></div>
                   </div>
