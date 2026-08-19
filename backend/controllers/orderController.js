@@ -358,6 +358,14 @@ const verifyPayment = asyncHandler(async (req, res) => {
     'Order'
   );
 
+  await sendNotificationToAdmins(
+    'New Order Received',
+    `A new order (${updatedOrder.id}) has been placed by ${updatedOrder.user.name || 'Customer'}.`,
+    'ORDER_PLACED',
+    updatedOrder.id,
+    'Order'
+  );
+
   res.json({ message: 'Payment verified successfully' });
 });
 
@@ -421,6 +429,14 @@ const paymentCallback = asyncHandler(async (req, res) => {
           'Payment Successful',
           `Your payment for order ${updatedOrder.id} is confirmed.`,
           'PAYMENT_SUCCESS',
+          updatedOrder.id,
+          'Order'
+        );
+
+        await sendNotificationToAdmins(
+          'New Order Received',
+          `A new order (${updatedOrder.id}) has been placed by ${updatedOrder.user.name || 'Customer'}.`,
+          'ORDER_PLACED',
           updatedOrder.id,
           'Order'
         );
@@ -765,6 +781,15 @@ const razorpayWebhook = asyncHandler(async (req, res) => {
           razorpayPaymentId,
         },
       });
+      
+      await sendNotificationToAdmins(
+        'New Order Received (via Webhook)',
+        `A new order (${order.id}) has been placed and payment confirmed.`,
+        'ORDER_PLACED',
+        order.id,
+        'Order'
+      );
+
       logger.info(`[webhook] Order ${order.id} marked PAID via webhook`);
     }
   }
