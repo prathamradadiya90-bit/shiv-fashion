@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Edit, Trash2, Plus, Search, Filter, ChevronLeft, ChevronRight, CheckCircle, XCircle, ExternalLink, RefreshCw } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
+import { FALLBACK_IMAGE } from '../../utils/constants';
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -208,7 +209,7 @@ const ProductList = () => {
                   <tr key={product.id} className="hover:bg-gray-50/70 transition-colors">
                     <td className="px-6 py-4">
                       <img
-                        src={product.images?.[0]?.url || `https://source.unsplash.com/random/50x50/?chaniya,choli,${product.id}`}
+                        src={product.images?.[0]?.url || FALLBACK_IMAGE}
                         className="w-12 h-12 rounded-lg object-cover border border-gray-100 shadow-xs"
                         alt={product.name}
                       />

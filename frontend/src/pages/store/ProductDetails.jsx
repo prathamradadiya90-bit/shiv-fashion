@@ -20,6 +20,7 @@ import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { addToCart } from '../../store/slices/cartSlice';
 import SEO from '../../components/common/SEO';
+import { FALLBACK_IMAGE } from '../../utils/constants';
 
 const MAX_QUANTITY = 20; // mirrors backend MAX_ITEM_QUANTITY constant
 
@@ -249,7 +250,7 @@ const ProductDetails = () => {
               onMouseLeave={handleMouseLeave}
             >
               <img
-                src={product.images?.[activeImageIndex]?.url || `https://source.unsplash.com/random/600x800/?chaniya,choli,${product.id}`}
+                src={product.images?.[activeImageIndex]?.url || FALLBACK_IMAGE}
                 alt={product.name}
                 className="w-full h-full object-cover transition-transform duration-200 ease-out"
                 style={zoomStyle}

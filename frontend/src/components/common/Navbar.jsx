@@ -11,8 +11,12 @@ import {
   X, 
   ArrowRight, 
   Loader2,
-  Sparkles
+  Sparkles,
+  Settings, 
+  MapPin, 
+  Clock 
 } from 'lucide-react';
+import { FALLBACK_IMAGE } from '../../utils/constants';
 import { logout } from '../../store/slices/authSlice';
 import api from '../../services/api';
 import NotificationBell from './NotificationBell';
@@ -187,7 +191,7 @@ const Navbar = () => {
                             className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl cursor-pointer transition-colors group"
                           >
                             <img
-                              src={product.images?.[0]?.url || `https://source.unsplash.com/random/60x60/?chaniya,choli,${product.id}`}
+                              src={product.images?.[0]?.url || FALLBACK_IMAGE}
                               alt={product.name}
                               className="w-12 h-14 object-cover rounded-lg border border-slate-100 flex-shrink-0"
                             />

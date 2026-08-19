@@ -3,6 +3,7 @@ import { ShieldCheck, Phone, Truck, Hash, Search, Package, CheckCircle, MapPin }
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
+import { FALLBACK_IMAGE } from '../../utils/constants';
 
 const TrackOrder = () => {
   const [trackingMethod, setTrackingMethod] = useState('phone'); // 'phone' or 'order'
@@ -239,7 +240,7 @@ const TrackOrder = () => {
                         {order.items.map((item, idx) => (
                           <div key={idx} className="flex items-center gap-4 bg-gray-50 p-3 rounded-xl border border-gray-100">
                             <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                              <img src={item.image || `https://source.unsplash.com/random/100x100/?fashion,lehenga,${idx}`} alt={item.name} className="w-full h-full object-cover" />
+                              <img src={item.image || FALLBACK_IMAGE} alt={item.name} className="w-full h-full object-cover" />
                             </div>
                             <div className="flex-grow">
                               <p className="font-bold text-gray-800 line-clamp-1">{item.name}</p>

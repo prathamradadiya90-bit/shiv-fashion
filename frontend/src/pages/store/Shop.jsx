@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import SEO from '../../components/common/SEO';
+import { FALLBACK_IMAGE } from '../../utils/constants';
 
 const Shop = () => {
   const [products, setProducts] = useState([]);
@@ -211,7 +212,7 @@ const Shop = () => {
                 >
                   <div className="relative h-72 overflow-hidden bg-gray-50">
                     <img 
-                      src={item.images?.[0]?.url || `https://source.unsplash.com/random/400x500/?chaniya,choli,${item.id}`}
+                      src={item.images?.[0]?.url || FALLBACK_IMAGE}
                       alt={item.name} 
                       className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     />

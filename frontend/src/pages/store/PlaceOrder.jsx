@@ -6,6 +6,7 @@ import CheckoutSteps from './CheckoutSteps';
 import api from '../../services/api';
 import { clearCartItems } from '../../store/slices/cartSlice';
 import { loadRazorpayScript } from '../../utils/razorpay';
+import { FALLBACK_IMAGE } from '../../utils/constants';
 
 // ── Shared business constants (kept in sync with backend/utils/constants.js) ──
 const FREE_SHIPPING_THRESHOLD = 5000;
@@ -174,7 +175,7 @@ const PlaceOrder = () => {
                 {cart.cartItems.map((item, index) => (
                   <div key={index} className="py-3 flex items-center">
                     <img
-                      src={item.image || `https://source.unsplash.com/random/50x60/?chaniya,choli,${item.id}`}
+                      src={item.image || FALLBACK_IMAGE}
                       alt={item.name}
                       className="w-12 h-16 object-cover rounded mr-4"
                     />

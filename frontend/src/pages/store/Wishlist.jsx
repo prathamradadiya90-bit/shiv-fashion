@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { Heart, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
+import { FALLBACK_IMAGE } from '../../utils/constants';
 
 const Wishlist = () => {
   const [wishlist, setWishlist] = useState([]);
@@ -62,7 +63,7 @@ const Wishlist = () => {
             <div key={product.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden group">
               <Link to={`/product/${product.id}`} className="block relative h-64 overflow-hidden">
                 <img 
-                  src={product.images?.[0]?.url || `https://source.unsplash.com/random/400x500/?chaniya,choli,${product.id}`} 
+                  src={product.images?.[0]?.url || FALLBACK_IMAGE} 
                   alt={product.name} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />

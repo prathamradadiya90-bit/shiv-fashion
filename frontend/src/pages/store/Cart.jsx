@@ -1,22 +1,31 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { Trash2, ShoppingBag } from 'lucide-react';
 import { addToCart, removeFromCart } from '../../store/slices/cartSlice';
+import { FALLBACK_IMAGE } from '../../utils/constants';
 
 const Cart = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const { cartItems } = useSelector((state) => state.cart);
-  const { userInfo } = useSelector((state) => state.auth);
 
   const checkoutHandler = () => {
     navigate('/shipping'); // Will redirect to login if not logged in via PrivateRoute
   };
 
-  const calculateSubtotal = () => {
+  const subtotal = useMemo(() => {
     return cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  }, [cartItems]);
+
+  const totalItemsCount = useMemo(() => {
+    return cartItems.reduce((a, c) => a + c.quantity, 0);
+  }, [cartItems]);
+
+  const handleUpdateQuantity = (item, newQuantity) => {
+    const validQuantity = Math.max(1, Math.min(newQuantity, item.stock || 20));
+    dispatch(addToCart({ ...item, quantity: validQuantity }));
   };
 
   return (
@@ -48,7 +57,7 @@ const Cart = () => {
                     
                     {/* Product Info */}
                     <div className="col-span-3 flex items-center w-full">
-                      <img src={item.image || `https://source.unsplash.com/random/100x120/?chaniya,choli,${item.id}`} alt={item.name} className="w-20 h-24 object-cover rounded" />
+                      <img src={item.image || FALLBACK_IMAGE} alt={item.name} className="w-20 h-24 object-cover rounded" />
                       <div className="ml-4">
                         <Link to={`/product/${item.id}`} className="font-bold text-gray-800 hover:text-primary transition-colors">
                           {item.name}
@@ -74,12 +83,12 @@ const Cart = () => {
                     <div className="col-span-1 flex justify-center w-full sm:w-auto">
                       <div className="flex items-center border border-gray-300 rounded">
                         <button 
-                          onClick={() => dispatch(addToCart({ ...item, quantity: Math.max(1, item.quantity - 1) }))} 
+                          onClick={() => handleUpdateQuantity(item, item.quantity - 1)} 
                           className="px-2 py-1 text-gray-600 hover:bg-gray-100"
                         >-</button>
                         <span className="px-3 font-medium">{item.quantity}</span>
                         <button 
-                          onClick={() => dispatch(addToCart({ ...item, quantity: Math.min(item.quantity + 1, item.stock || 20) }))} 
+                          onClick={() => handleUpdateQuantity(item, item.quantity + 1)} 
                           className="px-2 py-1 text-gray-600 hover:bg-gray-100"
                         >+</button>
                       </div>
@@ -103,12 +112,12 @@ const Cart = () => {
               
               <div className="space-y-3 mb-6 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal ({cartItems.reduce((a, c) => a + c.quantity, 0)} items)</span>
-                  <span className="font-medium">₹{calculateSubtotal()}</span>
+                  <span className="text-gray-600">Subtotal ({totalItemsCount} items)</span>
+                  <span className="font-medium">₹{subtotal}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
-                  {calculateSubtotal() >= 5000 ? (
+                  {subtotal >= 5000 ? (
                     <span className="text-green-600 font-medium">Free</span>
                   ) : (
                     <span className="font-medium">₹250</span>
@@ -119,7 +128,7 @@ const Cart = () => {
               <div className="border-t border-gray-100 pt-4 mb-6">
                 <div className="flex justify-between items-end">
                   <span className="font-bold text-gray-800">Total</span>
-                  <span className="text-2xl font-bold text-primary">₹{calculateSubtotal()}</span>
+                  <span className="text-2xl font-bold text-primary">₹{subtotal >= 5000 ? subtotal : subtotal + 250}</span>
                 </div>
               </div>
 
