@@ -148,7 +148,7 @@ const Navbar = () => {
 
               {/* Interactive Live Search Dropdown */}
               {searchOpen && (
-                <div className="absolute right-0 sm:-right-16 top-10 w-[88vw] sm:w-[420px] bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="fixed inset-x-4 top-20 sm:absolute sm:inset-auto sm:-right-16 sm:top-10 w-auto sm:w-[420px] bg-white rounded-sm shadow-2xl border border-gray-100 p-4 z-[60] animate-in fade-in zoom-in-95 duration-150">
                   <form onSubmit={handleSearchSubmit} className="relative flex items-center mb-3">
                     <Search size={17} className="absolute left-3.5 text-slate-400 pointer-events-none" />
                     <input
