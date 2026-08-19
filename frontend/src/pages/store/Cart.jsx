@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { Trash2, ShoppingBag } from 'lucide-react';
 import { addToCart, removeFromCart } from '../../store/slices/cartSlice';
-import { FALLBACK_IMAGE } from '../../utils/constants';
+import { FALLBACK_IMAGE, MAX_QUANTITY, FREE_SHIPPING_THRESHOLD, SHIPPING_CHARGE } from '../../utils/constants';
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -24,7 +24,7 @@ const Cart = () => {
   }, [cartItems]);
 
   const handleUpdateQuantity = (item, newQuantity) => {
-    const validQuantity = Math.max(1, Math.min(newQuantity, item.stock || 20));
+    const validQuantity = Math.max(1, Math.min(newQuantity, item.stock || MAX_QUANTITY));
     dispatch(addToCart({ ...item, quantity: validQuantity }));
   };
 
@@ -117,10 +117,10 @@ const Cart = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
-                  {subtotal >= 5000 ? (
+                  {subtotal >= FREE_SHIPPING_THRESHOLD ? (
                     <span className="text-green-600 font-medium">Free</span>
                   ) : (
-                    <span className="font-medium">₹250</span>
+                    <span className="font-medium">₹{SHIPPING_CHARGE}</span>
                   )}
                 </div>
               </div>
@@ -128,7 +128,7 @@ const Cart = () => {
               <div className="border-t border-gray-100 pt-4 mb-6">
                 <div className="flex justify-between items-end">
                   <span className="font-bold text-gray-800">Total</span>
-                  <span className="text-2xl font-bold text-primary">₹{subtotal >= 5000 ? subtotal : subtotal + 250}</span>
+                  <span className="text-2xl font-bold text-primary">₹{subtotal >= FREE_SHIPPING_THRESHOLD ? subtotal : subtotal + SHIPPING_CHARGE}</span>
                 </div>
               </div>
 

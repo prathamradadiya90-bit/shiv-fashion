@@ -37,7 +37,7 @@ const Wishlist = () => {
       await api.post(`/products/${id}/wishlist`);
       setWishlist(wishlist.filter(item => item.id !== id));
       toast.success('Removed from wishlist');
-    } catch (error) {
+    } catch {
       toast.error('Failed to remove');
     }
   };
@@ -49,7 +49,20 @@ const Wishlist = () => {
       </h1>
 
       {loading ? (
-        <p>Loading your saved items...</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
+              <div className="h-64 bg-gray-200"></div>
+              <div className="p-4">
+                <div className="h-5 bg-gray-200 rounded w-3/4 mb-4 mt-1"></div>
+                <div className="flex justify-between items-center mt-2">
+                  <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+                  <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : wishlist.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-100">
           <Heart size={64} className="mx-auto text-gray-300 mb-4" />

@@ -9,7 +9,6 @@ import { useSelector } from 'react-redux';
  */
 const AdminRoute = ({ children }) => {
   const { userInfo } = useSelector((state) => state.auth);
-  const location = useLocation();
 
   if (!userInfo || userInfo.role !== 'SUPERADMIN') {
     return <Navigate to="/login" replace />;

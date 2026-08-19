@@ -6,12 +6,7 @@ import CheckoutSteps from './CheckoutSteps';
 import api from '../../services/api';
 import { clearCartItems } from '../../store/slices/cartSlice';
 import { loadRazorpayScript } from '../../utils/razorpay';
-import { FALLBACK_IMAGE } from '../../utils/constants';
-
-// ── Shared business constants (kept in sync with backend/utils/constants.js) ──
-const FREE_SHIPPING_THRESHOLD = 5000;
-const SHIPPING_CHARGE = 250;
-const COD_ADVANCE = 500;
+import { FALLBACK_IMAGE, FREE_SHIPPING_THRESHOLD, SHIPPING_CHARGE, COD_ADVANCE } from '../../utils/constants';
 
 /**
  * All monetary calculations use integer paise arithmetic (×100) to prevent

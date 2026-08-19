@@ -4,13 +4,12 @@ import { ToastContainer, Slide } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Components (Keep these synchronous as they are used immediately/globally)
-import Navbar from './components/common/Navbar';
-import Footer from './components/common/Footer';
 import ScrollToTop from './components/common/ScrollToTop';
 import PrivateRoute from './components/common/PrivateRoute';
 import AdminRoute from './components/common/AdminRoute';
 import StoreLayout from './components/store/StoreLayout';
 import AdminLayout from './components/admin/AdminLayout';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 // Loading Fallback
 const LoadingFallback = () => (
@@ -42,6 +41,7 @@ const PrivacyPolicy = lazy(() => import('./pages/store/PrivacyPolicy'));
 const Terms = lazy(() => import('./pages/store/Terms'));
 const ReturnPolicy = lazy(() => import('./pages/store/ReturnPolicy'));
 const Notifications = lazy(() => import('./pages/store/Notifications'));
+const NotFound = lazy(() => import('./pages/store/NotFound'));
 
 // Lazy Load Admin Pages
 const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
@@ -58,8 +58,9 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
-      <Suspense fallback={<LoadingFallback />}>
-        <Routes>
+      <ErrorBoundary>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
           {/* Store Routes */}
           <Route path="/" element={<StoreLayout />}>
             <Route index element={<Home />} />
@@ -84,6 +85,7 @@ function App() {
             <Route path="privacy" element={<PrivacyPolicy />} />
             <Route path="terms" element={<Terms />} />
             <Route path="returns" element={<ReturnPolicy />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
 
           {/* Admin Routes */}
@@ -97,9 +99,11 @@ function App() {
             <Route path="customers" element={<CustomerList />} />
             <Route path="coupons" element={<CouponList />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
-      </Suspense>
+        </Suspense>
+      </ErrorBoundary>
       <ToastContainer 
         position="bottom-right" 
         autoClose={3000} 

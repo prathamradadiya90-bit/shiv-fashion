@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Phone, Truck, Hash, Search, Package, CheckCircle, MapPin } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { FALLBACK_IMAGE } from '../../utils/constants';
@@ -198,7 +197,7 @@ const TrackOrder = () => {
                       ></div>
 
                       <div className="flex justify-between relative">
-                        {statusList.map((step, index) => {
+                        {statusList.map((step) => {
                           const isCompleted = currentStep >= step.id;
                           const isCurrent = currentStep === step.id;
                           const StepIcon = step.icon;

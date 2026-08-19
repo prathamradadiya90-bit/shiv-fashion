@@ -20,9 +20,7 @@ import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { addToCart } from '../../store/slices/cartSlice';
 import SEO from '../../components/common/SEO';
-import { FALLBACK_IMAGE } from '../../utils/constants';
-
-const MAX_QUANTITY = 20; // mirrors backend MAX_ITEM_QUANTITY constant
+import { FALLBACK_IMAGE, MAX_QUANTITY } from '../../utils/constants';
 
 const ProductDetails = () => {
   const { id } = useParams();

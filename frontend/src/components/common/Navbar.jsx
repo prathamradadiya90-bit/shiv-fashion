@@ -11,10 +11,7 @@ import {
   X, 
   ArrowRight, 
   Loader2,
-  Sparkles,
-  Settings, 
-  MapPin, 
-  Clock 
+  Sparkles
 } from 'lucide-react';
 import { FALLBACK_IMAGE } from '../../utils/constants';
 import { logout } from '../../store/slices/authSlice';

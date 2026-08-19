@@ -199,7 +199,18 @@ const Shop = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {loading ? (
-              <p>Loading products...</p>
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="card block animate-pulse border border-gray-100 shadow-sm rounded-lg overflow-hidden bg-white">
+                  <div className="h-72 bg-gray-200"></div>
+                  <div className="p-4">
+                    <div className="h-5 bg-gray-200 rounded w-3/4 mb-4 mt-1"></div>
+                    <div className="flex justify-between items-center mt-2">
+                      <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+                      <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+                    </div>
+                  </div>
+                </div>
+              ))
             ) : products.length === 0 ? (
               <p>No products found.</p>
             ) : (
