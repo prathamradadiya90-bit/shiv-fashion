@@ -227,7 +227,16 @@ const Shop = () => {
                   <div className="p-4">
                     <h3 className="text-md font-bold text-gray-800 mb-1 truncate group-hover:text-primary transition-colors">{item.name}</h3>
                     <div className="flex justify-between items-center mt-2">
-                      <span className="font-bold text-primary text-lg">₹{((Number(item.price) || 0) / 100).toFixed(2)}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-primary text-lg">
+                          ₹{(((item.price || 0) - Math.round((item.price || 0) * ((item.discount || 0) / 10000))) / 100).toFixed(2)}
+                        </span>
+                        {item.discount > 0 && (
+                          <span className="text-xs text-slate-400 line-through">
+                            ₹{((item.price || 0) / 100).toFixed(2)}
+                          </span>
+                        )}
+                      </div>
                       <button className="text-xs bg-primary text-white px-3 py-1.5 rounded transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 active:scale-95 group-hover:bg-primary-light">
                         View Details
                       </button>

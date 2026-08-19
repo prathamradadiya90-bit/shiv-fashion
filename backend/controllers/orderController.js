@@ -8,7 +8,6 @@ const {
   FREE_SHIPPING_THRESHOLD,
   SHIPPING_CHARGE,
   COD_ADVANCE,
-  GST_RATE,
   MAX_ITEM_QUANTITY,
 } = require('../utils/constants');
 const { isValidUUID } = require('../utils/validateUUID');
@@ -126,8 +125,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
   const shippingPricePaise = totalAmountPaise > FREE_SHIPPING_THRESHOLD * 100
     ? 0
     : Math.round(SHIPPING_CHARGE * 100);
-  const taxPricePaise = Math.round(totalAmountPaise * GST_RATE);
-  let finalTotalAmountPaise = totalAmountPaise + shippingPricePaise + taxPricePaise;
+  let finalTotalAmountPaise = totalAmountPaise + shippingPricePaise;
 
   // ── Server-side coupon validation ─────────────────────────────────────────
   const { couponCode, isCOD } = req.body;

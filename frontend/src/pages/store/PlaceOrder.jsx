@@ -10,7 +10,6 @@ import { loadRazorpayScript } from '../../utils/razorpay';
 // ── Shared business constants (kept in sync with backend/utils/constants.js) ──
 const FREE_SHIPPING_THRESHOLD = 5000;
 const SHIPPING_CHARGE = 250;
-const GST_RATE = 0.18;
 const COD_ADVANCE = 500;
 
 /**
@@ -49,18 +48,16 @@ const PlaceOrder = () => {
     ? 0
     : toPaise(SHIPPING_CHARGE);
 
-  const taxPaise = Math.round(cartPaise * GST_RATE);
-
   let discountPaise = 0;
   if (appliedCoupon) {
     if (appliedCoupon.discountType === 'PERCENTAGE') {
-      discountPaise = Math.round((cartPaise + shippingPaise + taxPaise) * (appliedCoupon.value / 10000));
+      discountPaise = Math.round((cartPaise + shippingPaise) * (appliedCoupon.value / 10000));
     } else {
       discountPaise = appliedCoupon.value;
     }
   }
 
-  const totalPaise = cartPaise + shippingPaise + taxPaise - discountPaise;
+  const totalPaise = cartPaise + shippingPaise - discountPaise;
   // Guard: total can never go below zero
   const safeTotalPaise = Math.max(0, totalPaise);
 
@@ -210,10 +207,6 @@ const PlaceOrder = () => {
               <div className="flex justify-between">
                 <span>Shipping</span>
                 <span>{shippingPaise === 0 ? <span className="text-green-600">Free</span> : `₹${fmt(shippingPaise)}`}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Tax (GST 18%)</span>
-                <span>₹{fmt(taxPaise)}</span>
               </div>
               {appliedCoupon && (
                 <div className="flex justify-between text-green-600 font-medium">
