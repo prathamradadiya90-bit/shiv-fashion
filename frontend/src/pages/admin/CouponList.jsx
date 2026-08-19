@@ -26,7 +26,7 @@ const CouponList = () => {
     try {
       setLoading(true);
       const { data } = await api.get('/coupons');
-      setCoupons(data);
+      setCoupons(data.coupons || []);
     } catch {
       toast.error('Failed to load coupons');
     } finally {
