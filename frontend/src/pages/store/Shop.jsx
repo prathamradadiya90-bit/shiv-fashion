@@ -69,7 +69,11 @@ const Shop = () => {
         setLoading(false);
       }
     };
-    fetchProducts();
+    const timeoutId = setTimeout(() => {
+      fetchProducts();
+    }, 400);
+
+    return () => clearTimeout(timeoutId);
   }, [page, searchTerm, categoryParam, selectedPrices, sortBy]);
 
   const toggleWishlist = async (e, id) => {
@@ -225,6 +229,7 @@ const Shop = () => {
                     <img 
                       src={item.images?.[0]?.url || FALLBACK_IMAGE}
                       alt={item.name} 
+                      loading="lazy"
                       className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     />
 

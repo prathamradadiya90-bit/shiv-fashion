@@ -57,7 +57,7 @@ const Cart = () => {
                     
                     {/* Product Info */}
                     <div className="col-span-3 flex items-center w-full">
-                      <img src={item.image || FALLBACK_IMAGE} alt={item.name} className="w-20 h-24 object-cover rounded" />
+                      <img src={item.image || FALLBACK_IMAGE} alt={item.name} loading="lazy" className="w-20 h-24 object-cover rounded" />
                       <div className="ml-4">
                         <Link to={`/product/${item.id}`} className="font-bold text-gray-800 hover:text-primary transition-colors">
                           {item.name}

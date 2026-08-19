@@ -276,6 +276,7 @@ const ProductDetails = () => {
                     <img
                       src={img.url}
                       alt={`${product.name} thumbnail ${idx + 1}`}
+                      loading="lazy"
                       className="w-full h-full object-cover"
                     />
                   </button>

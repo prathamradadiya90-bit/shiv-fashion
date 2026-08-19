@@ -347,6 +347,7 @@ const Home = () => {
                     <img 
                       src={item.images[0]?.url || 'https://via.placeholder.com/400x533'} 
                       alt={item.name}
+                      loading="lazy"
                       className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                     />
                     
