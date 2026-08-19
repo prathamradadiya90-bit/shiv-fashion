@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Great+Vibes&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Jost:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Great+Vibes&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,37 +6,37 @@
 
 @layer base {
   body {
-    @apply font-sans text-gray-800 bg-accent/30;
+    @apply font-sans text-gray-900 bg-white;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading text-primary-dark;
+    @apply font-heading text-primary-dark tracking-tight;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-primary text-accent px-6 py-2 rounded-md transition-all duration-300 font-medium shadow-sm hover:shadow-lg hover:bg-primary-light hover:-translate-y-1 active:scale-95;
+    @apply bg-primary text-white px-8 py-2.5 rounded-sm transition-all duration-300 font-medium hover:bg-primary-dark active:scale-[0.98];
   }
   
   .btn-secondary {
-    @apply bg-secondary text-primary-dark px-6 py-2 rounded-md transition-all duration-300 font-medium shadow-sm hover:shadow-lg hover:bg-secondary-light hover:-translate-y-1 active:scale-95;
+    @apply bg-secondary text-primary-dark px-8 py-2.5 rounded-sm transition-all duration-300 font-medium hover:bg-secondary-dark active:scale-[0.98];
   }
   
   .btn-outline {
-    @apply border-2 border-primary text-primary px-6 py-2 rounded-md hover:bg-primary hover:text-accent transition-all duration-300 font-medium hover:shadow-lg hover:-translate-y-1 active:scale-95;
+    @apply border border-primary text-primary px-8 py-2.5 rounded-sm hover:bg-primary hover:text-white transition-all duration-300 font-medium active:scale-[0.98];
   }
   
   .card {
-    @apply bg-white rounded-lg shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 overflow-hidden;
+    @apply bg-white rounded-sm border border-gray-100 transition-all duration-300 hover:border-gray-300 overflow-hidden;
   }
   
   .glass {
-    @apply bg-white/90 backdrop-blur-md border border-white/20 shadow-sm;
+    @apply bg-white/95 border border-gray-100 shadow-sm;
   }
   
   .glass-dark {
-    @apply bg-black/40 backdrop-blur-md border border-white/10 shadow-lg;
+    @apply bg-black/95 border border-gray-800 shadow-md;
   }
 
   .text-gradient {

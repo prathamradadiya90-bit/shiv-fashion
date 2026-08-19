@@ -215,7 +215,7 @@ const Home = () => {
             onClick={() => navigate('/shop')}
             className="group relative inline-flex items-center justify-center gap-3 px-10 py-4 font-medium text-white transition-all duration-500 ease-in-out bg-transparent border border-[#D4AF37]/60 hover:bg-[#D4AF37] hover:border-[#D4AF37] hover:text-[#1a050b] hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] hover:-translate-y-1 active:scale-95 tracking-[0.2em] uppercase text-xs md:text-sm overflow-hidden"
           >
-            <span className="relative z-10">Explore Collection</span>
+            <span className="relative z-10">Shop the Collection</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform relative z-10" />
             <div className="absolute inset-0 h-full w-0 bg-white/20 transition-[width] duration-500 ease-out group-hover:w-full z-0"></div>
           </motion.button>
@@ -253,7 +253,7 @@ const Home = () => {
             </h2>
             <div className="flex items-center justify-center gap-4">
               <div className="h-[2px] w-12 md:w-24 bg-gradient-to-r from-transparent to-[#D4AF37]"></div>
-              <p className="text-[#D4AF37] font-serif text-2xl md:text-3xl" style={{ fontFamily: "'Great Vibes', cursive" }}>Discover your perfect style</p>
+              <p className="text-[#D4AF37] font-serif text-2xl md:text-3xl" style={{ fontFamily: "'Great Vibes', cursive" }}>Our Signature Styles</p>
               <div className="h-[2px] w-12 md:w-24 bg-gradient-to-l from-transparent to-[#D4AF37]"></div>
             </div>
           </motion.div>

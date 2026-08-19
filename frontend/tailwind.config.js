@@ -22,8 +22,8 @@ export default {
         }
       },
       fontFamily: {
-        heading: ['Playfair Display', 'serif'],
-        sans: ['Inter', 'sans-serif'],
+        heading: ['Cormorant Garamond', 'serif'],
+        sans: ['Jost', 'sans-serif'],
       },
     },
   },
