@@ -17,6 +17,7 @@ const Shop = () => {
   const [sortBy, setSortBy] = useState('Latest');
   const [total, setTotal] = useState(0);
   const [wishlistIds, setWishlistIds] = useState(new Set());
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const { userInfo } = useSelector((state) => state.auth);
 
@@ -155,8 +156,17 @@ const Shop = () => {
       </div>
 
       <div className="flex flex-col md:flex-row gap-8">
+        {/* Mobile Filter Toggle Button */}
+        <button 
+          onClick={() => setShowMobileFilters(!showMobileFilters)}
+          className="md:hidden flex items-center justify-center w-full bg-white border border-gray-200 py-3 rounded-sm shadow-sm text-sm font-semibold text-gray-800"
+        >
+          <Filter size={18} className="mr-2" /> 
+          {showMobileFilters ? 'Hide Filters' : 'Show Filters'}
+        </button>
+
         {/* Sidebar Filters */}
-        <div className="w-full md:w-64 flex-shrink-0">
+        <div className={`w-full md:w-64 flex-shrink-0 ${showMobileFilters ? 'block' : 'hidden md:block'}`}>
           <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 sticky top-24">
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
               <h3 className="font-bold text-lg flex items-center"><Filter size={18} className="mr-2"/> Filters</h3>
