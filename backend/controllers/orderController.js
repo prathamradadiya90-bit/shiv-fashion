@@ -687,6 +687,33 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       order.id,
       'Order'
     );
+  } else if (status === 'CONFIRMED') {
+    await sendNotification(
+      order.userId,
+      'Order Confirmed',
+      `Your order ${order.id} has been confirmed.`,
+      'ORDER_CONFIRMED',
+      order.id,
+      'Order'
+    );
+  } else if (status === 'DELIVERED') {
+    await sendNotification(
+      order.userId,
+      'Order Delivered',
+      `Your order ${order.id} has been delivered successfully.`,
+      'ORDER_DELIVERED',
+      order.id,
+      'Order'
+    );
+  } else if (status === 'CANCELLED') {
+    await sendNotification(
+      order.userId,
+      'Order Cancelled',
+      `Your order ${order.id} has been cancelled by the admin.`,
+      'ORDER_CANCELLED',
+      order.id,
+      'Order'
+    );
   }
 
   res.json(order);
