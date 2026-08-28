@@ -195,6 +195,8 @@ app.use((err, _req, res, _next) => {
   const isOperational = statusCode !== 500;
   res.status(statusCode).json({
     message: isOperational ? (err.message || 'Server Error') : 'Internal Server Error',
+    stack: err.stack,
+    errorObj: err
   });
 });
 
