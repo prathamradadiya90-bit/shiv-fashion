@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, MessageCircle, ChevronRight, ShieldCheck, Truck, CreditCard, RefreshCw } from 'lucide-react';
 

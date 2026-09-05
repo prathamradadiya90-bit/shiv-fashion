@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Mail, Check, Inbox, Trash2, Search, ExternalLink, MessageSquare, Clock } from 'lucide-react';
 import api from '../../services/api';
 import { toast } from 'react-toastify';

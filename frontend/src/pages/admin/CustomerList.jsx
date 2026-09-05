@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Ban, CheckCircle, Download, Search, RefreshCw, ChevronLeft, ChevronRight, User, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../../services/api';

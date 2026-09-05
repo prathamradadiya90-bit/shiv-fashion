@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../../services/api';

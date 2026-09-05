@@ -1,0 +1,13 @@
+{
+  "env": { "browser": true, "es2021": true, "node": true },
+  "parserOptions": { "ecmaVersion": 12, "sourceType": "module", "ecmaFeatures": { "jsx": true } },
+  "plugins": ["unused-imports", "react"],
+  "extends": ["plugin:react/recommended", "plugin:react/jsx-runtime"],
+  "rules": {
+    "unused-imports/no-unused-imports": "error",
+    "react/prop-types": "off"
+  },
+  "settings": {
+    "react": { "version": "detect" }
+  }
+}

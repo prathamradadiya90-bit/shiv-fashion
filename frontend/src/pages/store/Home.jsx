@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Check, ShoppingBag, ArrowDown, Star } from 'lucide-react';
+import { ArrowRight, Check, ShoppingBag, ArrowDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../../services/api';
 import SEO from '../../components/common/SEO';

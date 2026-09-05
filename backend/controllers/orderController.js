@@ -185,8 +185,9 @@ const addOrderItems = asyncHandler(async (req, res) => {
       receipt: `rcpt_${Date.now()}`,
     });
   } catch (error) {
+    console.error('[orderController] Razorpay order creation failed:', error);
     res.status(400);
-    throw new Error('Failed to create payment order. Check Razorpay keys.');
+    throw new Error(`Failed to create payment order: ${error.message || 'Check Razorpay keys'}`);
   }
 
   const enhancedShippingAddress = {

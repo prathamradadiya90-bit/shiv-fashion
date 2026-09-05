@@ -39,7 +39,8 @@ const initSocket = (server) => {
       socket.userId = decoded.userId;
       next();
     } catch (error) {
-      next(new Error('Authentication error: Invalid token'));
+      console.error('[socket] JWT verification failed:', error);
+      next(new Error(`Authentication error: Invalid token - ${error.message}`));
     }
   });
 

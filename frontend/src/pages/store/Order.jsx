@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { CheckCircle, Truck, RotateCcw, XCircle, AlertTriangle, X, Download } from 'lucide-react';
+import { CheckCircle, RotateCcw, XCircle, AlertTriangle, X, Download } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { loadRazorpayScript } from '../../utils/razorpay';

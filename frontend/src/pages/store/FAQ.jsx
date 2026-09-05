@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   HelpCircle, 
@@ -10,9 +10,7 @@ import {
   CreditCard, 
   Sparkles, 
   MessageCircle, 
-  PhoneCall, 
-  Mail,
-  CheckCircle2
+  Mail
 } from 'lucide-react';
 import SEO from '../../components/common/SEO';
 

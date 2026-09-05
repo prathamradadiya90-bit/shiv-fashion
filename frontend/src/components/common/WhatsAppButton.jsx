@@ -1,4 +1,3 @@
-import React from 'react';
 
 const WhatsAppButton = () => {
   const phoneNumber = "919377126401"; // Using the number from the footer
