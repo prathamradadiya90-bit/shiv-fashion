@@ -191,12 +191,11 @@ app.use((req, res, next) => {
 // ── Global error handler ──────────────────────────────────────────────────────
 app.use((err, _req, res, _next) => {
   logger.error({ message: err.message, stack: err.stack });
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-  const isOperational = statusCode !== 500;
+  const statusCode = res.statusCode === 200 ? (err.statusCode || err.status || 500) : res.statusCode;
   res.status(statusCode).json({
-    message: isOperational ? (err.message || 'Server Error') : 'Internal Server Error',
-    stack: err.stack,
-    errorObj: err
+    message: err.message || 'Internal Server Error',
+    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
+    errorObj: process.env.NODE_ENV === 'production' ? null : err
   });
 });
 
