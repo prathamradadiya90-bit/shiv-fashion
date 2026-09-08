@@ -20,16 +20,17 @@ import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { addToCart } from '../../store/slices/cartSlice';
 import SEO from '../../components/common/SEO';
+import NotFound from './NotFound';
+import ProductReviews from '../../components/store/ProductReviews';
 import { FALLBACK_IMAGE, MAX_QUANTITY } from '../../utils/constants';
+import { useQuery } from '@tanstack/react-query';
 
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { userInfo } = useSelector((state) => state.auth);
 
   const [selectedSize] = useState('Free size');
   const [selectedColor, setSelectedColor] = useState('');
@@ -51,8 +52,6 @@ const ProductDetails = () => {
 
   const [isWishlisted, setIsWishlisted] = useState(false);
 
-  const { userInfo } = useSelector((state) => state.auth);
-
   useEffect(() => {
     if (userInfo && id) {
       api.get('/auth/profile')
@@ -63,24 +62,24 @@ const ProductDetails = () => {
     }
   }, [userInfo, id]);
 
-  useEffect(() => {
-    fetchProduct();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-
   const fetchProduct = async () => {
-    setError(null);
-    try {
-      const { data } = await api.get(`/products/${id}`);
-      setProduct(data);
-      if (data.colors?.length > 0) setSelectedColor(data.colors[0].name);
-      setActiveImageIndex(0);
-    } catch {
-      setError('Product not found or is unavailable.');
-    } finally {
-      setLoading(false);
-    }
+    const { data } = await api.get(`/products/${id}`);
+    return data;
   };
+
+  const { data: product, isLoading: loading, error, refetch } = useQuery({
+    queryKey: ['product', id],
+    queryFn: fetchProduct,
+    enabled: !!id,
+    retry: 1,
+  });
+
+  useEffect(() => {
+    if (product) {
+      if (product.colors?.length > 0) setSelectedColor(product.colors[0].name);
+      setActiveImageIndex(0);
+    }
+  }, [product]);
 
   const handleMouseMove = (e) => {
     const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
@@ -196,7 +195,7 @@ const ProductDetails = () => {
   };
 
   if (loading) return <div className="container mx-auto py-20 text-center text-slate-500 font-medium animate-pulse">Loading product details...</div>;
-  if (error || !product) return <div className="container mx-auto py-20 text-center text-red-500 font-medium">{error || 'Product not found.'}</div>;
+  if (error || !product) return <NotFound />;
 
   const finalPrice = computeFinalPrice(product.price, product.discount);
 
@@ -591,6 +590,10 @@ const ProductDetails = () => {
           </div>
         </div>
       )}
+
+      {/* Reviews Section */}
+      <ProductReviews product={product} onReviewAdded={refetch} />
+
     </div>
   );
 };

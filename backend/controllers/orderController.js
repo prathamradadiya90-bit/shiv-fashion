@@ -81,16 +81,23 @@ const addOrderItems = asyncHandler(async (req, res) => {
   });
   const productMap = Object.fromEntries(products.map(p => [p.id, p]));
 
-  // Pre-validate stock before entering transaction (fast-fail for user feedback)
+  // Aggregate quantities by productId to prevent the race condition where multiple 
+  // variants of the same product pass individual checks but exceed total stock
+  const quantityMap = {};
   for (const item of orderItems) {
-    const product = productMap[item.productId];
+    quantityMap[item.productId] = (quantityMap[item.productId] || 0) + parseInt(item.quantity, 10);
+  }
+
+  // Pre-validate stock before entering transaction (fast-fail for user feedback)
+  for (const productId of productIds) {
+    const product = productMap[productId];
     if (!product) {
       res.status(404);
-      throw new Error(`Product ${item.productId} not found or is no longer available`);
+      throw new Error(`Product ${productId} not found or is no longer available`);
     }
-    if (product.stock < parseInt(item.quantity, 10)) {
+    if (product.stock < quantityMap[productId]) {
       res.status(400);
-      throw new Error(`Insufficient stock for product: ${product.name}`);
+      throw new Error(`Insufficient stock for ${product.name}. Only ${product.stock} available.`);
     }
   }
 
@@ -319,6 +326,11 @@ const verifyPayment = asyncHandler(async (req, res) => {
 
   if (order.paymentStatus === 'PAID') {
     return res.json({ message: 'Payment already verified' });
+  }
+
+  if (order.razorpayOrderId !== razorpayOrderId) {
+    res.status(400);
+    throw new Error('Payment details do not match this order');
   }
 
   const body = razorpayOrderId + '|' + razorpayPaymentId;

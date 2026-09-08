@@ -73,6 +73,12 @@ if (typeof initSocket === 'function' && !process.env.VERCEL) {
   initSocket(httpServer);
 }
 
+// ── Initialize Cron Jobs ──────────────────────────────────────────────────────
+const { startCronJobs } = require('./jobs/cronJobs');
+if (!process.env.VERCEL) {
+  startCronJobs();
+}
+
 // ── CORS ──────────────────────────────────────────────────────────────────────
 // Restrict CORS to an explicit allowlist of known origins.
 // Set ALLOWED_ORIGINS in your .env as a comma-separated list, e.g.:

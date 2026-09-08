@@ -397,7 +397,7 @@ const createProductReview = asyncHandler(async (req, res) => {
     throw new Error('Invalid product ID format');
   }
 
-  const { rating, comment } = req.body;
+  const { rating, comment, images } = req.body;
   const productId = req.params.id;
   const userId = req.user.id;
 
@@ -437,7 +437,13 @@ const createProductReview = asyncHandler(async (req, res) => {
         comment: comment.trim(),
         productId,
         userId,
+        images: {
+          create: Array.isArray(images) ? images.map(img => ({ url: String(img.url), publicId: String(img.publicId) })) : [],
+        },
       },
+      include: {
+        images: true
+      }
     });
 
     const productReviews = await tx.review.findMany({ where: { productId } });
@@ -554,6 +560,29 @@ const toggleProductStatus = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Upvote a review
+// @route   POST /api/products/reviews/:id/upvote
+// @access  Private
+const upvoteReview = asyncHandler(async (req, res) => {
+  if (!isValidUUID(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid review ID format');
+  }
+
+  const review = await prisma.review.findUnique({ where: { id: req.params.id } });
+  if (!review) {
+    res.status(404);
+    throw new Error('Review not found');
+  }
+
+  const updatedReview = await prisma.review.update({
+    where: { id: req.params.id },
+    data: { upvotes: { increment: 1 } },
+  });
+
+  res.json({ message: 'Review upvoted', review: updatedReview });
+});
+
 module.exports = {
   getProducts,
   getProductById,
@@ -566,4 +595,5 @@ module.exports = {
   deleteReview,
   getCategories,
   toggleProductStatus,
+  upvoteReview,
 };

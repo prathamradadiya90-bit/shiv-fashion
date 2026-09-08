@@ -3,19 +3,16 @@ import { Filter, ChevronDown, Search, Heart } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
+import { useQuery } from '@tanstack/react-query';
 import api from '../../services/api';
 import SEO from '../../components/common/SEO';
 import { FALLBACK_IMAGE } from '../../utils/constants';
 
 const Shop = () => {
-  const [products, setProducts] = useState([]);
   const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPrices, setSelectedPrices] = useState([]);
   const [sortBy, setSortBy] = useState('Latest');
-  const [total, setTotal] = useState(0);
   const [wishlistIds, setWishlistIds] = useState(new Set());
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
@@ -40,42 +37,36 @@ const Shop = () => {
     setPage(1);
   }, [searchTerm, categoryParam, selectedPrices, sortBy]);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const queryParamsObj = new URLSearchParams({ pageNumber: page });
-        if (searchTerm) queryParamsObj.append('search', searchTerm);
-        if (categoryParam) queryParamsObj.append('category', categoryParam);
-        if (sortBy) queryParamsObj.append('sortBy', sortBy);
+  const fetchProducts = async () => {
+    const queryParamsObj = new URLSearchParams({ pageNumber: page });
+    if (searchTerm) queryParamsObj.append('search', searchTerm);
+    if (categoryParam) queryParamsObj.append('category', categoryParam);
+    if (sortBy) queryParamsObj.append('sortBy', sortBy);
 
-        if (selectedPrices.length > 0) {
-          const ranges = selectedPrices.map(range => {
-            if (range === 'Under ₹2,000') return '0-1999.99';
-            if (range === '₹2,000 - ₹5,000') return '2000-5000';
-            if (range === '₹5,000 - ₹10,000') return '5000.01-10000';
-            if (range === 'Above ₹10,000') return '10000.01-';
-            return '';
-          }).filter(Boolean).join(',');
-          queryParamsObj.append('priceRanges', ranges);
-        }
+    if (selectedPrices.length > 0) {
+      const ranges = selectedPrices.map(range => {
+        if (range === 'Under ₹2,000') return '0-1999.99';
+        if (range === '₹2,000 - ₹5,000') return '2000-5000';
+        if (range === '₹5,000 - ₹10,000') return '5000.01-10000';
+        if (range === 'Above ₹10,000') return '10000.01-';
+        return '';
+      }).filter(Boolean).join(',');
+      queryParamsObj.append('priceRanges', ranges);
+    }
 
-        const { data } = await api.get(`/products?${queryParamsObj.toString()}`);
-        setProducts(data.products || data);
-        if (data.pages) setPages(data.pages);
-        setTotal(data.total || (data.products ? data.products.length : data.length) || 0);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    const timeoutId = setTimeout(() => {
-      fetchProducts();
-    }, 400);
+    const { data } = await api.get(`/products?${queryParamsObj.toString()}`);
+    return data;
+  };
 
-    return () => clearTimeout(timeoutId);
-  }, [page, searchTerm, categoryParam, selectedPrices, sortBy]);
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['products', page, searchTerm, categoryParam, selectedPrices, sortBy],
+    queryFn: fetchProducts,
+    placeholderData: (previousData) => previousData,
+  });
+
+  const products = data?.products || data || [];
+  const pages = data?.pages || 1;
+  const total = data?.total || (data?.products ? data.products.length : data?.length) || 0;
 
   const toggleWishlist = async (e, id) => {
     e.preventDefault(); // Prevent navigating to product details

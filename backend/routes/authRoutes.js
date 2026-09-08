@@ -10,6 +10,7 @@ const {
   logoutAllDevices,
   forgotPassword,
   resetPassword,
+  verifyEmail,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -39,6 +40,7 @@ router.post('/logout-all', protect, logoutAllDevices);
 
 router.post('/forgot-password', forgotPasswordLimiter, forgotPassword);
 router.post('/reset-password/:token', resetPassword);
+router.get('/verify-email/:token', verifyEmail);
 
 router.route('/profile').get(protect, getUserProfile).put(protect, updateUserProfile);
 

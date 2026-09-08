@@ -5,6 +5,7 @@ import { CheckCircle, RotateCcw, XCircle, AlertTriangle, X, Download } from 'luc
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { loadRazorpayScript } from '../../utils/razorpay';
+import NotFound from './NotFound';
 
 const Order = () => {
   const { id } = useParams();
@@ -30,6 +31,7 @@ const Order = () => {
       setOrder(data);
     } catch (error) {
       console.error(error);
+      setOrder(null);
     } finally {
       setLoading(false);
     }
@@ -158,7 +160,7 @@ const Order = () => {
   };
 
   if (loading) return <div className="text-center py-20">Loading order...</div>;
-  if (!order) return <div className="text-center py-20 text-red-500 font-bold">Order Not Found</div>;
+  if (!order) return <NotFound />;
 
   const isPaid = order.paymentStatus === 'PAID';
   const isCancelled = order.status === 'CANCELLED';

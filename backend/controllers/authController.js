@@ -49,6 +49,9 @@ const registerUser = asyncHandler(async (req, res) => {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
+  const verificationToken = crypto.randomBytes(32).toString('hex');
+  const emailVerificationToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+
   const user = await prisma.user.create({
     data: {
       name: name.trim(),
@@ -56,6 +59,8 @@ const registerUser = asyncHandler(async (req, res) => {
       password: hashedPassword,
       phone: phone ? phone.trim() : null,
       role: 'CUSTOMER',
+      isEmailVerified: false,
+      emailVerificationToken,
     },
   });
 
@@ -63,24 +68,58 @@ const registerUser = asyncHandler(async (req, res) => {
     // Notify admins of new registration
     await sendNotificationToAdmins(
       'New User Registration',
-      `${user.name} has registered an account.`,
+      `${user.name} has registered an account and is pending email verification.`,
       'NEW_USER',
       user.id,
       'User'
     );
 
-    const token = generateToken(res, user.id, user.tokenVersion);
+    const verifyUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email/${verificationToken}`;
+    
+    await sendEmail({
+      email: user.email,
+      subject: 'Verify your Email Address',
+      message: `Welcome to Shreeji Fashion! Please verify your email by clicking the link: ${verifyUrl}`,
+      html: `<p>Welcome to Shreeji Fashion!</p><p>Please verify your email by clicking the link below:</p><a href="${verifyUrl}" style="display:inline-block;padding:10px 20px;background:#800020;color:white;text-decoration:none;border-radius:5px;margin:15px 0;">Verify Email</a>`,
+    }).catch(err => logger.error(`Failed to send verification email: ${err.message}`));
+
     res.status(201).json({
+      message: 'Registration successful. Please check your email to verify your account.',
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
-      token,
     });
   } else {
     res.status(400);
     throw new Error('Invalid user data');
   }
+});
+
+// @desc    Verify user email
+// @route   GET /api/auth/verify-email/:token
+// @access  Public
+const verifyEmail = asyncHandler(async (req, res) => {
+  const emailVerificationToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+  const user = await prisma.user.findFirst({
+    where: { emailVerificationToken },
+  });
+
+  if (!user) {
+    res.status(400);
+    throw new Error('Invalid or expired verification token');
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      isEmailVerified: true,
+      emailVerificationToken: null,
+    },
+  });
+
+  res.status(200).json({ message: 'Email verified successfully. You can now log in.' });
 });
 
 // @desc    Auth user & get token
@@ -105,6 +144,10 @@ const loginUser = asyncHandler(async (req, res) => {
     if (user.status === 'Blocked') {
       res.status(403);
       throw new Error('Your account has been blocked by the admin');
+    }
+    if (!user.isEmailVerified) {
+      res.status(403);
+      throw new Error('Please verify your email address before logging in');
     }
     const token = generateToken(res, user.id, user.tokenVersion);
     res.json({
@@ -358,4 +401,5 @@ module.exports = {
   logoutAllDevices,
   forgotPassword,
   resetPassword,
+  verifyEmail,
 };

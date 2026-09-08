@@ -12,6 +12,7 @@ const {
   deleteReview,
   getCategories,
   toggleProductStatus,
+  upvoteReview,
 } = require('../controllers/productController');
 const { protect, superAdmin } = require('../middleware/authMiddleware');
 
@@ -28,6 +29,9 @@ router.route('/reviews/all')
 
 router.route('/reviews/:id')
   .delete(protect, superAdmin, deleteReview);
+
+router.route('/reviews/:id/upvote')
+  .post(protect, upvoteReview);
 
 router.route('/:id')
   .get(getProductById)
