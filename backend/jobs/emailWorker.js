@@ -29,7 +29,7 @@ const processEmailJob = async (options) => {
   return info.messageId;
 };
 
-if (process.env.NODE_ENV === 'test' || !process.env.REDIS_URL) {
+if (process.env.NODE_ENV !== 'production') {
   // Use synchronous email sending if Redis is not configured
   emailQueue = { 
     add: async (name, options) => {

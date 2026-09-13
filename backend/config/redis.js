@@ -6,8 +6,8 @@ const redisConfig = {
   port: process.env.REDIS_PORT ? Number(process.env.REDIS_PORT) : 6379,
   maxRetriesPerRequest: null,
   retryStrategy(times) {
-    if (process.env.NODE_ENV === 'test' || !process.env.REDIS_URL) {
-      return null; // Do not retry if no REDIS_URL is set or in test environment
+    if (process.env.NODE_ENV !== 'production') {
+      return null; // Do not retry locally
     }
     return Math.min(times * 50, 2000);
   }
@@ -16,7 +16,7 @@ const redisConfig = {
 const connection = new Redis(process.env.REDIS_URL || redisConfig);
 
 connection.on('error', (err) => {
-  if (process.env.NODE_ENV !== 'test' && process.env.REDIS_URL) {
+  if (process.env.NODE_ENV === 'production') {
     logger.error(`[Redis] Connection Error: ${err.message}`);
   }
 });
