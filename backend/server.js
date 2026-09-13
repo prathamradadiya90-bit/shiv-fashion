@@ -128,6 +128,12 @@ app.get('/robots.txt', (_req, res) => {
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/', (_req, res) => res.send('Shreeji Fashion API is running'));
 
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok'
+  });
+});
+
 // ── Routes ────────────────────────────────────────────────────────────────────
 const apiRouter = express.Router();
 apiRouter.use('/auth', require('./routes/authRoutes'));
@@ -206,10 +212,10 @@ app.use((err, _req, res, _next) => {
 });
 
 // ── Start server (not in Vercel/serverless environment) ──────────────────────
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 let server;
-if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
-  server = httpServer.listen(PORT, () => {
+if (!process.env.VERCEL) {
+  server = httpServer.listen(PORT, "0.0.0.0", () => {
     logger.info(`[server] Running on port ${PORT}`);
   });
 }
