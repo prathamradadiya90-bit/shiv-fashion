@@ -5,8 +5,42 @@ const connection = require('../config/redis');
 
 let emailQueue, emailWorker;
 
-if (process.env.NODE_ENV === 'test') {
-  emailQueue = { add: async () => {} };
+const processEmailJob = async (options) => {
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 465,
+    secure: (Number(process.env.SMTP_PORT) || 465) === 465,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+
+  const message = {
+    from: `${process.env.SMTP_FROM_NAME || 'Shreeji Fashion'} <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
+    to: options.email,
+    subject: options.subject,
+    text: options.message,
+    html: options.html,
+  };
+
+  const info = await transporter.sendMail(message);
+  logger.info(`[emailWorker] Sent to ${options.email} — messageId: ${info.messageId}`);
+  return info.messageId;
+};
+
+if (process.env.NODE_ENV === 'test' || !process.env.REDIS_URL) {
+  // Use synchronous email sending if Redis is not configured
+  emailQueue = { 
+    add: async (name, options) => {
+      logger.info(`[emailQueue] Sending email synchronously to ${options.email} (Redis disabled)`);
+      try {
+        await processEmailJob(options);
+      } catch (err) {
+        logger.error(`[emailWorker] Failed to send email: ${err.message}`);
+      }
+    } 
+  };
   emailWorker = { on: () => {} };
 } else {
   // Create the Queue
@@ -14,29 +48,7 @@ if (process.env.NODE_ENV === 'test') {
 
   // Define the Worker
   emailWorker = new Worker('email-queue', async (job) => {
-    const options = job.data;
-    
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 465,
-      secure: (Number(process.env.SMTP_PORT) || 465) === 465,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-
-    const message = {
-      from: `${process.env.SMTP_FROM_NAME || 'Shreeji Fashion'} <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
-      to: options.email,
-      subject: options.subject,
-      text: options.message,
-      html: options.html,
-    };
-
-    const info = await transporter.sendMail(message);
-    logger.info(`[emailWorker] Sent to ${options.email} — messageId: ${info.messageId}`);
-    return info.messageId;
+    return await processEmailJob(job.data);
   }, { connection });
 
   emailWorker.on('completed', (job) => {
