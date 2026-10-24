@@ -62,14 +62,26 @@ api.interceptors.response.use(
         return Promise.reject(error);
       }
 
-      // Token is genuinely expired or invalid — clear session and redirect to login.
-      // This covers /my-orders, /profile, /cart and all other protected pages.
+      // Protected routes where session expiry requires redirecting to login
+      const PROTECTED_PAGES = [
+        '/admin',
+        '/profile',
+        '/my-orders',
+        '/orders',
+        '/wishlist',
+      ];
+      const isProtectedPage = PROTECTED_PAGES.some((p) => currentPage.startsWith(p));
+
+      // Token is expired or invalid — clear session from Redux & localStorage
       store.dispatch(logout());
+
+      // Only redirect to login if user is on an actively protected route
       if (
-        window.location.pathname !== '/login' &&
-        window.location.pathname !== '/register'
+        isProtectedPage &&
+        currentPage !== '/login' &&
+        currentPage !== '/register'
       ) {
-        window.location.href = '/login?expired=true';
+        window.location.href = `/login?expired=true&redirect=${encodeURIComponent(currentPage)}`;
       }
     }
     return Promise.reject(error);

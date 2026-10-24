@@ -59,8 +59,8 @@ const registerUser = asyncHandler(async (req, res) => {
       password: hashedPassword,
       phone: phone ? phone.trim() : null,
       role: 'CUSTOMER',
-      isEmailVerified: false,
-      emailVerificationToken,
+      isEmailVerified: true,
+      emailVerificationToken: null,
     },
   });
 
@@ -68,27 +68,22 @@ const registerUser = asyncHandler(async (req, res) => {
     // Notify admins of new registration
     await sendNotificationToAdmins(
       'New User Registration',
-      `${user.name} has registered an account and is pending email verification.`,
+      `${user.name} has registered an account.`,
       'NEW_USER',
       user.id,
       'User'
-    );
+    ).catch(() => {});
 
-    const verifyUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email/${verificationToken}`;
-    
-    await sendEmail({
-      email: user.email,
-      subject: 'Verify your Email Address | chaniyacholi.nook',
-      message: `Welcome to chaniyacholi.nook! Please verify your email by clicking the link: ${verifyUrl}`,
-      html: `<p>Welcome to <strong>chaniyacholi.nook</strong>!</p><p>Please verify your email by clicking the link below:</p><a href="${verifyUrl}" style="display:inline-block;padding:10px 20px;background:#72092C;color:white;text-decoration:none;border-radius:5px;margin:15px 0;">Verify Email</a>`,
-    }).catch(err => logger.error(`Failed to send verification email: ${err.message}`));
+    // Issue JWT authentication token so user is immediately logged in
+    const token = generateToken(res, user.id, user.tokenVersion);
 
     res.status(201).json({
-      message: 'Registration successful. Please check your email to verify your account.',
+      message: 'Registration successful!',
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
+      token,
     });
   } else {
     res.status(400);
@@ -146,8 +141,10 @@ const loginUser = asyncHandler(async (req, res) => {
       throw new Error('Your account has been blocked by the admin');
     }
     if (!user.isEmailVerified) {
-      res.status(403);
-      throw new Error('Please verify your email address before logging in');
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { isEmailVerified: true },
+      }).catch(() => {});
     }
     const token = generateToken(res, user.id, user.tokenVersion);
     res.json({

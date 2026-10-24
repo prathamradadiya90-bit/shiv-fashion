@@ -53,12 +53,12 @@ const ProductDetails = () => {
   const [isWishlisted, setIsWishlisted] = useState(false);
 
   useEffect(() => {
-    if (userInfo && id) {
+    if (userInfo?.token && id) {
       api.get('/auth/profile')
         .then(({ data }) => {
           setIsWishlisted(data.wishlist?.some(item => item.id === id) || false);
         })
-        .catch(console.error);
+        .catch(() => {});
     }
   }, [userInfo, id]);
 

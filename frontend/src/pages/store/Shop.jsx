@@ -19,12 +19,12 @@ const Shop = () => {
   const { userInfo } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (userInfo) {
+    if (userInfo?.token) {
       api.get('/auth/profile')
         .then(({ data }) => {
           setWishlistIds(new Set(data.wishlist?.map(item => item.id) || []));
         })
-        .catch(console.error);
+        .catch(() => {});
     }
   }, [userInfo]);
 
