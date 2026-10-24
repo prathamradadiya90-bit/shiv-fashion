@@ -11,11 +11,17 @@ import {
   Tag,
   Mail,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  Download,
+  FileSpreadsheet,
+  RefreshCw
 } from 'lucide-react';
+import { toast } from 'react-toastify';
 import api from '../../services/api';
 import AdminHeader from '../../components/admin/AdminHeader';
 import StatusBadge from '../../components/admin/StatusBadge';
+import RevenueChart from '../../components/admin/RevenueChart';
+import { CategoryPerformanceWidget, FulfillmentHealthWidget } from '../../components/admin/AnalyticsWidgets';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -23,36 +29,68 @@ const Dashboard = () => {
     totalOrders: 0,
     totalRevenue: 0,
     totalProducts: 0,
+    averageOrderValue: 0,
+    fulfillmentRate: 0,
     recentOrders: [],
-    topProducts: []
+    topProducts: [],
+    revenueTrends: [],
+    categoryBreakdown: [],
+    statusBreakdown: {}
   });
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      const { data } = await api.get('/stats');
+      setStats(data);
+    } catch (error) {
+      console.error('Failed to fetch dashboard stats', error);
+      toast.error('Could not refresh dashboard statistics');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const { data } = await api.get('/stats');
-        setStats(data);
-      } catch (error) {
-        console.error('Failed to fetch dashboard stats', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchStats();
   }, []);
+
+  const handleExportCSV = async (type) => {
+    try {
+      setExporting(true);
+      const response = await api.get(`/export/${type}`, { responseType: 'blob' });
+      const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${type}_export_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success(`Successfully exported ${type}.csv`);
+    } catch {
+      toast.error(`No ${type} records available to export`);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (loading) {
     return (
       <div className="space-y-6 animate-pulse">
+        <div className="h-16 bg-white rounded-2xl border border-neutral-200/80 p-6 shadow-xs"></div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="h-28 bg-white rounded-2xl border border-neutral-200/80 p-6 shadow-xs"></div>
           ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="h-96 bg-white rounded-2xl border border-neutral-200/80 lg:col-span-2 shadow-xs"></div>
-          <div className="h-96 bg-white rounded-2xl border border-neutral-200/80 shadow-xs"></div>
+        <div className="h-80 bg-white rounded-2xl border border-neutral-200/80 shadow-xs"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="h-64 bg-white rounded-2xl border border-neutral-200/80 shadow-xs"></div>
+          <div className="h-64 bg-white rounded-2xl border border-neutral-200/80 shadow-xs"></div>
         </div>
       </div>
     );
@@ -60,26 +98,45 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8">
-      {/* ── Unified Dashboard Header ── */}
+      {/* ── Unified Dashboard Header with Export Actions ── */}
       <AdminHeader
-        title="Admin Overview"
-        subtitle="Real-time performance metrics, recent customer transactions, and bestselling inventory"
+        title="Admin Overview & Analytics"
+        subtitle="Real-time financial trajectory, sales distribution by ethnic collection, and customer pipeline"
         badge="Live Metrics"
         breadcrumbs={['Portal', 'Dashboard']}
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={fetchStats}
+              title="Refresh Analytics"
+              className="p-2.5 rounded-xl bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-700 shadow-xs transition-colors"
+            >
+              <RefreshCw size={14} />
+            </button>
+            <button
+              type="button"
+              disabled={exporting}
+              onClick={() => handleExportCSV('orders')}
+              className="px-3.5 py-2.5 rounded-xl bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-800 text-xs font-bold shadow-xs transition-all flex items-center gap-1.5"
+            >
+              <FileSpreadsheet size={14} className="text-emerald-600" />
+              <span>Export Orders</span>
+            </button>
+            <button
+              type="button"
+              disabled={exporting}
+              onClick={() => handleExportCSV('users')}
+              className="px-3.5 py-2.5 rounded-xl bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-800 text-xs font-bold shadow-xs transition-all flex items-center gap-1.5"
+            >
+              <Download size={14} className="text-neutral-500" />
+              <span>Export Customers</span>
+            </button>
             <Link 
               to="/admin/products/add" 
               className="px-4 py-2.5 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5"
             >
               <Plus size={15} /> Add Lehenga
-            </Link>
-            <Link 
-              to="/" 
-              target="_blank" 
-              className="px-4 py-2.5 rounded-xl bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-800 text-xs font-bold shadow-xs transition-all flex items-center gap-1.5"
-            >
-              <ExternalLink size={14} /> Storefront
             </Link>
           </div>
         }
@@ -92,11 +149,11 @@ const Dashboard = () => {
           <div>
             <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Total Sales Revenue</p>
             <h3 className="text-2xl font-bold text-neutral-950 tracking-tight font-mono">
-              ₹{Number(stats.totalRevenue || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+              ₹{Number(stats.totalRevenue || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
             </h3>
             <p className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1 mt-1">
               <TrendingUp size={12} />
-              <span>Fulfilled order volume</span>
+              <span>Avg ₹{Number(stats.averageOrderValue || 0).toLocaleString('en-IN')}/order</span>
             </p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-neutral-100 text-black border border-neutral-200 flex items-center justify-center flex-shrink-0">
@@ -109,9 +166,9 @@ const Dashboard = () => {
           <div>
             <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Customer Orders</p>
             <h3 className="text-2xl font-bold text-neutral-950 tracking-tight font-mono">{stats.totalOrders}</h3>
-            <p className="text-[11px] text-neutral-600 font-medium flex items-center gap-1 mt-1">
-              <ShoppingBag size={12} />
-              <span>Lifetime purchases</span>
+            <p className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1 mt-1">
+              <TrendingUp size={12} />
+              <span>{stats.fulfillmentRate || 0}% fulfillment rate</span>
             </p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-neutral-100 text-black border border-neutral-200 flex items-center justify-center flex-shrink-0">
@@ -126,7 +183,7 @@ const Dashboard = () => {
             <h3 className="text-2xl font-bold text-neutral-950 tracking-tight font-mono">{stats.totalUsers}</h3>
             <p className="text-[11px] text-neutral-600 font-medium flex items-center gap-1 mt-1">
               <Users size={12} />
-              <span>Registered accounts</span>
+              <span>Registered buyers</span>
             </p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-neutral-100 text-black border border-neutral-200 flex items-center justify-center flex-shrink-0">
@@ -137,17 +194,31 @@ const Dashboard = () => {
         {/* Total Catalog Products */}
         <div className="bg-white p-5 rounded-2xl shadow-xs border border-neutral-200/80 flex items-center justify-between hover:border-black transition-colors">
           <div>
-            <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Catalog Products</p>
+            <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Catalog Inventory</p>
             <h3 className="text-2xl font-bold text-neutral-950 tracking-tight font-mono">{stats.totalProducts}</h3>
             <p className="text-[11px] text-neutral-600 font-medium flex items-center gap-1 mt-1">
               <Package size={12} />
-              <span>Ethnic designs</span>
+              <span>Surat artisan pieces</span>
             </p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-neutral-100 text-black border border-neutral-200 flex items-center justify-center flex-shrink-0">
             <Package size={22} />
           </div>
         </div>
+      </div>
+
+      {/* ── Revenue & Sales Volume Interactive Trend Chart ── */}
+      <RevenueChart data={stats.revenueTrends} />
+
+      {/* ── Category Breakdown & Fulfillment Health Row ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <CategoryPerformanceWidget categories={stats.categoryBreakdown} />
+        <FulfillmentHealthWidget 
+          statusBreakdown={stats.statusBreakdown} 
+          totalOrders={stats.totalOrders} 
+          fulfillmentRate={stats.fulfillmentRate}
+          averageOrderValue={stats.averageOrderValue}
+        />
       </div>
 
       {/* ── Quick Maintenance Toolbar ── */}
@@ -179,6 +250,14 @@ const Dashboard = () => {
             <Mail size={13} /> Contact Inquiries
           </Link>
         </div>
+        <Link 
+          to="/" 
+          target="_blank" 
+          className="text-xs font-bold text-neutral-600 hover:text-black flex items-center gap-1"
+        >
+          <span>Storefront Preview</span>
+          <ExternalLink size={12} />
+        </Link>
       </div>
 
       {/* ── 2 Main Grid Columns (Recent Orders + Top Products) ── */}
