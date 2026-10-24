@@ -1,14 +1,11 @@
 import { Link } from 'react-router-dom';
 import { 
-  Percent, 
   ArrowUpRight, 
   Sparkles, 
   Clock, 
   Truck, 
   PackageCheck, 
   XCircle,
-  Tag,
-  CircleDollarSign,
   Layers
 } from 'lucide-react';
 
@@ -22,7 +19,6 @@ export const CategoryPerformanceWidget = ({ categories = [] }) => {
   ];
 
   const categoryList = (categories && categories.length > 0) ? categories : demoCategories;
-  const maxRevenue = Math.max(...categoryList.map(c => c.revenue), 1);
   const totalCategoryRevenue = categoryList.reduce((acc, c) => acc + c.revenue, 0);
 
   return (
@@ -94,7 +90,7 @@ export const CategoryPerformanceWidget = ({ categories = [] }) => {
   );
 };
 
-export const FulfillmentHealthWidget = ({ statusBreakdown = {}, totalOrders = 0, fulfillmentRate = 0, averageOrderValue = 0 }) => {
+export const FulfillmentHealthWidget = ({ statusBreakdown = {}, fulfillmentRate = 0, averageOrderValue = 0 }) => {
   const pending = statusBreakdown.PENDING || 0;
   const confirmed = statusBreakdown.CONFIRMED || 0;
   const shipped = statusBreakdown.SHIPPED || 0;

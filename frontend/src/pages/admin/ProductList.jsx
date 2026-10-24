@@ -9,8 +9,7 @@ import {
   ExternalLink, 
   RefreshCw, 
   SlidersHorizontal,
-  Package,
-  Layers
+  Package
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../../services/api';

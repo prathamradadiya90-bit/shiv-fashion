@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrendingUp, BarChart3, LineChart, DollarSign, ShoppingBag } from 'lucide-react';
+import { TrendingUp, DollarSign, ShoppingBag } from 'lucide-react';
 
 const RevenueChart = ({ data = [] }) => {
   const [metric, setMetric] = useState('revenue'); // 'revenue' | 'orders'

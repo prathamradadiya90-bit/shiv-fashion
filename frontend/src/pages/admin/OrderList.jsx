@@ -7,14 +7,12 @@ import {
   RefreshCw, 
   Truck, 
   FileText,
-  ShoppingBag,
-  ExternalLink
+  ShoppingBag
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import AdminHeader from '../../components/admin/AdminHeader';
-import StatusBadge from '../../components/admin/StatusBadge';
 import ConfirmModal from '../../components/admin/ConfirmModal';
 import Pagination from '../../components/admin/Pagination';
 

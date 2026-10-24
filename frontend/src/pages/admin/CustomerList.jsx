@@ -1,11 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { 
-  Ban, 
-  CheckCircle, 
   Download, 
   Search, 
   RefreshCw, 
-  User, 
   Trash2,
   Users
 } from 'lucide-react';

@@ -3,3 +3,23 @@ export const MAX_QUANTITY = 20;
 export const FREE_SHIPPING_THRESHOLD = 5000;
 export const SHIPPING_CHARGE = 250;
 export const COD_ADVANCE = 500;
+
+export const PRESET_COLORS = [
+  { name: 'Pure Noir Black', hexCode: '#111111' },
+  { name: 'Bridal Crimson', hexCode: '#800020' },
+  { name: 'Royal Velvet Blue', hexCode: '#1e3a8a' },
+  { name: 'Emerald Artisan Green', hexCode: '#065f46' },
+  { name: 'Heritage Gold', hexCode: '#D4AF37' },
+  { name: 'Rani Rose Pink', hexCode: '#db2777' },
+  { name: 'Mustard Festive Yellow', hexCode: '#ca8a04' },
+  { name: 'Peacock Teal', hexCode: '#0f766e' },
+  { name: 'Pristine Pearl White', hexCode: '#f8fafc' },
+];
+
+export const PRODUCT_CATEGORIES = [
+  { label: 'Bridal Collection', value: 'Bridal' },
+  { label: 'Festive / Navratri', value: 'Festive' },
+  { label: 'Party & Reception', value: 'Party' },
+  { label: 'Designer Couture', value: 'Designer' },
+  { label: 'Casual Ethnic', value: 'Casual' },
+];

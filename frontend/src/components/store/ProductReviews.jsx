@@ -30,7 +30,7 @@ const ProductReviews = ({ product, onReviewAdded }) => {
       
       const uploadedImages = await Promise.all(uploadPromises);
       setImages(prev => [...prev, ...uploadedImages]);
-    } catch (error) {
+    } catch {
       toast.error('Failed to upload images');
     } finally {
       setUploading(false);
@@ -70,7 +70,7 @@ const ProductReviews = ({ product, onReviewAdded }) => {
     try {
       await api.post(`/products/reviews/${reviewId}/upvote`);
       if (onReviewAdded) onReviewAdded(); // Refresh reviews
-    } catch (error) {
+    } catch {
       toast.error('Failed to upvote review');
     }
   };

@@ -14,26 +14,9 @@ import {
   Check
 } from 'lucide-react';
 import api from '../../services/api';
+import { PRESET_COLORS, PRODUCT_CATEGORIES as CATEGORIES } from '../../utils/constants';
 
-export const PRESET_COLORS = [
-  { name: 'Pure Noir Black', hexCode: '#111111' },
-  { name: 'Bridal Crimson', hexCode: '#800020' },
-  { name: 'Royal Velvet Blue', hexCode: '#1e3a8a' },
-  { name: 'Emerald Artisan Green', hexCode: '#065f46' },
-  { name: 'Heritage Gold', hexCode: '#D4AF37' },
-  { name: 'Rani Rose Pink', hexCode: '#db2777' },
-  { name: 'Mustard Festive Yellow', hexCode: '#ca8a04' },
-  { name: 'Peacock Teal', hexCode: '#0f766e' },
-  { name: 'Pristine Pearl White', hexCode: '#f8fafc' },
-];
-
-export const CATEGORIES = [
-  { label: 'Bridal Collection', value: 'Bridal' },
-  { label: 'Festive / Navratri', value: 'Festive' },
-  { label: 'Party & Reception', value: 'Party' },
-  { label: 'Designer Couture', value: 'Designer' },
-  { label: 'Casual Ethnic', value: 'Casual' },
-];
+export { PRESET_COLORS, CATEGORIES };
 
 export const ProductForm = ({
   initialData = {},

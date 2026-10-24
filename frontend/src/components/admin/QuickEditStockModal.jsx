@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Save, AlertCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
@@ -9,12 +9,21 @@ export const QuickEditStockModal = ({
   onClose,
   onUpdated,
 }) => {
+  const [price, setPrice] = useState('0');
+  const [discount, setDiscount] = useState('0');
+  const [stock, setStock] = useState('0');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (product) {
+      setPrice((product.price / 100).toFixed(2));
+      setDiscount(product.discount ? (product.discount / 100).toString() : '0');
+      setStock(product.stock !== undefined ? product.stock.toString() : '0');
+    }
+  }, [product, isOpen]);
+
   if (!isOpen || !product) return null;
 
-  const [price, setPrice] = useState((product.price / 100).toFixed(2));
-  const [discount, setDiscount] = useState(product.discount ? (product.discount / 100).toString() : '0');
-  const [stock, setStock] = useState(product.stock.toString());
-  const [loading, setLoading] = useState(false);
 
   const numPrice = Number(price) || 0;
   const numDiscount = Number(discount) || 0;
