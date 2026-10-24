@@ -1,6 +1,6 @@
 const prisma = require('../config/db');
 
-const DOMAIN = process.env.FRONTEND_URL || 'https://shreejifashion.vercel.app';
+const DOMAIN = process.env.FRONTEND_URL || 'https://chaniyacholinook.com';
 
 /**
  * Dynamically builds XML sitemap including all static pages and all live database products with image tags.

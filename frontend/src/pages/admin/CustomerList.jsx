@@ -1,7 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Ban, CheckCircle, Download, Search, RefreshCw, ChevronLeft, ChevronRight, User, Trash2 } from 'lucide-react';
+import { 
+  Ban, 
+  CheckCircle, 
+  Download, 
+  Search, 
+  RefreshCw, 
+  User, 
+  Trash2,
+  Users
+} from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
+import AdminHeader from '../../components/admin/AdminHeader';
+import StatusBadge from '../../components/admin/StatusBadge';
+import ConfirmModal from '../../components/admin/ConfirmModal';
+import Pagination from '../../components/admin/Pagination';
 
 const CustomerList = () => {
   const [customers, setCustomers] = useState([]);
@@ -15,6 +28,10 @@ const CustomerList = () => {
   const [pageSize, setPageSize] = useState(20);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+
+  // Delete modal state
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchCustomers = useCallback(async () => {
     setLoading(true);
@@ -62,20 +79,19 @@ const CustomerList = () => {
     }
   };
 
-  const handleDeleteUser = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to permanently delete user "${name}"? This action cannot be undone.`)) {
-      return;
-    }
-    setActionLoadingId(id);
+  const confirmDeleteUser = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await api.delete(`/users/${id}`);
-      setCustomers(customers.filter(c => c.id !== id));
+      await api.delete(`/users/${deleteTarget.id}`);
+      setCustomers(customers.filter(c => c.id !== deleteTarget.id));
       setTotalCount(prev => Math.max(0, prev - 1));
-      toast.success('User deleted successfully');
+      toast.success(`User "${deleteTarget.name}" deleted successfully`);
+      setDeleteTarget(null);
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Failed to delete user');
     } finally {
-      setActionLoadingId(null);
+      setDeleting(false);
     }
   };
 
@@ -97,22 +113,25 @@ const CustomerList = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">Customers Management</h2>
-          <p className="text-sm text-gray-500">View registered users, order statistics, and account access</p>
-        </div>
-        <button
-          onClick={handleExport}
-          className="flex items-center gap-2 bg-gray-800 text-white px-4 py-2.5 rounded-lg hover:bg-black transition-all text-sm font-medium shadow-sm"
-        >
-          <Download size={16} /> Export CSV
-        </button>
-      </div>
+      {/* Unified Header */}
+      <AdminHeader
+        title="Customers Directory"
+        subtitle="Manage customer profiles, order history, lifetime value, and account access permissions"
+        badge={`${totalCount} Registered Users`}
+        breadcrumbs={['Users', 'Customers']}
+        action={
+          <button
+            onClick={handleExport}
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white border border-neutral-200 text-neutral-800 hover:bg-neutral-50 text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-2"
+          >
+            <Download size={15} />
+            <span>Export CSV</span>
+          </button>
+        }
+      />
 
-      {/* Filter & Search Bar */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 justify-between items-center">
+      {/* Filter & Search Toolbar */}
+      <div className="bg-white p-4 rounded-2xl shadow-xs border border-neutral-200/80 flex flex-col md:flex-row gap-3 justify-between items-center">
         <form onSubmit={handleSearchSubmit} className="relative w-full md:w-80">
           <input
             type="text"
@@ -121,22 +140,22 @@ const CustomerList = () => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            placeholder="Search by name, email, or phone..."
-            className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:ring-primary focus:border-primary"
+            placeholder="Search by name, email, or mobile..."
+            className="w-full pl-9 pr-4 py-2 text-xs bg-neutral-50 border border-neutral-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all"
           />
-          <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
+          <Search size={15} className="absolute left-3 top-2.5 text-neutral-400" />
         </form>
 
-        <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+        <div className="flex items-center gap-2.5 w-full md:w-auto justify-end">
           <select
             value={statusFilter}
             onChange={(e) => {
               setStatusFilter(e.target.value);
               setPage(1);
             }}
-            className="text-sm border-gray-200 rounded-lg focus:ring-primary focus:border-primary py-2 px-3 bg-white"
+            className="bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-1.5 text-xs font-medium text-neutral-700 outline-none cursor-pointer"
           >
-            <option value="all">All Status</option>
+            <option value="all">All Statuses</option>
             <option value="Active">Active Only</option>
             <option value="Blocked">Blocked Only</option>
           </select>
@@ -147,104 +166,114 @@ const CustomerList = () => {
               setPageSize(Number(e.target.value));
               setPage(1);
             }}
-            className="text-sm border-gray-200 rounded-lg focus:ring-primary focus:border-primary py-2 px-3 bg-white"
+            className="bg-neutral-50 border border-neutral-200 rounded-xl px-2.5 py-1.5 text-xs font-medium text-neutral-700 outline-none cursor-pointer"
           >
-            <option value={10}>10 per page</option>
-            <option value={20}>20 per page</option>
-            <option value={50}>50 per page</option>
+            <option value={10}>10 / page</option>
+            <option value={20}>20 / page</option>
+            <option value={50}>50 / page</option>
           </select>
         </div>
       </div>
 
       {/* Customers Table Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-xs border border-neutral-200/80 overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-gray-500 flex flex-col items-center justify-center gap-3">
-            <RefreshCw size={24} className="animate-spin text-primary" />
-            <span>Loading customers...</span>
+          <div className="p-16 text-center text-neutral-500 flex flex-col items-center justify-center gap-3">
+            <RefreshCw size={24} className="animate-spin text-black" />
+            <span className="text-xs font-semibold">Loading customers...</span>
           </div>
         ) : customers.length === 0 ? (
-          <div className="p-12 text-center text-gray-500">
-            <User size={36} className="mx-auto text-gray-300 mb-2" />
-            <p className="text-base font-medium text-gray-700 mb-1">No customers found</p>
-            <p className="text-xs text-gray-400">Try adjusting your search keywords or status filter</p>
+          <div className="p-16 text-center text-neutral-500 space-y-3">
+            <Users size={40} className="mx-auto text-neutral-300 stroke-1" />
+            <p className="text-sm font-bold text-neutral-800">No customers found</p>
+            <p className="text-xs text-neutral-400">Try adjusting your search keywords or status filter.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
+              <thead className="bg-neutral-50/80 text-neutral-400 text-[11px] uppercase tracking-wider font-semibold border-b border-neutral-100">
                 <tr>
-                  <th className="px-6 py-4 font-semibold">Customer</th>
-                  <th className="px-6 py-4 font-semibold">Contact Info</th>
-                  <th className="px-6 py-4 font-semibold text-center">Role</th>
-                  <th className="px-6 py-4 font-semibold text-center">Orders</th>
-                  <th className="px-6 py-4 font-semibold">Total Spent</th>
-                  <th className="px-6 py-4 font-semibold">Status</th>
-                  <th className="px-6 py-4 font-semibold text-right">Actions</th>
+                  <th className="px-6 py-3.5">Customer Profile</th>
+                  <th className="px-6 py-3.5">Contact Details</th>
+                  <th className="px-6 py-3.5 text-center">Account Role</th>
+                  <th className="px-6 py-3.5 text-center">Orders Count</th>
+                  <th className="px-6 py-3.5">Lifetime Spend</th>
+                  <th className="px-6 py-3.5">Status</th>
+                  <th className="px-6 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 text-sm">
+              <tbody className="divide-y divide-neutral-100 text-xs">
                 {customers.map((customer) => (
-                  <tr key={customer.id} className="hover:bg-gray-50/70 transition-colors">
+                  <tr key={customer.id} className="hover:bg-neutral-50/60 transition-colors">
+                    {/* Name & Join Date */}
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-gray-900">{customer.name}</div>
-                      <div className="text-xs text-gray-400">
-                        Joined {new Date(customer.createdAt).toLocaleDateString()}
+                      <div className="font-bold text-neutral-900 text-sm">{customer.name}</div>
+                      <div className="text-[11px] text-neutral-400">
+                        Joined {new Date(customer.createdAt).toLocaleDateString('en-IN', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
                       </div>
                     </td>
+
+                    {/* Contact Info */}
                     <td className="px-6 py-4">
-                      <div className="text-gray-900 font-mono text-xs">{customer.email}</div>
-                      <div className="text-xs text-gray-500">{customer.phone || '—'}</div>
+                      <div className="text-neutral-900 font-mono">{customer.email}</div>
+                      <div className="text-[11px] text-neutral-500 font-mono mt-0.5">{customer.phone || '—'}</div>
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className={`px-2 py-0.5 text-[11px] font-bold rounded ${
-                        customer.role === 'SUPERADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-700'
+
+                    {/* Role */}
+                    <td className="px-6 py-4 text-center whitespace-nowrap">
+                      <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full border ${
+                        customer.role === 'SUPERADMIN' 
+                          ? 'bg-neutral-900 text-white border-black' 
+                          : 'bg-neutral-100 text-neutral-700 border-neutral-200'
                       }`}>
-                        {customer.role}
+                        {customer.role === 'SUPERADMIN' ? 'Super Admin' : 'Customer'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-center font-semibold text-gray-900">
+
+                    {/* Orders Count */}
+                    <td className="px-6 py-4 text-center font-bold text-neutral-900">
                       {customer.totalOrders}
                     </td>
-                    <td className="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">
+
+                    {/* Lifetime Spend */}
+                    <td className="px-6 py-4 font-bold text-neutral-950 font-mono whitespace-nowrap text-sm">
                       ₹{customer.totalSpent.toFixed(2)}
                     </td>
+
+                    {/* Status Badge */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
-                        customer.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
-                        {customer.status}
-                      </span>
+                      <StatusBadge type="user" status={customer.status} />
                     </td>
+
+                    {/* Actions */}
                     <td className="px-6 py-4 text-right whitespace-nowrap">
                       {customer.role !== 'SUPERADMIN' && (
-                        <div className="flex items-center justify-end gap-2">
-                          {customer.status === 'Active' ? (
-                            <button 
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded transition-colors disabled:opacity-50" 
-                              title="Block User"
-                              disabled={actionLoadingId === customer.id}
-                              onClick={() => toggleStatus(customer.id)}
-                            >
-                              <Ban size={17} />
-                            </button>
-                          ) : (
-                            <button 
-                              className="text-green-600 hover:text-green-800 hover:bg-green-50 p-1.5 rounded transition-colors disabled:opacity-50" 
-                              title="Unblock User"
-                              disabled={actionLoadingId === customer.id}
-                              onClick={() => toggleStatus(customer.id)}
-                            >
-                              <CheckCircle size={17} />
-                            </button>
-                          )}
+                        <div className="flex items-center justify-end gap-1.5">
+                          {/* Toggle Active / Blocked */}
                           <button
-                            className="text-gray-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded transition-colors disabled:opacity-50"
-                            title="Delete User"
+                            onClick={() => toggleStatus(customer.id)}
                             disabled={actionLoadingId === customer.id}
-                            onClick={() => handleDeleteUser(customer.id, customer.name)}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors border ${
+                              customer.status === 'Active'
+                                ? 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100'
+                                : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                            }`}
+                            title={customer.status === 'Active' ? 'Block customer account' : 'Unblock customer account'}
                           >
-                            <Trash2 size={17} />
+                            {customer.status === 'Active' ? 'Block' : 'Unblock'}
+                          </button>
+
+                          {/* Delete User */}
+                          <button
+                            onClick={() => setDeleteTarget({ id: customer.id, name: customer.name })}
+                            className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                            title="Delete user account"
+                          >
+                            <Trash2 size={15} />
                           </button>
                         </div>
                       )}
@@ -256,41 +285,30 @@ const CustomerList = () => {
           </div>
         )}
 
-        {/* Pagination Footer */}
-        {!loading && totalPages > 1 && (
-          <div className="px-6 py-4 bg-gray-50/70 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-600">
-            <div>
-              Showing <span className="font-semibold">{Math.min((page - 1) * pageSize + 1, totalCount)}</span> to{' '}
-              <span className="font-semibold">{Math.min(page * pageSize, totalCount)}</span> of{' '}
-              <span className="font-semibold">{totalCount}</span> customers
-            </div>
-
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="p-2 rounded-md border border-gray-200 bg-white hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                title="Previous Page"
-              >
-                <ChevronLeft size={16} />
-              </button>
-
-              <div className="flex items-center gap-1 px-2 font-medium">
-                Page {page} of {totalPages}
-              </div>
-
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="p-2 rounded-md border border-gray-200 bg-white hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                title="Next Page"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
+        {/* DRY Pagination Component */}
+        {!loading && (
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={pageSize}
+            onPageChange={(p) => setPage(p)}
+            itemName="customers"
+          />
         )}
       </div>
+
+      {/* Delete User Confirmation Modal */}
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDeleteUser}
+        isLoading={deleting}
+        title="Delete Customer Account?"
+        message={`Are you sure you want to permanently delete "${deleteTarget?.name}"? Their profile and login access will be removed.`}
+        confirmText="Yes, Delete Customer"
+        variant="danger"
+      />
     </div>
   );
 };

@@ -125,7 +125,7 @@ const ProductReviews = ({ product, onReviewAdded }) => {
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="What do you think about this product?"
-              className="w-full rounded-xl border border-slate-200 p-3 text-sm focus:ring-2 focus:ring-[#800020] outline-none"
+              className="w-full rounded-xl border border-slate-200 p-3 text-sm focus:ring-2 focus:ring-black outline-none"
             ></textarea>
           </div>
 
@@ -144,19 +144,19 @@ const ProductReviews = ({ product, onReviewAdded }) => {
                   </button>
                 </div>
               ))}
-              <label className="w-20 h-20 rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:text-[#800020] hover:border-[#800020] cursor-pointer transition-colors bg-slate-50">
+              <label className="w-20 h-20 rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:text-black hover:border-black cursor-pointer transition-colors bg-slate-50">
                 <ImageIcon size={20} className="mb-1" />
                 <span className="text-[10px] font-bold">Upload</span>
                 <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
               </label>
             </div>
-            {uploading && <div className="text-xs text-[#800020] animate-pulse">Uploading images...</div>}
+            {uploading && <div className="text-xs text-black font-medium animate-pulse">Uploading images...</div>}
           </div>
 
           <button
             type="submit"
             disabled={submitting || uploading}
-            className="bg-[#800020] text-white font-bold py-2.5 px-6 rounded-xl hover:bg-[#500014] transition-colors disabled:opacity-50"
+            className="bg-black text-white font-bold py-2.5 px-6 rounded-xl hover:bg-neutral-800 transition-colors disabled:opacity-50"
           >
             {submitting ? 'Submitting...' : 'Submit Review'}
           </button>
@@ -204,7 +204,7 @@ const ProductReviews = ({ product, onReviewAdded }) => {
               <div className="flex items-center gap-4 mt-2">
                 <button 
                   onClick={() => handleUpvote(review.id)}
-                  className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#800020] transition-colors"
+                  className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-black transition-colors"
                 >
                   <ThumbsUp size={14} /> 
                   <span className="font-semibold">{review.upvotes || 0}</span> Helpful

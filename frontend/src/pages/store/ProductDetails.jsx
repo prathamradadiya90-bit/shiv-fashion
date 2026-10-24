@@ -181,7 +181,7 @@ const ProductDetails = () => {
   // WhatsApp Share Handler
   const handleWhatsAppShare = () => {
     const pageUrl = window.location.href;
-    const text = `✨ Check out this gorgeous ${product.name} on Shreeji Fashion!\n\nPrice: ₹${finalPrice.toFixed(2)}\n\nExplore here: ${pageUrl}`;
+    const text = `✨ Check out this gorgeous ${product.name} on chaniyacholi.nook!\n\nPrice: ₹${finalPrice.toFixed(2)}\n\nExplore here: ${pageUrl}`;
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
   };
@@ -208,11 +208,11 @@ const ProductDetails = () => {
     sku: `SKU-${product.id.slice(-8).toUpperCase()}`,
     brand: {
       '@type': 'Brand',
-      name: 'Shreeji Fashion',
+      name: 'chaniyacholi.nook',
     },
     offers: {
       '@type': 'Offer',
-      url: `https://shreejifashion.vercel.app/product/${product.id}`,
+      url: `https://chaniyacholinook.com/product/${product.id}`,
       priceCurrency: 'INR',
       price: finalPrice.toFixed(2),
       priceValidUntil: '2027-12-31',
@@ -220,7 +220,7 @@ const ProductDetails = () => {
       availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       seller: {
         '@type': 'Organization',
-        name: 'Shreeji Fashion',
+        name: 'chaniyacholi.nook',
       },
     },
   };
@@ -228,11 +228,11 @@ const ProductDetails = () => {
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <SEO
-        title={`${product.name} | Designer Chaniya Choli Surat | Shreeji Fashion`}
-        description={`Buy ${product.name} online at ₹${finalPrice.toFixed(2)}. Authentic Surat ethnic craftsmanship, ${product.stock > 0 ? 'in stock' : 'pre-order'} with worldwide delivery.`}
+        title={`${product.name} | Designer Chaniya Choli | chaniyacholi.nook`}
+        description={`Buy ${product.name} online at ₹${finalPrice.toFixed(2)}. Tradition • Style • You with handcrafted luxury from Surat, ${product.stock > 0 ? 'in stock' : 'pre-order'} with worldwide delivery.`}
         keywords={`${product.name}, ${product.category} chaniya choli, buy ${product.name} online, surat ethnic wear, traditional lehenga`}
         ogType="product"
-        ogImage={product.images?.[0]?.url || 'https://shreejifashion.vercel.app/og-image.jpg'}
+        ogImage={product.images?.[0]?.url || '/logo.png'}
         schema={productSchema}
       />
 
@@ -253,7 +253,7 @@ const ProductDetails = () => {
                 style={zoomStyle}
               />
               {product.discount > 0 && (
-                <div className="absolute top-4 left-4 bg-gradient-to-r from-[#800020] to-[#500014] text-[#E5C158] font-bold text-xs uppercase px-3 py-1.5 rounded-full shadow-lg">
+                <div className="absolute top-4 left-4 bg-black text-white font-bold text-xs uppercase px-3 py-1.5 rounded-full shadow-lg tracking-wider">
                   {product.discount / 100}% OFF
                 </div>
               )}
@@ -268,7 +268,7 @@ const ProductDetails = () => {
                     onClick={() => setActiveImageIndex(idx)}
                     className={`flex-shrink-0 w-20 h-24 rounded-xl overflow-hidden border-2 transition-all shadow-xs ${
                       activeImageIndex === idx 
-                        ? 'border-[#800020] ring-2 ring-[#800020]/20 opacity-100 scale-105' 
+                        ? 'border-black ring-2 ring-black/20 opacity-100 scale-105' 
                         : 'border-slate-200 opacity-60 hover:opacity-100 hover:border-slate-400'
                     }`}
                   >
@@ -286,15 +286,15 @@ const ProductDetails = () => {
 
           {/* Product Info */}
           <div className="flex flex-col">
-            <div className="text-xs font-bold text-[#800020] uppercase tracking-widest mb-1 font-mono">
+            <div className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-1 font-mono">
               {product.category || 'Ethnic Collection'}
             </div>
-            <h1 className="text-2xl sm:text-3xl font-heading font-bold text-slate-900 mb-3 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-heading font-bold text-neutral-950 mb-3 tracking-tight">
               {product.name}
             </h1>
 
             <div className="mb-5 flex items-baseline space-x-4">
-              <span className="text-3xl sm:text-4xl font-bold text-[#800020]">
+              <span className="text-3xl sm:text-4xl font-bold text-neutral-950">
                 ₹{finalPrice.toFixed(2)}
               </span>
               {product.discount > 0 && (
@@ -302,7 +302,7 @@ const ProductDetails = () => {
                   <span className="text-lg text-slate-400 line-through">
                     ₹{(product.price / 100).toFixed(2)}
                   </span>
-                  <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  <span className="text-xs font-bold text-black bg-neutral-100 px-2.5 py-0.5 rounded-full border border-neutral-300">
                     Save ₹{((product.price / 100) - finalPrice).toFixed(2)}
                   </span>
                 </>
@@ -328,7 +328,7 @@ const ProductDetails = () => {
                       onClick={() => setSelectedColor(color.name)}
                       className={`h-9 px-3.5 rounded-xl border flex items-center gap-2 text-xs font-semibold transition-all ${
                         selectedColor === color.name 
-                          ? 'border-[#800020] bg-[#800020]/5 text-[#800020] ring-2 ring-[#800020]/20 shadow-xs' 
+                          ? 'border-black bg-black text-white ring-2 ring-black/20 shadow-xs' 
                           : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                       }`}
                     >
@@ -352,14 +352,14 @@ const ProductDetails = () => {
                 <button
                   type="button"
                   onClick={() => setShowSizeGuide(true)}
-                  className="text-xs font-bold text-[#800020] hover:text-[#500014] flex items-center gap-1 hover:underline transition-all"
+                  className="text-xs font-bold text-neutral-900 hover:text-black flex items-center gap-1 hover:underline transition-all"
                 >
                   <Ruler size={14} />
                   <span>View Size Guide</span>
                 </button>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70 text-xs text-slate-600 flex items-center gap-2">
-                <Sparkles size={15} className="text-[#800020] flex-shrink-0" />
+                <Sparkles size={15} className="text-neutral-900 flex-shrink-0" />
                 <span>Fits bust up to 42" and waist up to 40" with customizable margins.</span>
               </div>
             </div>
@@ -402,7 +402,7 @@ const ProductDetails = () => {
                 disabled={product.stock === 0}
                 className={`flex-1 h-12 text-sm font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2 ${
                   product.stock > 0 
-                    ? 'bg-gradient-to-r from-[#800020] to-[#500014] text-white hover:from-[#6b001b] hover:to-[#3e000f] shadow-[#800020]/20 active:scale-[0.99]' 
+                    ? 'bg-black text-white hover:bg-neutral-800 shadow-md active:scale-[0.99]' 
                     : 'bg-slate-300 text-slate-500 cursor-not-allowed'
                 }`}
               >
@@ -448,7 +448,7 @@ const ProductDetails = () => {
             <div className="mt-4 p-4 rounded-2xl bg-slate-50/90 border border-slate-200/80 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <MapPin size={15} className="text-[#800020]" /> Check Delivery & COD
+                  <MapPin size={15} className="text-neutral-900" /> Check Delivery & COD
                 </span>
                 <span className="text-[11px] text-slate-400 font-medium">Pan-India Courier</span>
               </div>
@@ -460,12 +460,12 @@ const ProductDetails = () => {
                   value={pincode}
                   onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
                   placeholder="Enter 6-digit Pincode"
-                  className="flex-1 bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono focus:ring-2 focus:ring-[#800020] outline-none"
+                  className="flex-1 bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono focus:ring-2 focus:ring-black outline-none"
                 />
                 <button
                   type="submit"
                   disabled={checkingPincode}
-                  className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-black text-white rounded-xl text-xs font-bold hover:bg-neutral-800 transition-colors disabled:opacity-50"
                 >
                   {checkingPincode ? 'Checking...' : 'Check'}
                 </button>
@@ -486,15 +486,15 @@ const ProductDetails = () => {
             {/* Trust Badges */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-6 mt-4 border-t border-slate-100 text-xs text-slate-600">
               <div className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <Truck size={16} className="text-[#800020] flex-shrink-0" />
+                <Truck size={16} className="text-neutral-900 flex-shrink-0" />
                 <span>Express Courier</span>
               </div>
               <div className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <Shield size={16} className="text-[#800020] flex-shrink-0" />
+                <Shield size={16} className="text-neutral-900 flex-shrink-0" />
                 <span>100% Authentic Surat</span>
               </div>
               <div className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <RefreshCw size={16} className="text-[#800020] flex-shrink-0" />
+                <RefreshCw size={16} className="text-neutral-900 flex-shrink-0" />
                 <span>7-Day Return Policy</span>
               </div>
             </div>
@@ -510,7 +510,7 @@ const ProductDetails = () => {
             
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-[#800020]/10 text-[#800020] flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-2xl bg-neutral-100 text-black flex items-center justify-center font-bold">
                   <Ruler size={20} />
                 </div>
                 <div>

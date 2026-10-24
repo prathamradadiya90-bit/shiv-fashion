@@ -85,21 +85,21 @@ if (!process.env.VERCEL) {
 //   ALLOWED_ORIGINS=https://shreejifashion.vercel.app,https://www.shreejifashion.com
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()).filter(Boolean)
-  : ['http://localhost:5173', 'http://localhost:3000', 'https://shreejifashion.vercel.app', 'https://shiv-fashion.vercel.app'];
+  : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'https://chaniyacholinook.com', 'https://www.chaniyacholinook.com'];
 
 if (process.env.FRONTEND_URL && !allowedOrigins.includes(process.env.FRONTEND_URL)) {
   allowedOrigins.push(process.env.FRONTEND_URL);
-} // fallback for local dev
+}
 
 app.use(cors({
   origin: function (origin, callback) {
     // allow requests with no origin (like mobile apps, curl, or webhooks)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      return callback(null, true);
     }
-    return callback(null, true);
+    const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+    return callback(new Error(msg), false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -122,11 +122,11 @@ app.get('/sitemap.xml', generateSitemapXml);
 
 app.get('/robots.txt', (_req, res) => {
   res.type('text/plain');
-  res.send(`User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /cart\nDisallow: /checkout\nDisallow: /profile\nDisallow: /api/\n\nSitemap: ${process.env.FRONTEND_URL || 'https://shreejifashion.vercel.app'}/sitemap.xml\n`);
+  res.send(`User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /cart\nDisallow: /checkout\nDisallow: /profile\nDisallow: /api/\n\nSitemap: ${process.env.FRONTEND_URL || 'https://chaniyacholinook.com'}/sitemap.xml\n`);
 });
 
 // ── Health check ──────────────────────────────────────────────────────────────
-app.get('/', (_req, res) => res.send('Shreeji Fashion API is running'));
+app.get('/', (_req, res) => res.send('chaniyacholi.nook API is running'));
 
 app.get('/health', (req, res) => {
   res.status(200).json({
@@ -149,7 +149,7 @@ apiRouter.use('/addresses', require('./routes/addressRoutes'));
 apiRouter.use('/export', require('./routes/exportRoutes'));
 
 apiRouter.get('/config/razorpay', (req, res) => res.json({ keyId: process.env.RAZORPAY_KEY_ID }));
-apiRouter.get('/health', (req, res) => res.send('Shreeji Fashion API is running'));
+apiRouter.get('/health', (req, res) => res.send('chaniyacholi.nook API is running'));
 
 const { protect, superAdmin } = require('./middleware/authMiddleware');
 
@@ -179,7 +179,7 @@ apiRouter.get('/force-migrate', protect, superAdmin, async (req, res) => {
   }
 });
 
-apiRouter.get('/', (req, res) => res.send('Shreeji Fashion API is running (v1)'));
+apiRouter.get('/', (req, res) => res.send('chaniyacholi.nook API is running (v1)'));
 
 app.use('/api/v1', apiRouter);
 app.use('/v1', apiRouter);

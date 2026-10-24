@@ -78,9 +78,9 @@ const registerUser = asyncHandler(async (req, res) => {
     
     await sendEmail({
       email: user.email,
-      subject: 'Verify your Email Address',
-      message: `Welcome to Shreeji Fashion! Please verify your email by clicking the link: ${verifyUrl}`,
-      html: `<p>Welcome to Shreeji Fashion!</p><p>Please verify your email by clicking the link below:</p><a href="${verifyUrl}" style="display:inline-block;padding:10px 20px;background:#800020;color:white;text-decoration:none;border-radius:5px;margin:15px 0;">Verify Email</a>`,
+      subject: 'Verify your Email Address | chaniyacholi.nook',
+      message: `Welcome to chaniyacholi.nook! Please verify your email by clicking the link: ${verifyUrl}`,
+      html: `<p>Welcome to <strong>chaniyacholi.nook</strong>!</p><p>Please verify your email by clicking the link below:</p><a href="${verifyUrl}" style="display:inline-block;padding:10px 20px;background:#72092C;color:white;text-decoration:none;border-radius:5px;margin:15px 0;">Verify Email</a>`,
     }).catch(err => logger.error(`Failed to send verification email: ${err.message}`));
 
     res.status(201).json({

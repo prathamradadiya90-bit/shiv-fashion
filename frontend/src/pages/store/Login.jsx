@@ -45,8 +45,12 @@ const Login = () => {
 
   return (
     <div className="container mx-auto px-4 py-16 flex justify-center">
-      <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 w-full max-w-md">
-        <h1 className="text-3xl font-heading font-bold text-primary mb-6 text-center">Login to Shreeji Fashion</h1>
+      <div className="bg-white p-8 rounded-xl shadow-sm border border-secondary/20 w-full max-w-md">
+        <div className="w-16 h-16 rounded-full border-2 border-secondary/60 shadow-[0_0_15px_rgba(197,155,39,0.3)] overflow-hidden mx-auto mb-4 bg-white">
+          <img src="/logo.png" alt="chaniyacholi.nook" className="w-full h-full object-cover" />
+        </div>
+        <h1 className="text-3xl font-heading font-bold text-primary mb-1 text-center">Login to chaniyacholi<span className="text-secondary">.nook</span></h1>
+        <p className="text-[11px] text-center text-secondary-dark font-medium tracking-widest uppercase mb-6">Tradition • Style • You</p>
         
         <form onSubmit={submitHandler} className="space-y-4">
           <div>

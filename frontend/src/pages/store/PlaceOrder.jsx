@@ -108,8 +108,8 @@ const PlaceOrder = () => {
         key: config.keyId,
         amount: data.razorpayOrder.amount,
         currency: data.razorpayOrder.currency,
-        name: 'Shreeji Fashion',
-        description: 'Premium Chaniya Choli',
+        name: 'chaniyacholi.nook',
+        description: 'chaniyacholi.nook - Tradition • Style • You',
         order_id: data.razorpayOrder.id,
         handler: async function (response) {
           try {
@@ -132,7 +132,7 @@ const PlaceOrder = () => {
           email: userInfo?.email || '',
           contact: userInfo?.phone || '',
         },
-        theme: { color: '#800020' },
+        theme: { color: '#000000' },
         modal: {
           ondismiss: function () {
             toast.info('Payment cancelled. Your order is saved — you can retry from My Orders.');

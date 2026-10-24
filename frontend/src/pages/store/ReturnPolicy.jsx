@@ -2,23 +2,23 @@ import SEO from '../../components/common/SEO';
 
 const ReturnPolicy = () => {
   return (
-    <div className="bg-[#fdfbf6] min-h-screen py-20 animate-fade-in">
+    <div className="bg-neutral-50 min-h-screen py-20 animate-fade-in">
       <SEO
-        title="Return & Refund Policy | Shreeji Fashion Surat"
-        description="Read the return, exchange, and refund policy for Shreeji Fashion. 7-day hassle-free returns for unused ethnic wear items."
-        keywords="return policy, exchange policy, shreeji fashion refunds, chaniya choli returns"
+        title="Return & Refund Policy | chaniyacholi.nook"
+        description="Read the return, exchange, and refund policy for chaniyacholi.nook. 7-day hassle-free returns for unused ethnic wear items."
+        keywords="return policy, exchange policy, chaniyacholi.nook refunds, chaniya choli returns"
       />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
         <div className="bg-white p-8 md:p-12 rounded-2xl shadow-xl shadow-gray-100/50 border border-gray-100">
           
           <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-serif text-[#800020] mb-4">
+            <h1 className="text-4xl md:text-5xl font-serif text-neutral-950 mb-4">
               Return & Refund Policy
             </h1>
             <p className="text-gray-500 uppercase tracking-widest text-sm font-semibold">
               Last updated: January 2026
             </p>
-            <div className="w-24 h-1 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent mx-auto mt-6"></div>
+            <div className="w-24 h-1 bg-gradient-to-r from-transparent via-neutral-900 to-transparent mx-auto mt-6"></div>
           </div>
 
           <div className="prose prose-lg max-w-none text-gray-700 space-y-8">
@@ -56,7 +56,7 @@ const ReturnPolicy = () => {
             <section>
               <h2 className="text-2xl font-serif text-gray-900 mb-4 border-b pb-2">How to Initiate a Return</h2>
               <p>
-                Contact us at <a href="mailto:support@shivfashion.com" className="text-[#800020] hover:underline font-medium">support@shivfashion.com</a> with your order number and reason for return. Our team will provide return instructions and a return shipping address.
+                Contact us at <a href="mailto:support@chaniyacholinook.com" className="text-black underline hover:text-neutral-700 font-medium">support@chaniyacholinook.com</a> with your order number and reason for return. Our team will provide return instructions and a return shipping address.
               </p>
             </section>
           </div>

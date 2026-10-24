@@ -357,9 +357,9 @@ const verifyPayment = asyncHandler(async (req, res) => {
 
   sendEmail({
     email: updatedOrder.user.email,
-    subject: `Shreeji Fashion - Order Confirmed (${updatedOrder.id})`,
+    subject: `chaniyacholi.nook - Order Confirmed (${updatedOrder.id})`,
     // FIX #006: totalAmount is in paise — divide by 100 for display
-    message: `Hello ${updatedOrder.user.name || 'Customer'},\n\nThank you for shopping with Shreeji Fashion!\nYour order (${updatedOrder.id}) has been confirmed and payment is successful.\nTotal Amount: ₹${(updatedOrder.totalAmount / 100).toFixed(2)}\n\nWe will notify you once your order is shipped.\n\nRegards,\nShreeji Fashion Team`,
+    message: `Hello ${updatedOrder.user.name || 'Customer'},\n\nThank you for shopping with chaniyacholi.nook!\nYour order (${updatedOrder.id}) has been confirmed and payment is successful.\nTotal Amount: ₹${(updatedOrder.totalAmount / 100).toFixed(2)}\n\nWe will notify you once your order is shipped.\n\nRegards,\nchaniyacholi.nook Team`,
   }).catch(err => logger.error(`[verifyPayment] Email error: ${err.message}`));
 
   await sendNotification(
@@ -432,9 +432,9 @@ const paymentCallback = asyncHandler(async (req, res) => {
 
         sendEmail({
           email: updatedOrder.user.email,
-          subject: `Shreeji Fashion - Order Confirmed (${updatedOrder.id})`,
+          subject: `chaniyacholi.nook - Order Confirmed (${updatedOrder.id})`,
           // FIX #006 + #008: totalAmount is in paise — divide by 100; name fallback
-          message: `Hello ${updatedOrder.user.name || 'Customer'},\n\nThank you for shopping with Shreeji Fashion!\nYour order (${updatedOrder.id}) has been confirmed.\nTotal: ₹${(updatedOrder.totalAmount / 100).toFixed(2)}`,
+          message: `Hello ${updatedOrder.user.name || 'Customer'},\n\nThank you for shopping with chaniyacholi.nook!\nYour order (${updatedOrder.id}) has been confirmed.\nTotal: ₹${(updatedOrder.totalAmount / 100).toFixed(2)}`,
         }).catch(err => logger.error(`[paymentCallback] Email error: ${err.message}`));
 
         await sendNotification(
@@ -688,8 +688,8 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   if (status === 'SHIPPED') {
     sendEmail({
       email: order.user.email,
-      subject: `Shreeji Fashion - Order Shipped (${order.id})`,
-      message: `Hello ${order.user.name || 'Customer'},\n\nYour order (${order.id}) has been shipped.\n${trackingNumber ? `Tracking Number: ${trackingNumber}` : 'Your package is on its way.'}\n\nRegards,\nShreeji Fashion Team`,
+      subject: `chaniyacholi.nook - Order Shipped (${order.id})`,
+      message: `Hello ${order.user.name || 'Customer'},\n\nYour order (${order.id}) has been shipped.\n${trackingNumber ? `Tracking Number: ${trackingNumber}` : 'Your package is on its way.'}\n\nRegards,\nchaniyacholi.nook Team`,
     }).catch(err => logger.error(`[updateOrderStatus] Email error: ${err.message}`));
 
     await sendNotification(
@@ -977,8 +977,8 @@ const refundOrder = asyncHandler(async (req, res) => {
     // Notify user
     sendEmail({
       email: order.user.email,
-      subject: `Shreeji Fashion - Order Refunded (${order.id})`,
-      message: `Hello ${order.user.name || 'Customer'},\n\nYour order (${order.id}) has been cancelled and a refund of ₹${(amountToRefundPaise / 100).toFixed(2)} has been initiated.\nIt will reflect in your account within 5-7 business days.\n\nRegards,\nShreeji Fashion Team`,
+      subject: `chaniyacholi.nook - Order Refunded (${order.id})`,
+      message: `Hello ${order.user.name || 'Customer'},\n\nYour order (${order.id}) has been cancelled and a refund of ₹${(amountToRefundPaise / 100).toFixed(2)} has been initiated.\nIt will reflect in your account within 5-7 business days.\n\nRegards,\nchaniyacholi.nook Team`,
     }).catch(err => logger.error(`[refundOrder] Email error: ${err.message}`));
 
     await sendNotification(
@@ -1072,10 +1072,10 @@ const cancelOrder = asyncHandler(async (req, res) => {
 
   sendEmail({
     email: order.user.email,
-    subject: `Shreeji Fashion - Order Cancelled (${order.id})`,
+    subject: `chaniyacholi.nook - Order Cancelled (${order.id})`,
     message: `Hello ${order.user.name || 'Customer'},\n\nYour order (${order.id}) has been cancelled successfully.${
       paymentStatus === 'REFUNDED' ? '\nA refund has been initiated and will reflect in your account in 5-7 business days.' : ''
-    }\n\nRegards,\nShreeji Fashion Team`,
+    }\n\nRegards,\nchaniyacholi.nook Team`,
   }).catch(err => logger.error(`[cancelOrder] Email error: ${err.message}`));
 
   await sendNotification(
@@ -1159,8 +1159,8 @@ const requestOrderReturn = asyncHandler(async (req, res) => {
 
   sendEmail({
     email: order.user.email,
-    subject: `Shreeji Fashion - Return Request Received (${order.id})`,
-    message: `Hello ${order.user.name || 'Customer'},\n\nWe have received your return request for order ${order.id}.\n\nDetails:\n${returnDetails}\n\nOur team is reviewing your request and will contact you within 24-48 business hours with next steps.\n\nRegards,\nShreeji Fashion Team`,
+    subject: `chaniyacholi.nook - Return Request Received (${order.id})`,
+    message: `Hello ${order.user.name || 'Customer'},\n\nWe have received your return request for order ${order.id}.\n\nDetails:\n${returnDetails}\n\nOur team is reviewing your request and will contact you within 24-48 business hours with next steps.\n\nRegards,\nchaniyacholi.nook Team`,
   }).catch(err => logger.error(`[requestOrderReturn] Email error: ${err.message}`));
 
   res.json({

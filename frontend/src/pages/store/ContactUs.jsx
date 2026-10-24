@@ -37,17 +37,17 @@ const ContactUs = () => {
   const contactSchema = {
     '@context': 'https://schema.org',
     '@type': 'ContactPage',
-    name: 'Contact Shreeji Fashion Surat',
-    url: 'https://shreejifashion.vercel.app/contact',
-    description: 'Get in touch with Shreeji Fashion for custom chaniya choli inquiries, bridal appointments, order support, and wholesale inquiries.',
+    name: 'Contact chaniyacholi.nook Surat',
+    url: 'https://chaniyacholinook.com/contact',
+    description: 'Get in touch with chaniyacholi.nook for custom chaniya choli inquiries, bridal appointments, order support, and assistance.',
     mainEntity: {
       '@type': 'ClothingStore',
-      name: 'Shreeji Fashion Studio',
+      name: 'chaniyacholi.nook Studio',
       telephone: '+91-9377126401',
-      email: 'Shreejifashiong23@gmail.com',
+      email: 'support@chaniyacholinook.com',
       address: {
         '@type': 'PostalAddress',
-        streetAddress: 'G23 Old bombay Market',
+        streetAddress: 'G23 Old Bombay Market',
         addressLocality: 'Surat',
         addressRegion: 'Gujarat',
         postalCode: '395002',
@@ -59,9 +59,9 @@ const ContactUs = () => {
   return (
     <div className="container mx-auto px-4 py-12">
       <SEO
-        title="Contact Us | Shreeji Fashion Surat Studio & Support"
-        description="Contact Shreeji Fashion in Surat, Gujarat. Reach our customer support team for custom bridal chaniya choli inquiries, sizing assistance, and order status."
-        keywords="contact shreeji fashion, surat lehenga store address, chaniya choli studio surat, ethnic wear customer care"
+        title="Contact Us | chaniyacholi.nook Surat Studio & Support"
+        description="Contact chaniyacholi.nook in Surat, Gujarat. Reach our customer care team for custom bridal chaniya choli inquiries, sizing assistance, and order status."
+        keywords="contact chaniyacholi.nook, surat lehenga store address, chaniya choli studio surat, ethnic wear customer care"
         schema={contactSchema}
       />
       <div className="text-center mb-12">
@@ -114,7 +114,7 @@ const ContactUs = () => {
               <div>
                 <h3 className="font-bold text-xl text-primary mb-2">Email Us</h3>
                 <p className="text-gray-600">
-                  Shreejifashiong23@gmail.com <br />
+                  support@chaniyacholinook.com <br />
                 </p>
               </div>
             </div>

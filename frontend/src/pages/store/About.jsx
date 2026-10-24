@@ -58,9 +58,9 @@ const About = () => {
     '@graph': [
       {
         '@type': 'AboutPage',
-        name: 'About Shreeji Fashion Surat',
-        url: 'https://shreejifashion.vercel.app/about',
-        description: 'Learn about Shreeji Fashion, our master artisans in Surat, and our dedication to handcrafted authentic Gujarati ethnic wear and bridal chaniya cholis.',
+        name: 'About chaniyacholi.nook Surat',
+        url: 'https://chaniyacholinook.com/about',
+        description: 'Learn about chaniyacholi.nook, our master artisans in Surat, and our dedication to handcrafted authentic Gujarati ethnic wear, Navratri ghagras, and bridal chaniya cholis.',
       },
       {
         '@type': 'FAQPage',
@@ -77,37 +77,41 @@ const About = () => {
   };
 
   return (
-    <div className="bg-[#fdfbf6] min-h-screen py-20 animate-fade-in">
+    <div className="bg-white min-h-screen py-20 animate-fade-in">
       <SEO
-        title="About Us & FAQs | Authentic Ethnic Heritage | Shreeji Fashion"
-        description="Learn about Shreeji Fashion Surat, our artisan heritage, craftsmanship in designer Chaniya Choli, and frequently asked questions about orders and shipping."
-        keywords="about shreeji fashion, ethnic wear artisans surat, chaniya choli manufacturer surat, lehenga faqs"
+        title="About Us & Story | chaniyacholi.nook | Tradition • Style • You"
+        description="Discover the story of chaniyacholi.nook in Surat, Gujarat. Master craftsmanship in designer chaniya choli, Navratri ghagras, and bridal lehengas."
+        keywords="about chaniyacholi.nook, chaniya choli manufacturer surat, ethnic wear artisans surat, navratri lehengas"
         schema={aboutSchema}
       />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
         
         {/* About Section */}
         <div className="text-center mb-16">
-          <p className="text-secondary text-sm font-bold tracking-[0.2em] uppercase mb-6">Our Story</p>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading text-primary mb-10 relative inline-block">
-            About Shreeji Fashion
-            <div className="absolute left-1/2 -bottom-6 transform -translate-x-1/2 w-32 border-b-2 border-secondary/20"></div>
+          <div className="w-24 h-24 rounded-full border border-neutral-300 shadow-md overflow-hidden mx-auto mb-6 bg-white">
+            <img src="/logo.png" alt="chaniyacholi.nook" className="w-full h-full object-cover" />
+          </div>
+          <p className="text-neutral-500 text-xs font-bold tracking-[0.3em] uppercase mb-3">Our Story</p>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading text-black mb-6 relative inline-block">
+            About chaniyacholi<span className="text-neutral-500">.nook</span>
+            <div className="absolute left-1/2 -bottom-4 transform -translate-x-1/2 w-32 border-b-2 border-black"></div>
           </h1>
+          <p className="text-sm font-semibold tracking-[0.25em] text-neutral-600 uppercase mt-3 mb-10">Tradition • Style • You</p>
           
-          <div className="space-y-8 text-gray-700 leading-relaxed text-left md:text-center mt-16 text-lg">
+          <div className="space-y-6 text-neutral-700 leading-relaxed text-left md:text-center mt-12 text-lg">
             <p>
-              Swastik House is a premium lehenga choli brand rooted in the rich heritage of Rajasthan. Our name "Swastik" symbolizes auspiciousness and prosperity — values we weave into every piece of our collection.
+              <strong className="text-black font-heading font-semibold text-xl">chaniyacholi.nook</strong> is an exclusive designer ethnic boutique rooted in the world-renowned textile capital of Surat, Gujarat. We celebrate the timeless splendor of Indian ethnic couture through handcrafted chaniya cholis and bridal lehengas that bring together centuries of heritage and contemporary flair.
             </p>
             <p>
-              Founded with a vision to bring royal Rajwadi elegance to modern Indian women, we work with master artisans who have inherited centuries-old embroidery techniques. From intricate zari work to delicate embellishments, every lehenga tells a story of craftsmanship and culture.
+              Guided by our core motto — <em className="text-black font-medium">"Tradition • Style • You"</em> — we work closely with master weavers and generational artisans. From vibrant Navratri gamthi and mirror work to exquisite hand-zari bridal embroidery, every garment is crafted with passion and devotion.
             </p>
           </div>
           
-          <div className="mt-20">
-            <h2 className="text-3xl md:text-4xl font-heading text-primary mb-8 text-left md:text-center">Our Craft</h2>
-            <div className="text-gray-700 leading-relaxed text-left md:text-center text-lg">
+          <div className="mt-16 bg-neutral-50 p-8 md:p-10 rounded-2xl border border-neutral-200 shadow-sm">
+            <h2 className="text-2xl md:text-3xl font-heading text-black mb-4 text-center">Our Artisan Craft</h2>
+            <div className="text-neutral-700 leading-relaxed text-center text-base md:text-lg">
               <p>
-                Each lehenga choli at Swastik House is handcrafted with meticulous attention to detail. We source the finest fabrics and collaborate with skilled artisans to ensure every garment is a masterpiece that you can cherish for a lifetime.
+                Each chaniya choli at <strong>chaniyacholi.nook</strong> is handcrafted with meticulous precision. We select the finest silks, georgettes, raw cottons, and rich textiles to ensure every ensemble is a cherished heirloom in your festive and bridal wardrobe.
               </p>
             </div>
           </div>
@@ -116,10 +120,10 @@ const About = () => {
         {/* FAQ Section */}
         <div className="mt-32">
           <div className="text-center mb-16">
-            <p className="text-secondary text-sm font-bold tracking-[0.2em] uppercase mb-6">Help Center</p>
-            <h2 className="text-4xl md:text-5xl font-heading text-primary relative inline-block">
+            <p className="text-neutral-500 text-sm font-bold tracking-[0.2em] uppercase mb-6">Help Center</p>
+            <h2 className="text-4xl md:text-5xl font-heading text-black relative inline-block">
               Frequently Asked Questions
-              <div className="absolute left-1/2 -bottom-6 transform -translate-x-1/2 w-32 border-b-2 border-secondary/20"></div>
+              <div className="absolute left-1/2 -bottom-6 transform -translate-x-1/2 w-32 border-b-2 border-black"></div>
             </h2>
           </div>
           

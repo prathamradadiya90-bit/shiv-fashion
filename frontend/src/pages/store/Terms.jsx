@@ -4,9 +4,9 @@ const Terms = () => {
   return (
     <div className="bg-[#fdfbf6] min-h-screen py-20 animate-fade-in">
       <SEO
-        title="Terms & Conditions | Shreeji Fashion Surat"
-        description="Review the terms and conditions for shopping at Shreeji Fashion. Clear policies on orders, payments, shipping, and returns."
-        keywords="terms and conditions, shreeji fashion shopping terms, legal disclaimer"
+        title="Terms & Conditions | chaniyacholi.nook"
+        description="Review the terms and conditions for shopping at chaniyacholi.nook. Clear policies on orders, payments, shipping, and returns."
+        keywords="terms and conditions, chaniyacholi.nook shopping terms, legal disclaimer"
       />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
         <div className="bg-white p-8 md:p-12 rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-gray-100">
@@ -15,14 +15,14 @@ const Terms = () => {
               Terms & Conditions
               <div className="absolute left-1/2 -bottom-4 transform -translate-x-1/2 w-24 border-b-2 border-secondary/20"></div>
             </h1>
-            <p className="text-gray-500 mt-6 italic">Last updated: January 2026</p>
+            <p className="text-gray-500 mt-6 italic">Last updated: October 2026</p>
           </div>
 
           <div className="space-y-8 text-gray-700 leading-relaxed text-lg">
             <section>
               <h2 className="text-2xl font-heading text-primary mb-4">1. General Terms of Use</h2>
               <p>
-                By accessing and using Shreeji Fashion ("Website"), you agree to be bound by these Terms and Conditions. Shreeji Fashion ("we", "us", "our") reserves the right to modify these terms at any time. Continued use of the Website constitutes acceptance of any changes.
+                By accessing and using chaniyacholi.nook ("Website"), you agree to be bound by these Terms and Conditions. chaniyacholi.nook ("we", "us", "our") reserves the right to modify these terms at any time. Continued use of the Website constitutes acceptance of any changes.
               </p>
             </section>
 
@@ -78,7 +78,7 @@ const Terms = () => {
             <section>
               <h2 className="text-2xl font-heading text-primary mb-4">8. Intellectual Property</h2>
               <p>
-                All content on this Website, including images, designs, logos, and text, is the property of Swastik House and protected under Indian copyright and trademark laws. Unauthorized use is strictly prohibited.
+                All content on this Website, including images, designs, logos, and text, is the property of chaniyacholi.nook and protected under Indian copyright and trademark laws. Unauthorized use is strictly prohibited.
               </p>
             </section>
 

@@ -5,6 +5,8 @@ import { Save, User, Lock, ShieldCheck, Eye, EyeOff, KeyRound, Server } from 'lu
 import api from '../../services/api';
 import { setCredentials } from '../../store/slices/authSlice';
 
+import AdminHeader from '../../components/admin/AdminHeader';
+
 const Settings = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -52,16 +54,18 @@ const Settings = () => {
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-slate-900 font-heading">Admin Settings</h2>
-        <p className="text-xs text-slate-500">Manage administrator account security, credentials, and store preferences</p>
-      </div>
+      <AdminHeader
+        title="Admin Settings"
+        subtitle="Manage administrator credentials, security access, and store integration endpoints"
+        badge="Super Admin"
+        breadcrumbs={['Portal', 'Settings']}
+      />
 
       <form onSubmit={submitHandler} className="space-y-6">
         {/* Card 1: Profile Information */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 md:p-8 space-y-5">
           <h3 className="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-            <User size={18} className="text-[#800020]" />
+            <User size={18} className="text-black" />
             <span>Administrator Profile</span>
           </h3>
 
@@ -74,7 +78,7 @@ const Settings = () => {
                 type="text" 
                 value={name} 
                 onChange={(e) => setName(e.target.value)} 
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-[#800020] outline-none"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-black outline-none"
                 required
               />
             </div>
@@ -86,7 +90,7 @@ const Settings = () => {
                 type="email" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-[#800020] outline-none"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-black outline-none"
                 required
               />
             </div>
@@ -182,7 +186,7 @@ const Settings = () => {
           <button 
             type="submit" 
             disabled={loading}
-            className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#800020] to-[#5a0016] text-white text-sm font-bold hover:from-[#6b001b] hover:to-[#450011] shadow-lg shadow-[#800020]/20 transition-all disabled:opacity-50 flex items-center gap-2"
+            className="px-8 py-3.5 rounded-xl bg-black hover:bg-neutral-800 text-white text-sm font-bold shadow-lg transition-all disabled:opacity-50 flex items-center gap-2"
           >
             <Save size={16} /> 
             {loading ? 'Saving Settings...' : 'Save Settings'}

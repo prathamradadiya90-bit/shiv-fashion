@@ -52,25 +52,25 @@ const TrackOrder = () => {
   ];
 
   return (
-    <div className="min-h-[70vh] bg-gradient-to-b from-primary/5 via-white to-primary/5 pb-16">
-      <div className="relative overflow-hidden border-b border-primary/10">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(123,30,30,0.05),_transparent_60%)]"></div>
+    <div className="min-h-[70vh] bg-gradient-to-b from-neutral-100/60 via-white to-neutral-50 pb-16">
+      <div className="relative overflow-hidden border-b border-neutral-200">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(0,0,0,0.04),_transparent_60%)]"></div>
         <div className="relative max-w-3xl mx-auto px-4 pt-10 pb-8 md:pt-14 md:pb-10 text-center">
-          <p className="text-primary font-medium tracking-[0.2em] uppercase text-xs mb-3">Order Status</p>
-          <h1 className="font-heading font-bold text-3xl md:text-4xl text-gray-800 mb-3">Track Your Order</h1>
-          <p className="text-gray-500 max-w-lg mx-auto text-sm md:text-base leading-relaxed">
+          <p className="text-neutral-500 font-semibold tracking-[0.25em] uppercase text-xs mb-3">Order Status</p>
+          <h1 className="font-heading font-bold text-3xl md:text-4xl text-neutral-950 mb-3">Track Your Order</h1>
+          <p className="text-neutral-600 max-w-lg mx-auto text-sm md:text-base leading-relaxed">
             No login needed. Use the mobile number from checkout, or your order number — and see every update in one place.
           </p>
           
-          <div className="flex flex-wrap justify-center gap-4 mt-6 text-xs text-gray-500">
+          <div className="flex flex-wrap justify-center gap-4 mt-6 text-xs text-neutral-500">
             <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-primary" /> Secure lookup
+              <ShieldCheck className="w-3.5 h-3.5 text-neutral-800" /> Secure lookup
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <Phone className="w-3.5 h-3.5 text-primary" /> Phone or order ID
+              <Phone className="w-3.5 h-3.5 text-neutral-800" /> Phone or order ID
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <Truck className="w-3.5 h-3.5 text-primary" /> Live status
+              <Truck className="w-3.5 h-3.5 text-neutral-800" /> Live status
             </span>
           </div>
         </div>
@@ -84,14 +84,14 @@ const TrackOrder = () => {
             <button 
               type="button" 
               onClick={() => { setTrackingMethod('phone'); setInputValue(''); setEmail(''); setOrders(null); }}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-md text-sm font-medium transition-all ${trackingMethod === 'phone' ? 'bg-[#800020] text-white shadow-sm' : 'text-gray-600 hover:text-[#800020]'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-md text-sm font-medium transition-all ${trackingMethod === 'phone' ? 'bg-black text-white shadow-sm' : 'text-gray-600 hover:text-black'}`}
             >
               <Phone className="w-4 h-4" /> Mobile Number
             </button>
             <button 
               type="button" 
               onClick={() => { setTrackingMethod('order'); setInputValue(''); setEmail(''); setOrders(null); }}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-md text-sm font-medium transition-all ${trackingMethod === 'order' ? 'bg-[#800020] text-white shadow-sm' : 'text-gray-600 hover:text-[#800020]'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-md text-sm font-medium transition-all ${trackingMethod === 'order' ? 'bg-black text-white shadow-sm' : 'text-gray-600 hover:text-black'}`}
             >
               <Hash className="w-4 h-4" /> Order Number
             </button>
@@ -112,7 +112,7 @@ const TrackOrder = () => {
                     placeholder={trackingMethod === 'phone' ? "7046932548" : "e.g. 9b1deb4d-3b7d..."} 
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    className={`w-full h-14 rounded-lg border border-gray-200 focus:border-[#800020] focus:ring-1 focus:ring-[#800020] outline-none transition-colors text-lg ${trackingMethod === 'phone' ? 'pl-14 pr-4' : 'px-4'}`}
+                    className={`w-full h-14 rounded-lg border border-gray-200 focus:border-black focus:ring-1 focus:ring-black outline-none transition-colors text-lg ${trackingMethod === 'phone' ? 'pl-14 pr-4' : 'px-4'}`}
                     required
                   />
                 </div>
@@ -129,14 +129,14 @@ const TrackOrder = () => {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full h-14 rounded-lg border border-gray-200 focus:border-[#800020] focus:ring-1 focus:ring-[#800020] outline-none transition-colors px-4 text-base"
+                className="w-full h-14 rounded-lg border border-gray-200 focus:border-black focus:ring-1 focus:ring-black outline-none transition-colors px-4 text-base"
                 required
               />
             </div>
 
             <button 
               type="submit" 
-              className="h-14 px-8 bg-[#800020] hover:bg-[#600018] text-white rounded-lg flex items-center justify-center gap-2 font-medium transition-colors w-full disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+              className="h-14 px-8 bg-black hover:bg-neutral-800 text-white rounded-lg flex items-center justify-center gap-2 font-medium transition-colors w-full disabled:opacity-50 disabled:cursor-not-allowed text-lg"
               disabled={!inputValue || !email || loading}
             >
               {loading ? (
@@ -178,7 +178,7 @@ const TrackOrder = () => {
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Total</p>
-                        <p className="font-bold text-[#800020]">₹{(order.totalAmount / 100).toFixed(2)}</p>
+                        <p className="font-bold text-black">₹{(order.totalAmount / 100).toFixed(2)}</p>
                       </div>
                     </div>
                   </div>
@@ -244,7 +244,7 @@ const TrackOrder = () => {
                             <div className="flex-grow">
                               <p className="font-bold text-gray-800 line-clamp-1">{item.name}</p>
                               <p className="text-xs text-gray-500 mt-1">Qty: {item.quantity} | Size: {item.size} | Color: {item.color}</p>
-                              <p className="text-sm font-bold text-[#800020] mt-1">₹{(item.price / 100).toFixed(2)}</p>
+                              <p className="text-sm font-bold text-black mt-1">₹{(item.price / 100).toFixed(2)}</p>
                             </div>
                           </div>
                         ))}

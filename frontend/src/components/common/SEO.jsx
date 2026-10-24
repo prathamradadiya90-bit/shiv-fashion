@@ -1,12 +1,12 @@
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 
-const DEFAULT_DOMAIN = 'https://shreejifashion.vercel.app';
-const DEFAULT_SITE_NAME = 'Shreeji Fashion';
-const DEFAULT_TITLE = 'Shreeji Fashion | Designer Chaniya Choli & Navratri Ethnic Wear Surat';
-const DEFAULT_DESCRIPTION = 'Shop authentic designer Chaniya Choli, Navratri ghagra, bridal lehenga, and traditional Gujarati ethnic wear online with worldwide shipping from Surat.';
-const DEFAULT_KEYWORDS = 'chaniya choli, designer chaniya choli, navratri lehenga, ethnic wear surat, bridal chaniya choli, traditional gujarati dress, gamthi work lehenga, kutch work choli';
-const DEFAULT_OG_IMAGE = `${DEFAULT_DOMAIN}/og-image.jpg`;
+const DEFAULT_DOMAIN = 'https://chaniyacholinook.com';
+const DEFAULT_SITE_NAME = 'chaniyacholi.nook';
+const DEFAULT_TITLE = 'chaniyacholi.nook | Designer Chaniya Choli & Navratri Ethnic Wear';
+const DEFAULT_DESCRIPTION = 'Shop authentic designer Chaniya Choli, Navratri ghagra, bridal lehenga, and traditional Gujarati ethnic wear online. Tradition • Style • You with worldwide shipping from Surat.';
+const DEFAULT_KEYWORDS = 'chaniyacholi.nook, chaniya choli, designer chaniya choli, navratri lehenga, ethnic wear surat, bridal chaniya choli, traditional gujarati dress, gamthi work lehenga, kutch work choli';
+const DEFAULT_OG_IMAGE = `/logo.png`;
 
 /**
  * Enterprise SEO & Structured Data Helmet Component

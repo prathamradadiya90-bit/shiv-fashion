@@ -17,7 +17,7 @@ const processEmailJob = async (options) => {
   });
 
   const message = {
-    from: `${process.env.SMTP_FROM_NAME || 'Shreeji Fashion'} <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
+    from: `${process.env.SMTP_FROM_NAME || 'chaniyacholi.nook'} <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
     to: options.email,
     subject: options.subject,
     text: options.message,

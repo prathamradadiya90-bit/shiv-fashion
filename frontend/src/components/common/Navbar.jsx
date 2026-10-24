@@ -99,11 +99,11 @@ const Navbar = () => {
   const totalCartCount = (cartItems || []).reduce((acc, item) => acc + (item.quantity || 1), 0);
 
   return (
-    <header className="sticky top-0 z-50 glass shadow-xs">
+    <header className="sticky top-0 z-50 glass shadow-sm">
       {/* Promo Banner */}
-      <div className="bg-primary border-b border-primary-dark">
+      <div className="bg-black border-b border-neutral-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5">
-          <p className="text-xs text-center text-secondary tracking-wide font-medium">
+          <p className="text-xs text-center text-neutral-300 tracking-wide font-medium">
             ✦ Flat ₹250 Shipping · Free Shipping on orders over ₹5,000 | Pay ₹500 advance + COD available ✦
           </p>
         </div>
@@ -114,13 +114,22 @@ const Navbar = () => {
           
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <Link to="/" className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-md flex-shrink-0">
-              <span className="text-xl font-bold text-secondary">SH</span>
+            <Link to="/" className="relative group flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full border border-neutral-300 shadow-sm overflow-hidden flex-shrink-0 bg-white group-hover:scale-105 group-hover:border-black transition-all duration-300">
+                <img 
+                  src="/logo.png" 
+                  alt="chaniyacholi.nook logo" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="hidden sm:block">
+                <div className="flex items-baseline">
+                  <span className="text-xl font-bold text-black font-heading tracking-tight">chaniyacholi</span>
+                  <span className="text-xl font-bold text-neutral-500 font-heading tracking-tight">.nook</span>
+                </div>
+                <p className="text-[9px] text-neutral-500 tracking-[0.25em] uppercase font-semibold font-sans">Tradition • Style • You</p>
+              </div>
             </Link>
-            <div className="hidden sm:block">
-              <Link to="/" className="text-xl font-bold text-primary block leading-none font-heading tracking-wide mb-1">Shreeji Fashion</Link>
-              <p className="text-[10px] text-secondary tracking-widest leading-none uppercase font-semibold">Premium Lehenga</p>
-            </div>
           </div>
 
           {/* Desktop Navigation */}
@@ -157,7 +166,7 @@ const Navbar = () => {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search lehengas, cholis, fabrics..."
-                      className="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-[#800020] outline-none"
+                      className="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-black outline-none"
                     />
                     <button
                       type="button"
@@ -172,7 +181,7 @@ const Navbar = () => {
                   <div className="max-h-[320px] overflow-y-auto space-y-2 divide-y divide-slate-100">
                     {searchLoading ? (
                       <div className="py-8 text-center text-slate-400 text-xs flex items-center justify-center gap-2">
-                        <Loader2 size={16} className="animate-spin text-[#800020]" />
+                        <Loader2 size={16} className="animate-spin text-black" />
                         <span>Searching catalog...</span>
                       </div>
                     ) : searchResults.length > 0 ? (
@@ -193,12 +202,12 @@ const Navbar = () => {
                               className="w-12 h-14 object-cover rounded-lg border border-slate-100 flex-shrink-0"
                             />
                             <div className="flex-1 min-w-0">
-                              <h4 className="text-xs font-bold text-slate-800 truncate group-hover:text-[#800020] transition-colors">
+                              <h4 className="text-xs font-bold text-slate-800 truncate group-hover:text-black transition-colors">
                                 {product.name}
                               </h4>
                               <p className="text-[11px] text-slate-400">{product.category}</p>
                               <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-xs font-bold text-[#800020]">
+                                <span className="text-xs font-bold text-black">
                                   ₹{((product.price - Math.round(product.price * (product.discount / 10000))) / 100).toFixed(2)}
                                 </span>
                                 {product.discount > 0 && (
@@ -208,7 +217,7 @@ const Navbar = () => {
                                 )}
                               </div>
                             </div>
-                            <ArrowRight size={14} className="text-slate-300 group-hover:text-[#800020] group-hover:translate-x-0.5 transition-all" />
+                            <ArrowRight size={14} className="text-slate-300 group-hover:text-black group-hover:translate-x-0.5 transition-all" />
                           </div>
                         ))}
 
@@ -216,7 +225,7 @@ const Navbar = () => {
                           <button
                             type="button"
                             onClick={handleSearchSubmit}
-                            className="text-xs font-bold text-[#800020] hover:underline flex items-center justify-center gap-1 w-full py-1"
+                            className="text-xs font-bold text-black hover:underline flex items-center justify-center gap-1 w-full py-1"
                           >
                             <span>View all results for "{searchQuery}"</span>
                             <ArrowRight size={13} />
@@ -224,14 +233,40 @@ const Navbar = () => {
                         </div>
                       </div>
                     ) : searchQuery.trim() ? (
-                      <div className="py-8 text-center text-slate-400 text-xs space-y-1">
+                      <div className="py-8 text-center text-slate-400 text-xs space-y-2">
                         <p className="font-semibold text-slate-700">No products found</p>
-                        <p>Try searching for "Navratri", "Silk", "Mirror Work", or "Georgette"</p>
+                        <p>Try searching for trending styles:</p>
+                        <div className="flex flex-wrap justify-center gap-1.5 pt-1">
+                          {['Bridal', 'Navratri', 'Mirror Work', 'Silk', 'Party'].map(tag => (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => { setSearchQuery(tag); }}
+                              className="px-2.5 py-1 bg-neutral-100 hover:bg-black hover:text-white rounded-full text-[11px] font-medium transition-colors"
+                            >
+                              {tag}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     ) : (
-                      <div className="py-4 px-2 text-xs text-slate-400 flex items-center gap-2">
-                        <Sparkles size={14} className="text-[#800020]" />
-                        <span>Type keywords to search traditional collections instantly</span>
+                      <div className="py-4 px-2 space-y-3">
+                        <div className="text-xs text-slate-400 flex items-center gap-2">
+                          <Sparkles size={14} className="text-black" />
+                          <span>Popular searches:</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {['Bridal Lehengas', 'Navratri Chaniya', 'Mirror Work', 'Raw Silk', 'Under ₹5,000'].map(tag => (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => { setSearchQuery(tag); }}
+                              className="px-3 py-1 bg-neutral-100 hover:bg-black hover:text-white rounded-full text-xs font-medium transition-colors"
+                            >
+                              {tag}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -293,7 +328,7 @@ const Navbar = () => {
             >
               <ShoppingCart className="w-5 h-5" />
               {totalCartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-secondary text-primary-dark text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center shadow-sm">
+                <span className="absolute -top-2 -right-2 bg-black text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center shadow-sm">
                   {totalCartCount}
                 </span>
               )}
@@ -320,6 +355,27 @@ const Navbar = () => {
             <Link to="/contact" className="text-sm font-semibold text-gray-800 hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
           </nav>
         )}
+      </div>
+
+      {/* Quick Category Bar (Modern Editorial Style) */}
+      <div className="border-t border-neutral-200/80 bg-white/95 backdrop-blur-md hidden md:block">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center gap-6 py-2.5 text-[11px] uppercase tracking-[0.18em] font-semibold">
+            <Link to="/shop" className="text-black hover:text-neutral-500 transition-colors">All Lehengas</Link>
+            <span className="text-neutral-300">/</span>
+            <Link to="/shop?category=Bridal" className="text-neutral-600 hover:text-black transition-colors">Bridal Collection</Link>
+            <span className="text-neutral-300">/</span>
+            <Link to="/shop?category=Festive" className="text-neutral-600 hover:text-black transition-colors">Navratri Chaniya</Link>
+            <span className="text-neutral-300">/</span>
+            <Link to="/shop?category=Party" className="text-neutral-600 hover:text-black transition-colors">Party & Reception</Link>
+            <span className="text-neutral-300">/</span>
+            <Link to="/shop?category=Designer" className="text-neutral-600 hover:text-black transition-colors">Artisan Silk</Link>
+            <span className="text-neutral-300">/</span>
+            <Link to="/shop?newArrival=true" className="text-black font-bold flex items-center gap-1.5 hover:text-neutral-600 transition-colors">
+              <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse"></span> New Arrivals
+            </Link>
+          </div>
+        </div>
       </div>
     </header>
   );

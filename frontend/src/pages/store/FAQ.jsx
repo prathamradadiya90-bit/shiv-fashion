@@ -78,7 +78,7 @@ const FAQS = [
   // Payments & COD
   {
     category: 'payments',
-    question: 'What payment modes are accepted on Shreeji Fashion?',
+    question: 'What payment modes are accepted on chaniyacholi.nook?',
     answer: 'We accept UPI (Google Pay, PhonePe, Paytm), Credit & Debit Cards (Visa, MasterCard, RuPay), Net Banking, and Partial Cash on Delivery (COD).'
   },
   {
@@ -125,22 +125,22 @@ const FAQ = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12 px-4 sm:px-6 lg:px-8">
       <SEO
-        title="Frequently Asked Questions (FAQ) | Shreeji Fashion Surat"
-        description="Find answers to common questions about orders, shipping, semi-stitched sizing, returns, payments, and ethnic garment care at Shreeji Fashion."
-        keywords="faq shreeji fashion, lehenga size chart, shipping surat ethnic wear, returns exchange policy"
+        title="Frequently Asked Questions (FAQ) | chaniyacholi.nook"
+        description="Find answers to common questions about orders, shipping, semi-stitched sizing, returns, payments, and ethnic garment care at chaniyacholi.nook."
+        keywords="faq chaniyacholi.nook, lehenga size chart, shipping surat ethnic wear, returns exchange policy"
       />
 
       <div className="max-w-4xl mx-auto space-y-10">
 
         {/* Header Hero */}
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#800020]/10 text-[#800020] text-xs font-bold uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neutral-100 text-black border border-neutral-200 text-xs font-bold uppercase tracking-wider">
             <HelpCircle size={14} /> Help & Customer Support
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-heading tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-neutral-950 font-heading tracking-tight">
             Frequently Asked Questions
           </h1>
-          <p className="text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">
+          <p className="text-sm text-neutral-600 max-w-xl mx-auto leading-relaxed">
             Everything you need to know about our handcrafted ethnic wear, custom sizing, delivery timelines, and order support.
           </p>
         </div>
@@ -152,7 +152,7 @@ const FAQ = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search questions (e.g. shipping time, size chart, COD, return)..."
-            className="w-full bg-white border border-slate-200/90 rounded-2xl pl-12 pr-4 py-3.5 text-sm shadow-sm focus:ring-2 focus:ring-[#800020] focus:border-transparent outline-none transition-all"
+            className="w-full bg-white border border-slate-200/90 rounded-2xl pl-12 pr-4 py-3.5 text-sm shadow-sm focus:ring-2 focus:ring-black focus:border-black outline-none transition-all"
           />
           <Search size={18} className="absolute left-4 top-4 text-slate-400" />
           {searchQuery && (
@@ -179,11 +179,11 @@ const FAQ = () => {
                 }}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shadow-xs ${
                   isSelected
-                    ? 'bg-[#800020] text-white shadow-[#800020]/20'
+                    ? 'bg-black text-white shadow-sm'
                     : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                <Icon size={14} className={isSelected ? 'text-[#E5C158]' : 'text-slate-400'} />
+                <Icon size={14} className={isSelected ? 'text-white' : 'text-slate-400'} />
                 <span>{cat.label}</span>
               </button>
             );
@@ -208,7 +208,7 @@ const FAQ = () => {
                   key={index}
                   className={`rounded-2xl border transition-all overflow-hidden ${
                     isOpen 
-                      ? 'bg-white border-[#800020]/30 shadow-md ring-1 ring-[#800020]/10' 
+                      ? 'bg-white border-neutral-900 shadow-md ring-1 ring-black/10' 
                       : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-xs'
                   }`}
                 >
@@ -220,7 +220,7 @@ const FAQ = () => {
                       {faq.question}
                     </span>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-transform duration-200 ${
-                      isOpen ? 'bg-[#800020] text-white rotate-180' : 'bg-slate-100 text-slate-500'
+                      isOpen ? 'bg-black text-white rotate-180' : 'bg-slate-100 text-slate-500'
                     }`}>
                       <ChevronDown size={16} />
                     </div>
@@ -238,22 +238,22 @@ const FAQ = () => {
         </div>
 
         {/* Still Have Questions Banner */}
-        <div className="rounded-3xl bg-gradient-to-r from-[#800020] to-[#500014] text-white p-8 sm:p-10 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="rounded-3xl bg-black text-white p-8 sm:p-10 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 border border-neutral-800">
           <div className="space-y-2 text-center md:text-left z-10">
             <h3 className="text-xl sm:text-2xl font-bold font-heading text-white">Still have questions?</h3>
-            <p className="text-xs sm:text-sm text-slate-200 max-w-md">
+            <p className="text-xs sm:text-sm text-neutral-300 max-w-md">
               Our fashion consultants in Surat are happy to help you with custom sizing, orders, and styling advice.
             </p>
           </div>
           <div className="flex flex-wrap gap-3 z-10">
             <Link
               to="/contact"
-              className="px-5 py-3 rounded-xl bg-white text-[#800020] text-xs font-bold hover:bg-slate-100 transition-colors shadow-sm flex items-center gap-2"
+              className="px-5 py-3 rounded-xl bg-white text-black text-xs font-bold hover:bg-neutral-100 transition-colors shadow-sm flex items-center gap-2"
             >
               <Mail size={15} /> Contact Support
             </Link>
             <a
-              href="https://api.whatsapp.com/send?phone=919876543210&text=Hi%20Shreeji%20Fashion,%20I%20have%20an%20inquiry"
+              href="https://api.whatsapp.com/send?phone=919876543210&text=Hi%20chaniyacholi.nook,%20I%20have%20an%20inquiry"
               target="_blank"
               rel="noreferrer"
               className="px-5 py-3 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-colors shadow-sm flex items-center gap-2"

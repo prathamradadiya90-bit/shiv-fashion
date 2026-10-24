@@ -17,7 +17,7 @@ const generateInvoicePdf = (order, res) => {
 
   doc.pipe(res);
 
-  const PRIMARY_COLOR = '#800020'; // Brand maroon
+  const PRIMARY_COLOR = '#72092C'; // Brand crimson from logo
   const TEXT_DARK = '#222222';
   const TEXT_MUTED = '#666666';
   const BORDER_COLOR = '#E5E7EB';
@@ -27,14 +27,14 @@ const generateInvoicePdf = (order, res) => {
     .fillColor(PRIMARY_COLOR)
     .fontSize(22)
     .font('Helvetica-Bold')
-    .text('SHIV FASHION', 40, 40);
+    .text('chaniyacholi.nook', 40, 40);
 
   doc
     .fillColor(TEXT_MUTED)
     .fontSize(9)
     .font('Helvetica')
-    .text('Authentic Ethnic Wear & Designer Chaniya Choli', 40, 66)
-    .text('Surat, Gujarat, India | support@shivfashion.com', 40, 78);
+    .text('Designer Chaniya Choli & Lehengas | Tradition • Style • You', 40, 66)
+    .text('Surat, Gujarat, India | support@chaniyacholinook.com', 40, 78);
 
   doc
     .fillColor(PRIMARY_COLOR)
@@ -259,7 +259,7 @@ const generateInvoicePdf = (order, res) => {
     .fillColor(PRIMARY_COLOR)
     .fontSize(9)
     .font('Helvetica-Bold')
-    .text('Thank you for choosing Shiv Fashion!', 40, footerY + 12, { align: 'center', width: 515 });
+    .text('Thank you for choosing chaniyacholi.nook! | Tradition • Style • You', 40, footerY + 12, { align: 'center', width: 515 });
 
   doc
     .fillColor(TEXT_MUTED)

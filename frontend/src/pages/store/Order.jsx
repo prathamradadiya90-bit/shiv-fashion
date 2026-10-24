@@ -86,7 +86,7 @@ const Order = () => {
           contact: userInfo?.phone || '',
         },
         theme: {
-          color: '#800020',
+          color: '#000000',
         },
         modal: {
           ondismiss: function () {

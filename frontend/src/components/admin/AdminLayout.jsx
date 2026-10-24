@@ -76,26 +76,21 @@ const AdminLayout = () => {
 
       {/* Sidebar */}
       <aside 
-        className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-[#1a050b] text-white flex flex-col transform transition-transform duration-300 ease-in-out shadow-2xl md:shadow-none border-r border-[#3a0c18] ${
+        className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-black text-white flex flex-col transform transition-transform duration-300 ease-in-out shadow-2xl md:shadow-none border-r border-neutral-800 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
         {/* Brand Logo Header */}
-        <div className="h-24 flex items-center justify-between px-6 border-b border-[#3a0c18] bg-gradient-to-r from-[#24060f] to-[#1a050b]">
+        <div className="h-24 flex items-center justify-between px-6 border-b border-neutral-800 bg-neutral-950">
           <Link to="/admin" className="flex items-center gap-3.5 group">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#E5C158] via-[#D4AF37] to-[#997C22] p-[1.5px] shadow-lg shadow-[#D4AF37]/20 flex-shrink-0 group-hover:scale-105 transition-transform">
-              <div className="w-full h-full bg-[#1e050d] rounded-[10px] flex items-center justify-center">
-                <span className="text-[#E5C158] font-serif font-black text-xl tracking-wider">SH</span>
-              </div>
+            <div className="w-11 h-11 rounded-full border border-neutral-700 p-0.5 shadow-md flex-shrink-0 group-hover:scale-105 transition-transform bg-white overflow-hidden">
+              <img src="/logo.png" alt="chaniyacholi.nook" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
-                <span className="font-serif font-bold text-lg text-white tracking-wide">SHREEJI</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold bg-[#D4AF37]/20 text-[#E5C158] border border-[#D4AF37]/40 tracking-wider">
-                  PRO
-                </span>
+                <span className="font-heading font-bold text-base text-white tracking-wide">chaniyacholi<span className="text-neutral-400">.nook</span></span>
               </div>
-              <span className="text-[11px] font-medium text-white/50 tracking-widest uppercase">Admin Portal</span>
+              <span className="text-[10px] font-medium text-neutral-400 tracking-widest uppercase">Admin Portal</span>
             </div>
           </Link>
           <button 
@@ -111,19 +106,19 @@ const AdminLayout = () => {
           <Link 
             to="/" 
             target="_blank" 
-            className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white transition-all text-xs font-medium group"
+            className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-850 border border-neutral-800 text-neutral-300 hover:text-white transition-all text-xs font-medium group"
           >
             <div className="flex items-center gap-2">
-              <Sparkles size={14} className="text-[#E5C158] animate-pulse" />
+              <Sparkles size={14} className="text-white" />
               <span>Live Storefront</span>
             </div>
-            <ExternalLink size={14} className="text-white/40 group-hover:text-white transition-colors" />
+            <ExternalLink size={14} className="text-neutral-500 group-hover:text-white transition-colors" />
           </Link>
         </div>
         
         {/* Navigation Menu */}
-        <div className="flex-1 overflow-y-auto py-3 px-3 space-y-1.5 scrollbar-thin scrollbar-thumb-white/10">
-          <div className="px-3 py-1.5 text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+        <div className="flex-1 overflow-y-auto py-3 px-3 space-y-1.5 scrollbar-thin scrollbar-thumb-neutral-800">
+          <div className="px-3 py-1.5 text-[11px] font-semibold tracking-wider text-neutral-500 uppercase">
             Management
           </div>
           {navItems.map((item) => {
@@ -139,16 +134,16 @@ const AdminLayout = () => {
                 onClick={() => setIsSidebarOpen(false)}
                 className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${
                   isActive 
-                    ? 'bg-gradient-to-r from-[#D4AF37] to-[#B38F24] text-slate-950 font-semibold shadow-lg shadow-[#D4AF37]/25' 
-                    : 'text-white/75 hover:bg-white/5 hover:text-white'
+                    ? 'bg-white text-black font-semibold shadow-md' 
+                    : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Icon size={19} className={isActive ? 'text-slate-950' : 'text-white/60 group-hover:text-[#E5C158] transition-colors'} />
+                  <Icon size={19} className={isActive ? 'text-black' : 'text-neutral-400 group-hover:text-white transition-colors'} />
                   <span>{item.name}</span>
                 </div>
                 {isActive && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-950"></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-black"></div>
                 )}
               </Link>
             );
@@ -156,22 +151,22 @@ const AdminLayout = () => {
         </div>
         
         {/* User Card & Logout Footer */}
-        <div className="p-4 border-t border-[#3a0c18] bg-[#140308]/60">
-          <div className="flex items-center gap-3 px-2 py-2 mb-2 rounded-lg bg-white/[0.03]">
-            <div className="w-9 h-9 rounded-full bg-[#E5C158]/20 border border-[#E5C158]/40 flex items-center justify-center text-[#E5C158] font-bold text-xs">
+        <div className="p-4 border-t border-neutral-800 bg-neutral-950">
+          <div className="flex items-center gap-3 px-2 py-2 mb-2 rounded-lg bg-neutral-900">
+            <div className="w-9 h-9 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-white font-bold text-xs">
               {getInitials(userInfo?.name)}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-white truncate">{userInfo?.name || 'Administrator'}</p>
-              <p className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+              <p className="text-[11px] text-neutral-400 font-medium flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
                 Super Admin
               </p>
             </div>
           </div>
           <button 
             onClick={logoutHandler}
-            className="flex items-center justify-center w-full px-3 py-2.5 text-xs font-semibold text-rose-300 hover:text-rose-100 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-xl transition-all gap-2"
+            className="flex items-center justify-center w-full px-3 py-2.5 text-xs font-semibold text-neutral-300 hover:text-white bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 rounded-xl transition-all gap-2"
           >
             <LogOut size={15} />
             <span>Secure Logout</span>
@@ -214,7 +209,7 @@ const AdminLayout = () => {
 
             {/* Admin Profile Pill */}
             <div className="flex items-center gap-3 pl-3 border-l border-slate-200">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#800020] to-[#500014] text-[#E5C158] font-bold flex items-center justify-center shadow-md shadow-[#800020]/20 text-sm">
+              <div className="w-10 h-10 rounded-full bg-black text-white font-bold flex items-center justify-center shadow-md text-sm">
                 {getInitials(userInfo?.name)}
               </div>
               <div className="hidden sm:block text-left">

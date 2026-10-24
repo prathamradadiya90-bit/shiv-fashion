@@ -108,14 +108,14 @@ const Shop = () => {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: categoryParam ? `${categoryParam} Chaniya Choli Collection` : 'All Ethnic Wear & Chaniya Choli Collection',
-    url: `https://shreejifashion.vercel.app/shop${categoryParam ? `?category=${encodeURIComponent(categoryParam)}` : ''}`,
+    url: `https://chaniyacholinook.com/shop${categoryParam ? `?category=${encodeURIComponent(categoryParam)}` : ''}`,
     description: 'Browse authentic designer Chaniya Choli, Navratri festive lehenga, bridal collections, and Gujarati traditional wear with worldwide shipping.',
     breadcrumb: {
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://shreejifashion.vercel.app/' },
-        { '@type': 'ListItem', position: 2, name: 'Shop', item: 'https://shreejifashion.vercel.app/shop' },
-        ...(categoryParam ? [{ '@type': 'ListItem', position: 3, name: categoryParam, item: `https://shreejifashion.vercel.app/shop?category=${encodeURIComponent(categoryParam)}` }] : []),
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://chaniyacholinook.com/' },
+        { '@type': 'ListItem', position: 2, name: 'Shop', item: 'https://chaniyacholinook.com/shop' },
+        ...(categoryParam ? [{ '@type': 'ListItem', position: 3, name: categoryParam, item: `https://chaniyacholinook.com/shop?category=${encodeURIComponent(categoryParam)}` }] : []),
       ],
     },
   };
@@ -123,28 +123,107 @@ const Shop = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <SEO
-        title={categoryParam ? `${categoryParam} Chaniya Choli Collection | Shreeji Fashion Surat` : 'Shop Designer Chaniya Choli & Lehengas Online | Shreeji Fashion'}
-        description={`Explore ${categoryParam || 'exclusive'} designer Chaniya Cholis and ethnic lehengas. Premium Gujarati craftsmanship with direct shipping from Surat.`}
-        keywords="buy chaniya choli online, navratri lehenga shop, designer bridal choli, gujarati traditional attire, surat textile market online"
+        title={categoryParam ? `${categoryParam} Chaniya Choli Collection | chaniyacholi.nook` : 'Shop Designer Chaniya Choli & Lehengas Online | chaniyacholi.nook'}
+        description={`Explore ${categoryParam || 'exclusive'} designer Chaniya Cholis and ethnic lehengas. Tradition • Style • You with handcrafted luxury from Surat.`}
+        keywords="chaniyacholi.nook, buy chaniya choli online, navratri lehenga shop, designer bridal choli, gujarati traditional attire, surat textile market online"
         schema={shopSchema}
       />
       {/* Page Header */}
-      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
+      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-heading font-bold text-primary mb-2">Shop Collection</h1>
-          <p className="text-gray-600">Discover our authentic and premium range of Chaniya Cholis.</p>
+          <h1 className="text-3xl sm:text-4xl font-heading font-bold text-black mb-1">Exclusive Collection</h1>
+          <p className="text-neutral-500 text-sm">Handcrafted designer Chaniya Cholis, Navratri attire & bridal ensembles.</p>
         </div>
-        <div className="mt-4 md:mt-0 relative w-full md:w-72">
+        <div className="relative w-full md:w-80">
           <input 
             type="text" 
-            placeholder="Search products..." 
+            placeholder="Search lehengas, silk, mirror work..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+            className="w-full pl-10 pr-4 py-2.5 border border-neutral-300 rounded-sm text-sm focus:ring-1 focus:ring-black focus:border-black outline-none bg-neutral-50 focus:bg-white transition-all"
           />
-          <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+          <Search className="absolute left-3.5 top-3 text-neutral-400" size={17} />
+          {searchTerm && (
+            <button 
+              onClick={() => setSearchTerm('')} 
+              className="absolute right-3 top-3 text-neutral-400 hover:text-black text-xs font-bold"
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Horizontal Fast Category Filter Bar */}
+      <div className="mb-6 pb-2 overflow-x-auto scrollbar-none flex items-center gap-2">
+        {[
+          { label: 'All Lehengas', value: null },
+          { label: 'Bridal Collection', value: 'Bridal' },
+          { label: 'Navratri & Festive', value: 'Festive' },
+          { label: 'Party & Reception', value: 'Party' },
+          { label: 'Artisan Designer', value: 'Designer' },
+          { label: 'Ready-to-Wear', value: 'Casual' },
+        ].map((tab) => {
+          const isSelected = (!categoryParam && tab.value === null) || (categoryParam?.toLowerCase() === tab.value?.toLowerCase());
+          return (
+            <button
+              key={tab.label}
+              onClick={() => {
+                if (tab.value === null) navigate('/shop');
+                else navigate(`/shop?category=${encodeURIComponent(tab.value)}`);
+              }}
+              className={`px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-all duration-200 border ${
+                isSelected 
+                  ? 'bg-black text-white border-black shadow-sm' 
+                  : 'bg-white text-neutral-700 border-neutral-200 hover:border-black hover:text-black'
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Active Filter Chips */}
+      {(categoryParam || selectedPrices.length > 0 || searchTerm) && (
+        <div className="mb-6 flex flex-wrap items-center gap-2 p-3 bg-neutral-50 rounded-md border border-neutral-200 text-xs">
+          <span className="font-bold text-neutral-500 uppercase tracking-wider text-[10px]">Active Filters:</span>
+          {categoryParam && (
+            <button 
+              onClick={() => navigate('/shop')}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-neutral-300 rounded-full font-medium hover:border-black"
+            >
+              <span>Category: <strong>{categoryParam}</strong></span>
+              <span className="text-neutral-400 font-bold">✕</span>
+            </button>
+          )}
+          {selectedPrices.map((p) => (
+            <button 
+              key={p}
+              onClick={() => handlePriceChange(p)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-neutral-300 rounded-full font-medium hover:border-black"
+            >
+              <span>{p}</span>
+              <span className="text-neutral-400 font-bold">✕</span>
+            </button>
+          ))}
+          {searchTerm && (
+            <button 
+              onClick={() => setSearchTerm('')}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-neutral-300 rounded-full font-medium hover:border-black"
+            >
+              <span>Search: "{searchTerm}"</span>
+              <span className="text-neutral-400 font-bold">✕</span>
+            </button>
+          )}
+          <button 
+            onClick={handleClearAll} 
+            className="text-xs text-black font-bold underline hover:text-neutral-600 ml-auto"
+          >
+            Clear All
+          </button>
+        </div>
+      )}
 
       <div className="flex flex-col md:flex-row gap-8">
         {/* Mobile Filter Toggle Button */}
@@ -217,16 +296,20 @@ const Shop = () => {
                 </div>
               ))
             ) : products.length === 0 ? (
-              <p>No products found.</p>
+              <div className="col-span-full py-16 text-center space-y-3 bg-neutral-50 rounded-sm border border-neutral-200">
+                <p className="font-heading text-xl text-black">No matching lehengas found</p>
+                <p className="text-xs text-neutral-500">Try adjusting your filters or search keywords.</p>
+                <button onClick={handleClearAll} className="btn-primary text-xs py-2 px-5">Reset All Filters</button>
+              </div>
             ) : (
               products.map((item, idx) => (
                 <Link 
                   to={`/product/${item.id}`} 
                   key={item.id} 
-                  className="card group block animate-fade-in"
-                  style={{ animationDelay: `${idx * 0.1}s`, opacity: 0 }}
+                  className="card group block animate-fade-in relative hover:shadow-xl transition-all duration-300 rounded-sm overflow-hidden border border-neutral-200 hover:border-black"
+                  style={{ animationDelay: `${idx * 0.05}s` }}
                 >
-                  <div className="relative h-72 overflow-hidden bg-gray-50">
+                  <div className="relative aspect-[3/4] overflow-hidden bg-neutral-100">
                     <img 
                       src={item.images?.[0]?.url || FALLBACK_IMAGE}
                       alt={item.name} 
@@ -234,30 +317,38 @@ const Shop = () => {
                       className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     />
 
+                    {/* Discount badge */}
+                    {item.discount > 0 && (
+                      <span className="absolute top-3 left-3 bg-black text-white text-[10px] font-bold px-2 py-0.5 rounded-sm tracking-wider uppercase z-20">
+                        -{Math.round(item.discount / 100)}%
+                      </span>
+                    )}
+
                     <button 
                       onClick={(e) => toggleWishlist(e, item.id)}
-                      className={`absolute top-3 right-3 bg-white p-2 rounded-full shadow-sm z-20 transition ${wishlistIds.has(item.id) ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+                      className={`absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm z-20 transition hover:bg-black hover:text-white ${wishlistIds.has(item.id) ? 'text-black' : 'text-neutral-400'}`}
+                      title={wishlistIds.has(item.id) ? "In Wishlist" : "Add to Wishlist"}
                     >
-                      <Heart size={18} fill={wishlistIds.has(item.id) ? "currentColor" : "none"} />
+                      <Heart size={16} fill={wishlistIds.has(item.id) ? "currentColor" : "none"} />
                     </button>
-                    <div className="absolute inset-0 z-10"></div>
                   </div>
                   <div className="p-4">
-                    <h3 className="text-md font-bold text-gray-800 mb-1 truncate group-hover:text-primary transition-colors">{item.name}</h3>
-                    <div className="flex justify-between items-center mt-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-primary text-lg">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-1">{item.category}</p>
+                    <h3 className="text-sm font-semibold text-black mb-1 truncate group-hover:text-neutral-600 transition-colors">{item.name}</h3>
+                    <div className="flex justify-between items-center mt-2.5">
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-bold text-black text-base">
                           ₹{(((item.price || 0) - Math.round((item.price || 0) * ((item.discount || 0) / 10000))) / 100).toFixed(2)}
                         </span>
                         {item.discount > 0 && (
-                          <span className="text-xs text-slate-400 line-through">
+                          <span className="text-xs text-neutral-400 line-through">
                             ₹{((item.price || 0) / 100).toFixed(2)}
                           </span>
                         )}
                       </div>
-                      <button className="text-xs bg-primary text-white px-3 py-1.5 rounded transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 active:scale-95 group-hover:bg-primary-light">
-                        View Details
-                      </button>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-black group-hover:underline">
+                        View Piece →
+                      </span>
                     </div>
                   </div>
                 </Link>
