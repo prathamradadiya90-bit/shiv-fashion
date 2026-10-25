@@ -2,10 +2,13 @@ import axios from 'axios';
 import store from '../store/store';
 import { logout } from '../store/slices/authSlice';
 
-// Backend URL — the backend's CORS middleware echoes the request origin back,
-// so cross-origin requests from any Vercel frontend domain work correctly.
-// VITE_API_URL must be set in Vercel dashboard → frontend project → Environment Variables.
-const BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
+// In production, always use same-origin relative '/api' unless an explicit external API is configured.
+// This guarantees same-origin requests with zero CORS errors and native cookie support on Vercel.
+const BASE_URL = import.meta.env.PROD
+  ? ((import.meta.env.VITE_API_URL && !import.meta.env.VITE_API_URL.includes('shreeji') && !import.meta.env.VITE_API_URL.includes('[SENSITIVE]'))
+      ? import.meta.env.VITE_API_URL
+      : '/api')
+  : (import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
 
 const api = axios.create({
   baseURL: BASE_URL,
