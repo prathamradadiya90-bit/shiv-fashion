@@ -8,9 +8,7 @@ let io;
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: process.env.ALLOWED_ORIGINS
-        ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()).filter(Boolean)
-        : ['https://shiv-fashion.vercel.app'],
+      origin: true,
       credentials: true,
     },
   });

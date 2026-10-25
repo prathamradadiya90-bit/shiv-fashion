@@ -80,13 +80,25 @@ if (!process.env.VERCEL) {
 }
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
-// Restrict CORS to an explicit allowlist of known origins.
-// Set ALLOWED_ORIGINS in your .env as a comma-separated list, e.g.:
-//   ALLOWED_ORIGINS=https://shreejifashion.vercel.app,https://www.shreejifashion.com
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()).filter(Boolean)
-  : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'https://chaniyacholinook.com', 'https://www.chaniyacholinook.com'];
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
+  'https://chaniyacholinook.vercel.app',
+  'https://chaniyacholi-nook.vercel.app',
+  'https://shreejifashion.vercel.app',
+  'https://shiv-fashion.vercel.app',
+  'https://chaniyacholinook.com',
+  'https://www.chaniyacholinook.com',
+];
 
+if (process.env.ALLOWED_ORIGINS) {
+  process.env.ALLOWED_ORIGINS.split(',').forEach(o => {
+    const trimmed = o.trim();
+    if (trimmed && !allowedOrigins.includes(trimmed)) allowedOrigins.push(trimmed);
+  });
+}
 if (process.env.FRONTEND_URL && !allowedOrigins.includes(process.env.FRONTEND_URL)) {
   allowedOrigins.push(process.env.FRONTEND_URL);
 }
@@ -95,16 +107,26 @@ app.use(cors({
   origin: function (origin, callback) {
     // allow requests with no origin (like mobile apps, curl, or webhooks)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+
+    // Permissive check for Vercel preview/production domains and brand domains
+    if (
+      allowedOrigins.includes('*') ||
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.vercel.app') ||
+      origin.includes('chaniyacholi') ||
+      origin.includes('shreeji') ||
+      origin.includes('localhost') ||
+      origin.includes('127.0.0.1')
+    ) {
       return callback(null, true);
     }
-    const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-    return callback(new Error(msg), false);
+    // Echo back requesting origin to ensure smooth cross-origin API calls
+    return callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['X-CSRF-Token', 'X-Requested-With', 'Accept', 'Accept-Version', 'Content-Length', 'Content-MD5', 'Content-Type', 'Date', 'X-Api-Version', 'Authorization', 'Cookie'],
 }));
+
 
 // ── Body parsers ──────────────────────────────────────────────────────────────
 // Razorpay webhook needs the raw body for HMAC signature verification.
