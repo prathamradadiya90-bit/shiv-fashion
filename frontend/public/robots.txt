@@ -27,4 +27,4 @@ Disallow: /reset-password
 Disallow: /api/
 Disallow: /api/*
 
-Sitemap: https://shreejifashion.vercel.app/sitemap.xml
+Sitemap: https://chaniyacholinook.vercel.app/sitemap.xml

@@ -57,7 +57,7 @@ const SEO = ({
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={ogImage} />
-      <meta name="twitter:site" content="@shreejifashion" />
+      <meta name="twitter:site" content="@chaniyacholinook" />
 
       {/* ── JSON-LD Structured Data / Schema Markup ── */}
       {schema && (
